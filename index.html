@@ -64,6 +64,15 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .field input::placeholder{color:#6f737b}
 .loc-btn{border:0;background:transparent;color:var(--accent);font-size:14px;font-weight:500;padding:8px 0 8px 8px;min-height:44px;white-space:nowrap}
 .recent{display:flex;gap:8px;flex-wrap:wrap}
+.sugg{display:none;flex-direction:column;padding:4px 0;max-height:46vh;overflow-y:auto}
+.sugg.on{display:flex}
+.sugg button{display:flex;align-items:center;gap:12px;text-align:left;border:0;background:transparent;padding:10px 16px;min-height:52px;width:100%}
+.sugg button+button{border-top:1px solid var(--line)}
+.sugg button:active,.sugg button:hover{background:#1c1e22}
+.sugg .m{display:block;font-size:16px}
+.sugg .s{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.sugg .pin{flex-shrink:0;color:var(--muted)}
+.sugg .foot{font-size:11px;color:#6f737b;padding:6px 16px 2px;text-align:right}
 .chip{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:0 14px;min-height:36px;font-size:14px;color:var(--muted)}
 
 .toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--card)}
@@ -146,12 +155,14 @@ dialog .row .cta{height:48px;font-size:16px}
       <button class="round" id="spUp" aria-label="Höj maxhastighet">+</button>
     </div>
 
+    <div class="card sugg" id="sugg" role="listbox" aria-label="Sökförslag"></div>
+
     <div class="card fields">
       <div class="field">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5aa2ff" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg>
         <div class="col">
           <label for="from">Från</label>
-          <input id="from" placeholder="Adress eller plats" autocomplete="off" enterkeyhint="next">
+          <input id="from" placeholder="Adress eller plats" autocomplete="off" autocorrect="off" enterkeyhint="next" role="combobox" aria-controls="sugg" aria-autocomplete="list">
         </div>
         <button class="loc-btn" id="useLoc" type="button">Min position</button>
       </div>
@@ -159,7 +170,7 @@ dialog .row .cta{height:48px;font-size:16px}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f2f3f5" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path></svg>
         <div class="col">
           <label for="to">Till</label>
-          <input id="to" placeholder="Adress eller plats" autocomplete="off" enterkeyhint="go">
+          <input id="to" placeholder="Adress eller plats" autocomplete="off" autocorrect="off" enterkeyhint="go" role="combobox" aria-controls="sugg" aria-autocomplete="list">
         </div>
       </div>
     </div>
@@ -211,7 +222,7 @@ dialog .row .cta{height:48px;font-size:16px}
 <dialog id="settings">
   <form method="dialog" id="setForm">
     <h2>Google API-nyckel</h2>
-    <p>Appen behöver en nyckel från Google Cloud med Routes API och Maps JavaScript API påslagna. Nyckeln sparas bara i den här telefonen.</p>
+    <p>Appen behöver en nyckel från Google Cloud med Routes API, Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.</p>
     <label for="keyIn" class="t2" style="display:block;font-size:14px;color:var(--muted);margin-bottom:6px">API-nyckel</label>
     <input class="key" id="keyIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…">
     <div class="row">
@@ -232,7 +243,9 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- State ----------
   let speed = store.get('speed', 30);
-  let origin = null;          // {coords:{lat,lng}} or {address}
+  let origin = null;          // {coords:{lat,lng}} | {placeId,label}
+  let dest = null;            // {placeId,label}
+  let lastPos = store.get('lastPos', null);
   let lastRoute = null;
   let map = null, line = null, markers = [], mapsLoading = null;
 
@@ -262,26 +275,27 @@ dialog .row .cta{height:48px;font-size:16px}
     if (!navigator.geolocation) { setMsg('Telefonen kan inte dela position här. Skriv in en adress i stället.'); return; }
     $('from').value = 'Hämtar position…';
     navigator.geolocation.getCurrentPosition(
-      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; $('from').value = 'Min position'; setMsg(''); },
+      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; lastPos = origin.coords; store.set('lastPos', lastPos); $('from').value = 'Min position'; setMsg(''); hideSugg(); },
       () => { origin = null; $('from').value = ''; setMsg('Positionen kunde inte hämtas. Tillåt plats för Safari under Inställningar › Integritet › Platstjänster, eller skriv en adress.'); },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
   };
-  $('from').addEventListener('input', () => { origin = null; });
+
 
   // ---------- Recent destinations ----------
   const renderRecent = () => {
-    const list = store.get('recent', []);
+    const list = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x);
     $('recent').innerHTML = '';
-    list.forEach(t => {
+    list.forEach(p => {
       const b = document.createElement('button');
-      b.className = 'chip'; b.type = 'button'; b.textContent = t;
-      b.onclick = () => { $('to').value = t; };
+      b.className = 'chip'; b.type = 'button'; b.textContent = p.short || p.label;
+      b.onclick = () => { dest = p.placeId ? p : null; $('to').value = p.label; hideSugg(); };
       $('recent').appendChild(b);
     });
   };
   const addRecent = t => {
-    const list = store.get('recent', []).filter(x => x.toLowerCase() !== t.toLowerCase());
+    const list = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x)
+      .filter(x => x.label.toLowerCase() !== t.label.toLowerCase());
     list.unshift(t); store.set('recent', list.slice(0, 4)); renderRecent();
   };
   renderRecent();
@@ -295,7 +309,7 @@ dialog .row .cta{height:48px;font-size:16px}
     return r ? `${h} h ${r} min` : `${h} h`;
   };
   const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toLocaleString('sv-SE', { maximumFractionDigits: m < 10000 ? 1 : 0 })} km`;
-  const wp = o => o.coords ? { location: { latLng: { latitude: o.coords.lat, longitude: o.coords.lng } } } : { address: o.address };
+  const wp = o => o.coords ? { location: { latLng: { latitude: o.coords.lat, longitude: o.coords.lng } } } : o.placeId ? { placeId: o.placeId } : { address: o.address };
   const decode = str => {
     let i = 0, lat = 0, lng = 0; const out = [];
     while (i < str.length) {
@@ -309,6 +323,75 @@ dialog .row .cta{height:48px;font-size:16px}
     }
     return out;
   };
+
+  // ---------- Sökförslag (Places API New) ----------
+  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+  let session = uuid(), activeField = null, acTimer = null, acSeq = 0, shown = [];
+  const hideSugg = () => { shown = []; $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; };
+  async function autocomplete(text) {
+    const body = { input: text, languageCode: 'sv', includedRegionCodes: ['se'], sessionToken: session };
+    if (lastPos) body.locationBias = { circle: { center: { latitude: lastPos.lat, longitude: lastPos.lng }, radius: 50000 } };
+    const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': getKey(),
+        'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text.text,suggestions.placePrediction.structuredFormat' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 403) throw new Error('Sökförslag kräver Places API (New). Slå på den i Google Cloud och lägg till den i nyckelns API-begränsningar.');
+      throw new Error('Sökförslagen kunde inte hämtas.');
+    }
+    return (data.suggestions || []).map(s => s.placePrediction).filter(Boolean).map(p => ({
+      placeId: p.placeId,
+      label: p.text ? p.text.text : '',
+      main: p.structuredFormat && p.structuredFormat.mainText ? p.structuredFormat.mainText.text : (p.text ? p.text.text : ''),
+      sec: p.structuredFormat && p.structuredFormat.secondaryText ? p.structuredFormat.secondaryText.text : ''
+    }));
+  }
+  function renderSugg(items, field) {
+    shown = items;
+    const box = $('sugg'); box.innerHTML = '';
+    if (!items.length) { hideSugg(); return; }
+    items.forEach(it => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.setAttribute('role', 'option');
+      b.innerHTML = '<svg class="pin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg><span><span class="m"></span><span class="s"></span></span>';
+      b.querySelector('.m').textContent = it.main;
+      b.querySelector('.s').textContent = it.sec;
+      // keep focus in the field so the list isn't hidden before the tap registers
+      b.addEventListener('mousedown', e => e.preventDefault());
+      b.addEventListener('click', () => pick(it, field));
+      box.appendChild(b);
+    });
+    const f = document.createElement('div'); f.className = 'foot'; f.textContent = 'Förslag från Google';
+    box.appendChild(f);
+    box.classList.add('on');
+  }
+  function pick(it, field) {
+    const place = { placeId: it.placeId, label: it.label, short: it.main };
+    $(field).value = it.label;
+    if (field === 'from') origin = place; else dest = place;
+    hideSugg(); session = uuid();
+    if (field === 'from') $('to').focus(); else $('to').blur();
+  }
+  ['from', 'to'].forEach(id => {
+    $(id).addEventListener('input', e => {
+      if (id === 'from') origin = null; else dest = null;
+      activeField = id;
+      const text = e.target.value.trim();
+      clearTimeout(acTimer);
+      if (text.length < 3 || !getKey()) { hideSugg(); return; }
+      acTimer = setTimeout(async () => {
+        const seq = ++acSeq;
+        try {
+          const items = await autocomplete(text);
+          if (seq === acSeq && activeField === id) renderSugg(items, id);
+        } catch (err) { if (seq === acSeq) { hideSugg(); setMsg(err.message); } }
+      }, 250);
+    });
+    $(id).addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('from') && document.activeElement !== $('to')) hideSugg(); }, 150));
+  });
 
   // ---------- Routes API ----------
   async function computeRoute(from, to, avoid) {
@@ -362,9 +445,12 @@ dialog .row .cta{height:48px;font-size:16px}
     $('rWarnText').textContent = a.fastM > 300
       ? `Ungefär ${fmtDist(a.fastM)} av rutten går på vägar där bilar normalt kör över 75 km/h. Kontrollera att det inte är motortrafikled, där A-traktor inte får köra.`
       : 'Kontrollera rutten innan du åker. Motortrafikled är förbjuden för A-traktor och märks inte alltid ut av Google.';
-    const o = r.from.coords ? `${r.from.coords.lat},${r.from.coords.lng}` : r.from.address;
-    const d = r.to.address;
-    $('openGoogle').href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=driving&dir_action=navigate`;
+    const o = r.from.coords ? `${r.from.coords.lat},${r.from.coords.lng}` : (r.from.label || r.from.address);
+    const d = r.to.label || r.to.address;
+    let g = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=driving&dir_action=navigate`;
+    if (r.from.placeId) g += `&origin_place_id=${encodeURIComponent(r.from.placeId)}`;
+    if (r.to.placeId) g += `&destination_place_id=${encodeURIComponent(r.to.placeId)}`;
+    $('openGoogle').href = g;
     $('openApple').href = `https://maps.apple.com/?saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=d`;
   }
 
@@ -416,14 +502,15 @@ dialog .row .cta{height:48px;font-size:16px}
     if (!getKey()) { $('keyIn').value = ''; $('settings').showModal(); return; }
     const toTxt = $('to').value.trim(), fromTxt = $('from').value.trim();
     if (!toTxt) { setMsg('Skriv in vart du ska.'); $('to').focus(); return; }
-    const from = origin || (fromTxt && fromTxt !== 'Min position' ? { address: fromTxt } : null);
+    const from = origin || (fromTxt && fromTxt !== 'Min position' ? { address: fromTxt, label: fromTxt } : null);
     if (!from) { setMsg('Ange var du startar, eller tryck på Min position.'); return; }
-    const to = { address: toTxt };
+    const to = dest || { address: toTxt, label: toTxt };
+    hideSugg();
     const btn = $('go'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Beräknar';
     try {
       const route = await computeRoute(from, to, $('avoid').checked);
-      lastRoute = { route, from, to, fromLabel: from.coords ? 'Min position' : fromTxt, toLabel: toTxt };
-      addRecent(toTxt);
+      lastRoute = { route, from, to, fromLabel: from.coords ? 'Min position' : (from.short || fromTxt), toLabel: to.short || toTxt };
+      addRecent({ placeId: to.placeId, label: to.label || toTxt, short: to.short || to.label || toTxt });
       showResult(lastRoute);
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
       drawMap(route);
@@ -433,7 +520,7 @@ dialog .row .cta{height:48px;font-size:16px}
       btn.disabled = false; btn.textContent = 'Beräkna rutt';
     }
   };
-  ['from', 'to'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); id === 'from' ? $('to').focus() : $('go').click(); } }));
+  ['from', 'to'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (shown.length && (id === 'from' ? !origin : !dest)) { pick(shown[0], id); if (id === 'from') return; } id === 'from' ? $('to').focus() : $('go').click(); } }));
   $('back').onclick = () => { $('v-res').classList.remove('on'); $('v-plan').classList.add('on'); };
 })();
 </script>
