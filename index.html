@@ -113,6 +113,16 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .warn{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;color:var(--warn);font-size:14px;line-height:1.4}
 .warn svg{flex-shrink:0;margin-top:1px}
 .btns{display:flex;flex-direction:column;gap:10px;margin-top:auto}
+.dir{background:var(--card);border:1px solid var(--line);border-radius:12px}
+.dir summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;min-height:48px;font-size:16px;font-weight:500}
+.dir summary::-webkit-details-marker{display:none}
+.dir summary .chev{transition:transform .2s;color:var(--muted)}
+.dir[open] summary .chev{transform:rotate(180deg)}
+.dir ol{list-style:none;margin:0;padding:0 16px 8px;max-height:50vh;overflow-y:auto}
+.dir li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:15px;line-height:1.35}
+.dir li span:last-child{color:var(--muted);white-space:nowrap;font-size:14px}
+.attr{font-size:11px;color:#6f737b;text-align:center}
+.attr a{color:#8a8e96}
 
 /* ---------- Settings ---------- */
 dialog{border:1px solid var(--line);border-radius:18px;background:#0d0e10;color:var(--text);padding:20px;width:min(92vw,420px)}
@@ -178,7 +188,7 @@ dialog .row .cta{height:48px;font-size:16px}
     <div class="recent" id="recent"></div>
 
     <label class="card toggle">
-      <span><span class="t1">Undvik motorvägar</span><span class="t2">Rekommenderas för A-traktor</span></span>
+      <span><span class="t1">Föredra mindre vägar</span><span class="t2">Motorväg och motortrafikled undviks alltid</span></span>
       <span class="switch"><input type="checkbox" id="avoid" checked><span></span></span>
     </label>
 
@@ -206,25 +216,33 @@ dialog .row .cta{height:48px;font-size:16px}
     </div>
     <div class="stats">
       <div class="stat"><span>Sträcka</span><b id="rDist">–</b></div>
-      <div class="stat"><span>Google (bil)</span><b id="rCar">–</b></div>
+      <div class="stat"><span>Ankomst</span><b id="rCar">–</b></div>
     </div>
     <div class="warn" id="rWarn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17.5v.5"></path></svg>
       <div id="rWarnText"></div>
     </div>
+    <details class="dir" id="rDir">
+      <summary>Vägbeskrivning <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <ol id="rSteps"></ol>
+    </details>
     <div class="btns">
       <a class="cta" id="openGoogle" target="_blank" rel="noopener">Öppna i Google Maps</a>
       <a class="cta ghost" id="openApple" target="_blank" rel="noopener">Öppna i Apple Kartor</a>
     </div>
+    <div class="attr">Rutt: Valhalla via Stadia Maps · Kartdata © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
   </div>
 </section>
 
 <dialog id="settings">
   <form method="dialog" id="setForm">
     <h2>Google API-nyckel</h2>
-    <p>Appen behöver en nyckel från Google Cloud med Routes API, Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.</p>
+    <p>Appen behöver en nyckel från Google Cloud med Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.</p>
     <label for="keyIn" class="t2" style="display:block;font-size:14px;color:var(--muted);margin-bottom:6px">API-nyckel</label>
     <input class="key" id="keyIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…">
+    <p style="margin:16px 0 6px">Rutterna beräknas av Stadia Maps. Har du registrerat appens webbadress hos Stadia behövs ingen nyckel här. Annars kan du klistra in din Stadia-nyckel.</p>
+    <label for="stadiaIn" class="t2" style="display:block;font-size:14px;color:var(--muted);margin-bottom:6px">Stadia-nyckel (valfri)</label>
+    <input class="key" id="stadiaIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Lämna tom vid domänbehörighet">
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit">Spara</button>
@@ -251,8 +269,8 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- Speed ----------
   const renderSpeed = () => { $('spVal').textContent = speed; $('rSub').textContent = `vid ${speed} km/h`; };
-  $('spDown').onclick = () => { speed = Math.max(5, speed - 5); store.set('speed', speed); renderSpeed(); if (lastRoute) showResult(lastRoute); };
-  $('spUp').onclick = () => { speed = Math.min(90, speed + 5); store.set('speed', speed); renderSpeed(); if (lastRoute) showResult(lastRoute); };
+  $('spDown').onclick = () => { speed = Math.max(5, speed - 5); store.set('speed', speed); renderSpeed(); };
+  $('spUp').onclick = () => { speed = Math.min(90, speed + 5); store.set('speed', speed); renderSpeed(); };
   renderSpeed();
 
   // ---------- Avoid highways ----------
@@ -261,10 +279,12 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- Settings / key ----------
   const getKey = () => store.get('key', '');
-  $('openSettings').onclick = () => { $('keyIn').value = getKey(); $('settings').showModal(); };
+  const getStadia = () => store.get('stadiaKey', '');
+  $('openSettings').onclick = () => { $('keyIn').value = getKey(); $('stadiaIn').value = getStadia(); $('settings').showModal(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
       store.set('key', $('keyIn').value.trim());
+      store.set('stadiaKey', $('stadiaIn').value.trim());
       mapsLoading = null;
     }
   });
@@ -289,7 +309,7 @@ dialog .row .cta{height:48px;font-size:16px}
     list.forEach(p => {
       const b = document.createElement('button');
       b.className = 'chip'; b.type = 'button'; b.textContent = p.short || p.label;
-      b.onclick = () => { dest = p.placeId ? p : null; $('to').value = p.label; hideSugg(); };
+      b.onclick = () => { dest = (p.placeId || p.loc) ? { ...p } : null; $('to').value = p.label; hideSugg(); };
       $('recent').appendChild(b);
     });
   };
@@ -310,7 +330,7 @@ dialog .row .cta{height:48px;font-size:16px}
   };
   const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toLocaleString('sv-SE', { maximumFractionDigits: m < 10000 ? 1 : 0 })} km`;
   const wp = o => o.coords ? { location: { latLng: { latitude: o.coords.lat, longitude: o.coords.lng } } } : o.placeId ? { placeId: o.placeId } : { address: o.address };
-  const decode = str => {
+  const decode = (str, prec = 1e6) => {
     let i = 0, lat = 0, lng = 0; const out = [];
     while (i < str.length) {
       let b, s = 0, r = 0;
@@ -319,7 +339,7 @@ dialog .row .cta{height:48px;font-size:16px}
       s = 0; r = 0;
       do { b = str.charCodeAt(i++) - 63; r |= (b & 31) << s; s += 5; } while (b >= 32);
       lng += (r & 1) ? ~(r >> 1) : (r >> 1);
-      out.push({ lat: lat / 1e5, lng: lng / 1e5 });
+      out.push({ lat: lat / prec, lng: lng / prec });
     }
     return out;
   };
@@ -393,63 +413,71 @@ dialog .row .cta{height:48px;font-size:16px}
     $(id).addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('from') && document.activeElement !== $('to')) hideSugg(); }, 150));
   });
 
-  // ---------- Routes API ----------
-  async function computeRoute(from, to, avoid) {
-    const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': getKey(),
-        'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.staticDuration,routes.polyline.encodedPolyline,routes.legs.steps.distanceMeters,routes.legs.steps.staticDuration'
-      },
-      body: JSON.stringify({
-        origin: wp(from), destination: wp(to),
-        travelMode: 'DRIVE', routingPreference: 'TRAFFIC_UNAWARE',
-        routeModifiers: { avoidHighways: avoid },
-        languageCode: 'sv-SE', regionCode: 'SE', units: 'METRIC'
-      })
+  // ---------- Platser → koordinater (Google Place Details) ----------
+  async function placeLocation(p) {
+    if (p.coords) return p.coords;
+    if (p.loc) return p.loc;
+    if (!p.placeId) {
+      const items = await autocomplete(p.address || p.label || '');
+      if (!items.length) throw new Error(`Hittade ingen plats som heter "${p.address || p.label}". Välj ett förslag i listan.`);
+      Object.assign(p, { placeId: items[0].placeId, label: items[0].label, short: items[0].main });
+    }
+    const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(p.placeId)}?sessionToken=${encodeURIComponent(session)}&languageCode=sv`, {
+      headers: { 'X-Goog-Api-Key': getKey(), 'X-Goog-FieldMask': 'location' }
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const m = (data.error && data.error.message) || '';
-      if (res.status === 400 && /API key/i.test(m)) throw new Error('API-nyckeln godkändes inte. Kontrollera den under Inställningar.');
-      if (res.status === 403) throw new Error('Nyckeln saknar behörighet. Slå på Routes API i Google Cloud och kontrollera att webbadressen är tillåten för nyckeln.');
-      throw new Error('Rutten kunde inte beräknas. ' + m);
-    }
-    if (!data.routes || !data.routes.length) throw new Error('Ingen rutt hittades. Kontrollera adresserna och försök igen.');
-    return data.routes[0];
+    if (!res.ok || !data.location) throw new Error('Platsens position kunde inte hämtas. Kontrollera att Places API (New) är påslagen för nyckeln.');
+    p.loc = { lat: data.location.latitude, lng: data.location.longitude };
+    return p.loc;
   }
 
-  // ---------- 30 km/h calculation ----------
-  function analyse(route) {
-    const vmax = speed / 3.6; // m/s
-    let t = 0, fastM = 0;
-    const steps = (route.legs || []).flatMap(l => l.steps || []);
-    steps.forEach(s => {
-      const d = s.distanceMeters || 0, dur = secs(s.staticDuration);
-      if (!d) return;
-      const v = dur > 0 ? d / dur : vmax;
-      t += d / Math.min(v, vmax);
-      if (v * 3.6 > 75) fastM += d;
-    });
-    if (!steps.length) t = (route.distanceMeters || 0) / vmax;
-    return { t, fastM };
+  // ---------- Valhalla (Stadia Maps) ----------
+  async function computeRoute(a, b, minor) {
+    const top = Math.max(20, Math.min(120, speed));
+    const body = {
+      locations: [{ lat: a.lat, lon: a.lng, type: 'break' }, { lat: b.lat, lon: b.lng, type: 'break' }],
+      costing: 'motor_scooter',
+      costing_options: { motor_scooter: { top_speed: top, use_primary: minor ? 0.15 : 0.5, use_hills: 1, use_ferry: 0.5 } },
+      units: 'kilometers', language: 'sv-SE'
+    };
+    const k = getStadia();
+    const url = 'https://api.stadiamaps.com/route/v1' + (k ? `?api_key=${encodeURIComponent(k)}` : '');
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401 || res.status === 403) throw new Error('Stadia Maps nekade anropet. Registrera appens webbadress i ditt Stadia-konto eller lägg in en Stadia-nyckel under Inställningar.');
+    if (!res.ok || !data.trip) {
+      const m = data.error || data.status_message || '';
+      if (/no path|No suitable edges/i.test(m)) throw new Error('Ingen laglig väg hittades mellan platserna för fordonet. Prova en annan start- eller målpunkt.');
+      throw new Error('Rutten kunde inte beräknas. ' + m);
+    }
+    return data.trip;
   }
 
   function showResult(r) {
-    const a = analyse(r.route);
+    const t = r.trip, sum = t.summary || {};
+    // Valhalla räknar redan med top_speed; vid lägre hastighet än 20 skalas tiden linjärt
+    let time = sum.time || 0;
+    if (speed < 20) time = time * 20 / speed;
     $('rName').textContent = `${r.fromLabel} → ${r.toLabel}`;
-    $('rTime').textContent = fmtTime(a.t);
-    $('rDist').textContent = fmtDist(r.route.distanceMeters || 0);
-    $('rCar').textContent = fmtTime(secs(r.route.staticDuration || r.route.duration));
-    $('rWarnText').textContent = a.fastM > 300
-      ? `Ungefär ${fmtDist(a.fastM)} av rutten går på vägar där bilar normalt kör över 75 km/h. Kontrollera att det inte är motortrafikled, där A-traktor inte får köra.`
-      : 'Kontrollera rutten innan du åker. Motortrafikled är förbjuden för A-traktor och märks inte alltid ut av Google.';
-    const o = r.from.coords ? `${r.from.coords.lat},${r.from.coords.lng}` : (r.from.label || r.from.address);
-    const d = r.to.label || r.to.address;
+    $('rTime').textContent = fmtTime(time);
+    $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
+    $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+    $('rWarnText').textContent = 'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.';
+    // Vägbeskrivning
+    const ol = $('rSteps'); ol.innerHTML = '';
+    (t.legs || []).forEach(l => (l.maneuvers || []).forEach(m => {
+      const li = document.createElement('li');
+      const a = document.createElement('span'); a.textContent = m.instruction || '';
+      const b = document.createElement('span'); b.textContent = m.length ? fmtDist(m.length * 1000) : '';
+      li.append(a, b); ol.appendChild(li);
+    }));
+    $('rDir').open = false;
+    // Navigering i Google Maps: styr längs A-traktorrutten med mellanpunkter
+    const o = `${r.a.lat},${r.a.lng}`, d = `${r.b.lat},${r.b.lng}`;
+    const pts = r.path, n = pts.length;
+    const via = n > 20 ? [0.25, 0.5, 0.75].map(f => pts[Math.floor(n * f)]).map(p => `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`).join('|') : '';
     let g = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=driving&dir_action=navigate`;
-    if (r.from.placeId) g += `&origin_place_id=${encodeURIComponent(r.from.placeId)}`;
-    if (r.to.placeId) g += `&destination_place_id=${encodeURIComponent(r.to.placeId)}`;
+    if (via) g += `&waypoints=${encodeURIComponent(via)}`;
     $('openGoogle').href = g;
     $('openApple').href = `https://maps.apple.com/?saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=d`;
   }
@@ -480,9 +508,8 @@ dialog .row .cta{height:48px;font-size:16px}
     });
     return mapsLoading;
   }
-  async function drawMap(route) {
+  async function drawMap(path) {
     try { await loadMaps(); } catch { return; }
-    const path = decode(route.polyline.encodedPolyline);
     if (!map) {
       map = new google.maps.Map($('map'), { styles: darkStyle, disableDefaultUI: true, gestureHandling: 'greedy', backgroundColor: '#0c0d0f', center: path[0], zoom: 11 });
     }
@@ -508,12 +535,15 @@ dialog .row .cta{height:48px;font-size:16px}
     hideSugg();
     const btn = $('go'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Beräknar';
     try {
-      const route = await computeRoute(from, to, $('avoid').checked);
-      lastRoute = { route, from, to, fromLabel: from.coords ? 'Min position' : (from.short || fromTxt), toLabel: to.short || toTxt };
-      addRecent({ placeId: to.placeId, label: to.label || toTxt, short: to.short || to.label || toTxt });
+      const [a, b] = await Promise.all([placeLocation(from), placeLocation(to)]);
+      session = uuid();
+      const trip = await computeRoute(a, b, $('avoid').checked);
+      const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
+      lastRoute = { trip, path, a, b, from, to, fromLabel: from.coords ? 'Min position' : (from.short || fromTxt), toLabel: to.short || toTxt };
+      addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
       showResult(lastRoute);
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
-      drawMap(route);
+      drawMap(path);
     } catch (e) {
       setMsg(e.message || 'Något gick fel. Kontrollera anslutningen och försök igen.');
     } finally {
