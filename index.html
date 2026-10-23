@@ -48,7 +48,7 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .icon-btn{width:44px;height:44px;border-radius:999px;border:1px solid var(--line2);background:rgba(0,0,0,.6);
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .spacer{flex:1;min-height:150px}
-.speed{display:flex;align-items:center;justify-content:flex-end;gap:14px}
+.speed{display:flex;align-items:center;justify-content:flex-end;gap:14px;cursor:pointer}
 .round{width:44px;height:44px;border-radius:999px;border:1px solid var(--line2);background:rgba(0,0,0,.6);font-size:20px}
 .speed-val{display:flex;flex-direction:column;align-items:center;min-width:64px}
 .speed-val b{font-family:var(--cond);font-size:52px;font-weight:600;line-height:1}
@@ -124,14 +124,11 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .attr{font-size:11px;color:#6f737b;text-align:center}
 .attr a{color:#8a8e96}
 
-.ext{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ext .cta{height:48px;font-size:15px;letter-spacing:1px}
-.ext-note{font-size:12px;color:#6f737b;text-align:center}
 
 /* ---------- Navigering ---------- */
 #v-nav{position:relative;background:#0c0d0f}
 #v-nav.on{display:block;height:100vh;height:100dvh}
-.nav-map{position:absolute;inset:0}
+#navMap.nav-map{position:absolute;inset:0;width:100%;height:100%}
 .nav-map .maplibregl-ctrl-attrib{background:rgba(0,0,0,.5)!important;font-size:10px}
 .nav-map .maplibregl-ctrl-attrib a{color:#9a9ea6!important}
 .nav-top{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);
@@ -158,12 +155,31 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .nav-btns .round{width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .me{width:22px;height:22px;border-radius:999px;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 6px rgba(90,162,255,.25)}
 
+/* ---------- Aja baja ---------- */
+#ajabaja{text-align:center;overflow:hidden;position:relative;padding:28px 22px 22px}
+#ajabaja .lights{position:absolute;inset:-40% -20% auto;height:70%;pointer-events:none;
+  background:radial-gradient(closest-side at 25% 60%,rgba(255,60,60,.55),transparent),radial-gradient(closest-side at 75% 60%,rgba(60,120,255,.55),transparent);
+  animation:siren .5s steps(1) infinite}
+@keyframes siren{0%{opacity:1;filter:hue-rotate(0)}50%{opacity:1;filter:hue-rotate(180deg)}}
+#ajabaja .emo{position:relative;font-size:64px;line-height:1;display:inline-block;animation:wag 0.9s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes wag{0%,100%{transform:rotate(-14deg)}50%{transform:rotate(14deg)}}
+#ajabaja h2{position:relative;font-family:var(--cond);font-size:40px;font-weight:700;letter-spacing:1px;margin:12px 0 6px}
+#ajabaja p{position:relative;font-size:16px;color:#d5d8dd;margin:0 0 18px}
+#ajabaja .row{position:relative;display:flex;flex-direction:column;gap:10px}
+#ajabaja .cta{height:50px}
+#ajabaja .cta.ghost{font-size:14px;letter-spacing:1px}
+#ajabaja[open]{animation:pop .35s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){#ajabaja .lights,#ajabaja .emo,#ajabaja[open]{animation:none}}
+
 /* ---------- Settings ---------- */
 dialog{border:1px solid var(--line);border-radius:18px;background:#0d0e10;color:var(--text);padding:20px;width:min(92vw,420px)}
 dialog::backdrop{background:rgba(0,0,0,.7)}
 dialog h2{margin:0 0 8px;font-size:22px;font-weight:600}
 dialog p{margin:0 0 14px;font-size:14px;line-height:1.45;color:var(--muted)}
 dialog .key{width:100%;height:48px;border-radius:10px;border:1px solid var(--line2);background:#000;padding:0 12px;font-size:16px}
+dialog select.key{appearance:none;-webkit-appearance:none;background:#000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a9ea6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center}
+dialog{max-height:90vh;overflow-y:auto}
 dialog .row{display:flex;gap:10px;margin-top:14px}
 dialog .row .cta{height:48px;font-size:16px}
 .spin{width:18px;height:18px;border-radius:999px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;animation:sp .8s linear infinite;margin-right:10px}
@@ -193,10 +209,8 @@ dialog .row .cta{height:48px;font-size:16px}
 
     <div class="spacer"></div>
 
-    <div class="speed">
-      <button class="round" id="spDown" aria-label="Sänk maxhastighet">−</button>
+    <div class="speed" id="speedBox" role="button" tabindex="0" aria-label="Ändra maxhastighet i inställningar">
       <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span>km/h max</span></div>
-      <button class="round" id="spUp" aria-label="Höj maxhastighet">+</button>
     </div>
 
     <div class="card sugg" id="sugg" role="listbox" aria-label="Sökförslag"></div>
@@ -258,11 +272,6 @@ dialog .row .cta{height:48px;font-size:16px}
     </div>
     <div class="btns">
       <button class="cta" id="startNav">Starta navigering</button>
-      <div class="ext">
-        <a class="cta ghost" id="openGoogle" target="_blank" rel="noopener">Google Maps</a>
-        <a class="cta ghost" id="openApple" target="_blank" rel="noopener">Apple Kartor</a>
-      </div>
-      <div class="ext-note">Google och Apple räknar med biltid och egen rutt.</div>
     </div>
     <div class="attr">Rutt: Valhalla via Stadia Maps · Kartdata © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
   </div>
@@ -293,15 +302,27 @@ dialog .row .cta{height:48px;font-size:16px}
   </div>
 </section>
 
+<dialog id="ajabaja" aria-labelledby="ajaTitle">
+  <div class="lights" aria-hidden="true"></div>
+  <div class="emo" aria-hidden="true">☝️</div>
+  <h2 id="ajaTitle">Aja baja!</h2>
+  <p>Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.</p>
+  <div class="row">
+    <button class="cta" id="ajaOk" type="button">Okej, 30 km/h</button>
+    <button class="cta ghost" id="ajaKeep" type="button">Det är inte en A-traktor</button>
+  </div>
+</dialog>
+
 <dialog id="settings">
   <form method="dialog" id="setForm">
-    <h2>Google API-nyckel</h2>
+    <h2>Inställningar</h2>
+    <label for="speedIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px">Fordonets maxhastighet</label>
+    <select class="key" id="speedIn"><option value="10">10 km/h</option><option value="15">15 km/h</option><option value="20">20 km/h</option><option value="25">25 km/h</option><option value="30">30 km/h</option><option value="35">35 km/h</option><option value="40">40 km/h</option><option value="45">45 km/h</option><option value="50">50 km/h</option><option value="55">55 km/h</option><option value="60">60 km/h</option><option value="65">65 km/h</option><option value="70">70 km/h</option><option value="75">75 km/h</option><option value="80">80 km/h</option><option value="85">85 km/h</option><option value="90">90 km/h</option></select>
+    <p style="margin:6px 0 18px">Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.</p>
+    <h3 style="margin:0 0 6px;font-size:17px;font-weight:600">Google API-nyckel</h3>
     <p>Appen behöver en nyckel från Google Cloud med Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.</p>
     <label for="keyIn" class="t2" style="display:block;font-size:14px;color:var(--muted);margin-bottom:6px">API-nyckel</label>
     <input class="key" id="keyIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…">
-    <p style="margin:16px 0 6px">Rutterna beräknas av Stadia Maps. Har du registrerat appens webbadress hos Stadia behövs ingen nyckel här. Annars kan du klistra in din Stadia-nyckel.</p>
-    <label for="stadiaIn" class="t2" style="display:block;font-size:14px;color:var(--muted);margin-bottom:6px">Stadia-nyckel (valfri)</label>
-    <input class="key" id="stadiaIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Lämna tom vid domänbehörighet">
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit">Spara</button>
@@ -328,9 +349,9 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- Speed ----------
   const renderSpeed = () => { $('spVal').textContent = speed; $('rSub').textContent = `vid ${speed} km/h`; };
-  $('spDown').onclick = () => { speed = Math.max(5, speed - 5); store.set('speed', speed); renderSpeed(); };
-  $('spUp').onclick = () => { speed = Math.min(90, speed + 5); store.set('speed', speed); renderSpeed(); };
   renderSpeed();
+  $('speedBox').onclick = () => $('openSettings').click();
+  $('speedBox').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('openSettings').click(); } };
 
   // ---------- Avoid highways ----------
   $('avoid').checked = store.get('avoid', true);
@@ -338,15 +359,27 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- Settings / key ----------
   const getKey = () => store.get('key', '');
-  const getStadia = () => store.get('stadiaKey', '');
-  $('openSettings').onclick = () => { $('keyIn').value = getKey(); $('stadiaIn').value = getStadia(); $('settings').showModal(); };
+  const getStadia = () => ''; // Stadia använder domänbehörighet
+  $('openSettings').onclick = () => { $('keyIn').value = getKey(); $('speedIn').value = String(speed); $('settings').showModal(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
       store.set('key', $('keyIn').value.trim());
-      store.set('stadiaKey', $('stadiaIn').value.trim());
+      speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed); renderSpeed();
       mapsLoading = null;
     }
   });
+
+  // ---------- Aja baja ----------
+  let ajaPrev = 30;
+  $('speedIn').addEventListener('focus', () => { ajaPrev = parseInt($('speedIn').value, 10) || 30; });
+  $('speedIn').addEventListener('change', () => {
+    const v = parseInt($('speedIn').value, 10);
+    if (v > 30 && ajaPrev <= 30) $('ajabaja').showModal();
+    ajaPrev = v;
+  });
+  $('ajaOk').onclick = () => { $('speedIn').value = '30'; ajaPrev = 30; $('ajabaja').close(); };
+  $('ajaKeep').onclick = () => $('ajabaja').close();
+  $('ajabaja').addEventListener('cancel', e => { e.preventDefault(); $('ajaOk').click(); });
 
   // ---------- Origin: my position ----------
   const setMsg = t => { $('msg').textContent = t || ''; };
@@ -506,7 +539,7 @@ dialog .row .cta{height:48px;font-size:16px}
     const url = 'https://api.stadiamaps.com/route/v1' + (k ? `?api_key=${encodeURIComponent(k)}` : '');
     const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
-    if (res.status === 401 || res.status === 403) throw new Error('Stadia Maps nekade anropet. Registrera appens webbadress i ditt Stadia-konto eller lägg in en Stadia-nyckel under Inställningar.');
+    if (res.status === 401 || res.status === 403) throw new Error('Stadia Maps nekade anropet. Kontrollera att appens webbadress är registrerad i ditt Stadia-konto.');
     if (!res.ok || !data.trip) {
       const m = data.error || data.status_message || '';
       if (/no path|No suitable edges/i.test(m)) throw new Error('Ingen laglig väg hittades mellan platserna för fordonet. Prova en annan start- eller målpunkt.');
@@ -525,9 +558,6 @@ dialog .row .cta{height:48px;font-size:16px}
     $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
     $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
     $('rWarnText').textContent = 'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.';
-    const o = `${r.a.lat},${r.a.lng}`, d = `${r.b.lat},${r.b.lng}`;
-    $('openGoogle').href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=driving`;
-    $('openApple').href = `https://maps.apple.com/?saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=d`;
   }
 
   // ---------- Map ----------
@@ -641,35 +671,59 @@ dialog .row .cta{height:48px;font-size:16px}
   document.addEventListener('visibilitychange', () => { if (N && document.visibilityState === 'visible') keepAwake(); });
 
   let nmap = null, mapLib = null;
+  function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
   function loadMapLibre() {
     if (window.maplibregl) return Promise.resolve();
     if (mapLib) return mapLib;
-    mapLib = new Promise((res, rej) => {
-      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(l);
-      const s = document.createElement('script'); s.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js';
-      s.onload = res; s.onerror = () => { mapLib = null; rej(); }; document.head.appendChild(s);
-    });
+    const css = v => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = v; document.head.appendChild(l); };
+    mapLib = (async () => {
+      try { css('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'); await loadScript('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'); }
+      catch { css('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'); await loadScript('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'); }
+    })().catch(e => { mapLib = null; throw e; });
     return mapLib;
   }
   const routeGeo = path => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: path.map(p => [p.lng, p.lat]) } });
+  // Reservkarta: mörka rasterbrickor från CARTO (OpenStreetMap-data)
+  const FALLBACK_STYLE = {
+    version: 8,
+    sources: { carto: { type: 'raster', tileSize: 256, maxzoom: 19,
+      tiles: ['a', 'b', 'c', 'd'].map(sd => 'https://' + sd + '.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'),
+      attribution: '© OpenStreetMap © CARTO' } },
+    layers: [{ id: 'carto', type: 'raster', source: 'carto' }]
+  };
+  function addRouteLayers() {
+    if (!nmap || !N) return;
+    const data = routeGeo(N.path);
+    if (nmap.getSource('route')) { nmap.getSource('route').setData(data); return; }
+    nmap.addSource('route', { type: 'geojson', data });
+    nmap.addLayer({ id: 'route-casing', type: 'line', source: 'route', paint: { 'line-color': '#0b2a52', 'line-width': 11 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+    nmap.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': '#5aa2ff', 'line-width': 7 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+  }
+  function ensureMarker(p) {
+    if (!N || N.marker || !nmap) return;
+    const el = document.createElement('div'); el.className = 'me';
+    N.marker = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(nmap);
+  }
   async function initNavMap(path) {
-    try { await loadMapLibre(); } catch { return; }
-    const k = getStadia();
+    try { await loadMapLibre(); }
+    catch { $('nBanner').textContent = 'Kartan kunde inte laddas (ingen kontakt med kartbiblioteket). Navigeringen fungerar ändå.'; $('nBanner').hidden = false; return; }
     if (!nmap) {
-      nmap = new maplibregl.Map({ container: 'navMap', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json' + (k ? `?api_key=${encodeURIComponent(k)}` : ''),
-        center: [path[0].lng, path[0].lat], zoom: 16, pitch: 45, attributionControl: { compact: true } });
-      const el = document.createElement('div'); el.className = 'me';
-      N.marker = new maplibregl.Marker({ element: el }).setLngLat([path[0].lng, path[0].lat]).addTo(nmap);
-      nmap.on('load', () => {
-        nmap.addSource('route', { type: 'geojson', data: routeGeo(N ? N.path : path) });
-        nmap.addLayer({ id: 'route-casing', type: 'line', source: 'route', paint: { 'line-color': '#0b2a52', 'line-width': 11 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-        nmap.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': '#5aa2ff', 'line-width': 7 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      const k = getStadia();
+      let fellBack = false;
+      const fallback = () => { if (fellBack || !nmap) return; fellBack = true; nmap.setStyle(FALLBACK_STYLE); };
+      nmap = new maplibregl.Map({
+        container: 'navMap',
+        style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json' + (k ? `?api_key=${encodeURIComponent(k)}` : ''),
+        center: [path[0].lng, path[0].lat], zoom: 16, pitch: 45, attributionControl: { compact: true }
       });
+      nmap.on('style.load', addRouteLayers);
+      nmap.on('error', e => { if (!fellBack && (!nmap.isStyleLoaded() || /stadiamaps/.test((e.error && e.error.url) || '') || (e.error && /40[13]/.test(String(e.error.status))))) fallback(); });
+      setTimeout(() => { if (nmap && !nmap.isStyleLoaded()) fallback(); }, 6000);
     } else {
       nmap.resize();
-      const src = nmap.getSource('route'); if (src) src.setData(routeGeo(path));
-      if (!N.marker) { const el = document.createElement('div'); el.className = 'me'; N.marker = new maplibregl.Marker({ element: el }).setLngLat([path[0].lng, path[0].lat]).addTo(nmap); }
+      addRouteLayers();
     }
+    ensureMarker(path[0]);
   }
 
   function render(pos) {
@@ -702,7 +756,7 @@ dialog .row .cta{height:48px;font-size:16px}
       const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
       const keep = { marker: N.marker, watch: N.watch };
       N = Object.assign(buildNav(trip, path), keep);
-      if (nmap && nmap.getSource('route')) nmap.getSource('route').setData(routeGeo(path));
+      addRouteLayers();
       $('nBanner').hidden = true; speak('Ny rutt beräknad.');
     } catch {
       $('nBanner').textContent = 'Ny rutt kunde inte beräknas. Försöker igen strax.';
@@ -728,7 +782,7 @@ dialog .row .cta{height:48px;font-size:16px}
     if (N.marker) N.marker.setLngLat([p.lng, p.lat]);
     if (nmap) {
       const h = pos.coords.heading;
-      nmap.easeTo({ center: [p.lng, p.lat], bearing: (h != null && !isNaN(h) && kmh > 3) ? h : nmap.getBearing(), zoom: 16.5, pitch: 45, duration: 900 });
+      nmap.easeTo({ center: [p.lng, p.lat], bearing: (h != null && !isNaN(h) && kmh > 3) ? h : nmap.getBearing(), zoom: 16.5, pitch: 50, padding: { top: 260, bottom: 200, left: 0, right: 0 }, duration: 900 });
     }
   }
 
