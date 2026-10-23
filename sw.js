@@ -1,5 +1,5 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v3';
+const VERSION = 'slowlane-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const LIBS = ['cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 

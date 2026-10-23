@@ -66,15 +66,27 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .field input::placeholder{color:#6f737b}
 .loc-btn{border:0;background:transparent;color:var(--accent);font-size:14px;font-weight:500;padding:8px 0 8px 8px;min-height:44px;white-space:nowrap}
 .recent{display:flex;gap:8px;flex-wrap:wrap}
-.sugg{display:none;flex-direction:column;padding:4px 0;max-height:46vh;overflow-y:auto}
-.sugg.on{display:flex}
-.sugg button{display:flex;align-items:center;gap:12px;text-align:left;border:0;background:transparent;padding:10px 16px;min-height:52px;width:100%}
-.sugg button+button{border-top:1px solid var(--line)}
-.sugg button:active,.sugg button:hover{background:#1c1e22}
-.sugg .m{display:block;font-size:16px}
-.sugg .s{display:block;font-size:13px;color:var(--muted);margin-top:2px}
-.sugg .pin{flex-shrink:0;color:var(--muted)}
-.sugg .foot{font-size:11px;color:#6f737b;padding:6px 16px 2px;text-align:right}
+.search{position:fixed;left:0;right:0;top:0;height:100%;z-index:60;background:#000;display:flex;flex-direction:column;max-width:480px;margin:0 auto;will-change:transform}
+.search[hidden]{display:none}
+.s-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 12px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
+.s-field{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:6px 12px}
+.s-field label{font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.s-field input{border:0;outline:none;background:transparent;font-size:17px;padding:0;width:100%;color:var(--text)}
+.s-field input::-webkit-search-cancel-button{display:none}
+.s-clear{width:44px;height:44px;border:0;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s-list{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:12px}
+.s-list button{display:flex;align-items:center;gap:14px;text-align:left;border:0;background:transparent;padding:12px 18px;min-height:60px;width:100%}
+.s-list button+button{border-top:1px solid var(--line)}
+.s-list button:active{background:#1c1e22}
+.s-list .m{display:block;font-size:16px}
+.s-list .s{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.s-list .ico{flex-shrink:0;width:36px;height:36px;border-radius:999px;background:#16181c;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.s-list .ico.loc{color:var(--accent);background:#1b2433}
+.s-clear[hidden]{display:none}
+.s-sec{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:16px 18px 6px}
+.s-empty{font-size:15px;color:var(--muted);padding:20px 18px}
+.s-foot{font-size:11px;color:#6f737b;padding:10px 18px;text-align:right}
+.field input[readonly]{cursor:pointer;-webkit-user-select:none;user-select:none}
 .chip{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:0 14px;min-height:36px;font-size:14px;color:var(--muted)}
 
 .toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--card)}
@@ -216,14 +228,12 @@ dialog .row .cta{height:48px;font-size:16px}
       <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span data-i18n="kmhMax">km/h max</span></div>
     </div>
 
-    <div class="card sugg" id="sugg" role="listbox" data-i18n-aria="suggAria" aria-label="Sökförslag"></div>
-
     <div class="card fields">
       <div class="field">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5aa2ff" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg>
         <div class="col">
           <label for="from" data-i18n="from">Från</label>
-          <input id="from" data-i18n-ph="addrPh" placeholder="Adress eller plats" autocomplete="off" autocorrect="off" enterkeyhint="next" role="combobox" aria-controls="sugg" aria-autocomplete="list">
+          <input id="from" data-i18n-ph="addrPh" placeholder="Adress eller plats" readonly autocomplete="off">
         </div>
         <button class="loc-btn" id="useLoc" type="button" data-i18n="myPos">Min position</button>
       </div>
@@ -231,7 +241,7 @@ dialog .row .cta{height:48px;font-size:16px}
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f2f3f5" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path></svg>
         <div class="col">
           <label for="to" data-i18n="to">Till</label>
-          <input id="to" data-i18n-ph="addrPh" placeholder="Adress eller plats" autocomplete="off" autocorrect="off" enterkeyhint="go" role="combobox" aria-controls="sugg" aria-autocomplete="list">
+          <input id="to" data-i18n-ph="addrPh" placeholder="Adress eller plats" readonly autocomplete="off">
         </div>
       </div>
     </div>
@@ -279,6 +289,22 @@ dialog .row .cta{height:48px;font-size:16px}
     <div class="attr"><span data-i18n="attr">Rutt: Valhalla via Stadia Maps · Kartdata</span> © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
   </div>
 </section>
+
+<div class="search" id="search" hidden role="dialog" aria-modal="true" aria-labelledby="sLbl">
+  <div class="s-head">
+    <button class="icon-btn" id="sBack" type="button" data-i18n-aria="back" aria-label="Tillbaka">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div class="s-field">
+      <label for="sIn" id="sLbl">Till</label>
+      <input id="sIn" type="search" data-i18n-ph="addrPh" placeholder="Adress eller plats" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" enterkeyhint="search" role="combobox" aria-controls="sugg" aria-autocomplete="list" aria-expanded="true">
+    </div>
+    <button class="s-clear" id="sClear" type="button" data-i18n-aria="clear" aria-label="Rensa" hidden>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+    </button>
+  </div>
+  <div class="s-list" id="sugg" role="listbox" data-i18n-aria="suggAria" aria-label="Sökförslag"></div>
+</div>
 
 <section class="view" id="v-nav" data-i18n-aria="navAria" aria-label="Navigering">
   <div class="nav-map" id="navMap"></div>
@@ -345,7 +371,7 @@ dialog .row .cta{height:48px;font-size:16px}
   const STR = {
     sv: {
       planAria:'Planera resa', where:'Vart ska du?', settings:'Inställningar', speedAria:'Ändra maxhastighet i inställningar', kmhMax:'km/h max',
-      suggAria:'Sökförslag', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Föredra mindre vägar',
+      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Föredra mindre vägar',
       minorSub:'Motorväg och motortrafikled undviks alltid', calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
       dist:'Sträcka', arrival:'Ankomst', startNav:'Starta navigering', attr:'Rutt: Valhalla via Stadia Maps · Kartdata', navAria:'Navigering',
       end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor',
@@ -371,7 +397,7 @@ dialog .row .cta{height:48px;font-size:16px}
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
-      suggAria:'Suggestions', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prefer smaller roads',
+      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prefer smaller roads',
       minorSub:'Motorways and expressways are always avoided', calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
       dist:'Distance', arrival:'Arrival', startNav:'Start navigation', attr:'Route: Valhalla via Stadia Maps · Map data', navAria:'Navigation',
       end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor',
@@ -450,7 +476,8 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- Origin: my position ----------
   const setMsg = t => { $('msg').textContent = t || ''; };
-  $('useLoc').onclick = () => {
+  $('useLoc').onclick = () => useMyLocation();
+  function useMyLocation() {
     if (!navigator.geolocation) { setMsg(T('noGeo')); return; }
     $('from').value = T('locating');
     navigator.geolocation.getCurrentPosition(
@@ -458,7 +485,7 @@ dialog .row .cta{height:48px;font-size:16px}
       () => { origin = null; $('from').value = ''; setMsg(T('geoFail')); },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
-  };
+  }
 
 
   // ---------- Recent destinations ----------
@@ -505,7 +532,7 @@ dialog .row .cta{height:48px;font-size:16px}
 
   // ---------- Sökförslag (Stadia Maps) ----------
   let activeField = null, acTimer = null, acSeq = 0, shown = [];
-  const hideSugg = () => { shown = []; $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; };
+  const hideSugg = () => { shown = []; };
   async function autocomplete(text) {
     const q = new URLSearchParams({ text, 'boundary.country': 'SE', lang, size: '6' });
     if (lastPos) { q.set('focus.point.lat', lastPos.lat); q.set('focus.point.lon', lastPos.lng); }
@@ -526,48 +553,111 @@ dialog .row .cta{height:48px;font-size:16px}
       };
     });
   }
-  function renderSugg(items, field) {
-    shown = items;
-    const box = $('sugg'); box.innerHTML = '';
-    if (!items.length) { hideSugg(); return; }
-    items.forEach(it => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.setAttribute('role', 'option');
-      b.innerHTML = '<svg class="pin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg><span><span class="m"></span><span class="s"></span></span>';
-      b.querySelector('.m').textContent = it.main;
-      b.querySelector('.s').textContent = it.sec;
-      // keep focus in the field so the list isn't hidden before the tap registers
-      b.addEventListener('mousedown', e => e.preventDefault());
-      b.addEventListener('click', () => pick(it, field));
-      box.appendChild(b);
-    });
-    const f = document.createElement('div'); f.className = 'foot'; f.textContent = T('suggFoot');
-    box.appendChild(f);
-    box.classList.add('on');
+  // ---------- Sökvy ----------
+  const S = $('search'), SIN = $('sIn'), SLIST = $('sugg');
+  let searchField = null, lastItems = [];
+  const PIN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path><circle cx="12" cy="9" r="2.5"></circle></svg>';
+  const CLOCK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>';
+  const LOCATE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>';
+  function row(icon, main, sec, onPick, cls) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('role', 'option');
+    b.innerHTML = `<span class="ico${cls ? ' ' + cls : ''}">${icon}</span><span><span class="m"></span><span class="s"></span></span>`;
+    b.querySelector('.m').textContent = main;
+    b.querySelector('.s').textContent = sec || '';
+    b.addEventListener('mousedown', e => e.preventDefault());  // behåll tangentbordet tills valet registrerats
+    b.addEventListener('click', onPick);
+    return b;
   }
-  function pick(it, field) {
-    const place = { loc: it.loc, label: it.label, short: it.main };
-    $(field).value = it.label;
-    if (field === 'from') origin = place; else dest = place;
-    hideSugg();
-    if (field === 'from') $('to').focus(); else $('to').blur();
+  function heading(t) { const d = document.createElement('div'); d.className = 's-sec'; d.textContent = t; return d; }
+  function note(t, cls) { const d = document.createElement('div'); d.className = cls || 's-empty'; d.textContent = t; return d; }
+  function renderList(items, state) {
+    lastItems = items || [];
+    shown = lastItems;
+    SLIST.innerHTML = '';
+    const text = SIN.value.trim();
+    if (searchField === 'from') SLIST.appendChild(row(LOCATE, T('myPos'), '', () => { closeSearch(false); useMyLocation(); }, 'loc'));
+    if (text.length < 3) {
+      const rec = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x);
+      if (rec.length) {
+        SLIST.appendChild(heading(T('recentHd')));
+        rec.forEach(p => SLIST.appendChild(row(CLOCK, p.short || p.label, p.short && p.short !== p.label ? p.label : '', () => choose({ ...p }))));
+      } else if (searchField !== 'from') SLIST.appendChild(note(T('typeMore')));
+      return;
+    }
+    if (state === 'loading' && !lastItems.length) { SLIST.appendChild(note(T('searching'))); return; }
+    if (state === 'error') { SLIST.appendChild(note(T('generic'))); return; }
+    if (!lastItems.length) { SLIST.appendChild(note(T('noHits'))); return; }
+    SLIST.appendChild(heading(T('resultsHd')));
+    lastItems.forEach(it => SLIST.appendChild(row(PIN, it.main, it.sec, () => choose({ loc: it.loc, label: it.label, short: it.main }))));
+    SLIST.appendChild(note(T('suggFoot'), 's-foot'));
   }
+  function choose(place) {
+    const f = searchField;
+    $(f).value = place.label;
+    if (f === 'from') origin = place; else dest = place;
+    closeSearch(false);
+    if (f === 'from' && !$('to').value) setTimeout(() => openSearch('to'), 50);
+  }
+  // Håll sökvyn exakt ovanför tangentbordet (iOS flyttar annars sidan)
+  function fitSearch() {
+    const vv = window.visualViewport;
+    if (!vv || S.hidden) return;
+    S.style.height = vv.height + 'px';
+    S.style.transform = `translateY(${vv.offsetTop}px)`;
+  }
+  if (window.visualViewport) { visualViewport.addEventListener('resize', fitSearch); visualViewport.addEventListener('scroll', fitSearch); }
+  function openSearch(field) {
+    searchField = field;
+    $('sLbl').textContent = T(field);
+    const cur = $(field).value;
+    SIN.value = (cur && !isMyPos(cur) && cur !== T('locating')) ? cur : '';
+    SIN.enterKeyHint = 'search';
+    $('sClear').hidden = !SIN.value;
+    S.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    fitSearch();
+    SIN.focus();                       // i samma tryck, så att iOS öppnar tangentbordet
+    try { SIN.setSelectionRange(SIN.value.length, SIN.value.length); } catch {}
+    renderList([]);
+    if (SIN.value.trim().length >= 3) runSearch();
+  }
+  function closeSearch(keepTyped) {
+    if (S.hidden) return;
+    const text = SIN.value.trim(), f = searchField;
+    if (keepTyped && f && text && text !== $(f).value) { $(f).value = text; if (f === 'from') origin = null; else dest = null; }
+    SIN.blur();
+    S.hidden = true;
+    S.style.transform = ''; S.style.height = '';
+    document.documentElement.style.overflow = '';
+    clearTimeout(acTimer); acSeq++;
+    searchField = null;
+  }
+  function runSearch() {
+    const text = SIN.value.trim();
+    clearTimeout(acTimer);
+    if (text.length < 3) { renderList([]); return; }
+    renderList(lastItems, 'loading');
+    acTimer = setTimeout(async () => {
+      const seq = ++acSeq;
+      try {
+        const items = await autocomplete(text);
+        if (seq === acSeq && !S.hidden) { renderList(items); SLIST.scrollTop = 0; }
+      } catch (err) { if (seq === acSeq && !S.hidden) renderList([], 'error'); }
+    }, 250);
+  }
+  SIN.addEventListener('input', () => { $('sClear').hidden = !SIN.value; lastItems = []; runSearch(); });
+  SIN.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); if (lastItems.length) choose({ loc: lastItems[0].loc, label: lastItems[0].label, short: lastItems[0].main }); else closeSearch(true); }
+    if (e.key === 'Escape') { e.preventDefault(); closeSearch(true); }
+  });
+  $('sClear').onclick = () => { SIN.value = ''; $('sClear').hidden = true; lastItems = []; renderList([]); SIN.focus(); };
+  $('sBack').onclick = () => closeSearch(true);
+  // Dra i listan stänger tangentbordet så att alla förslag syns
+  SLIST.addEventListener('touchmove', () => { if (document.activeElement === SIN) SIN.blur(); }, { passive: true });
   ['from', 'to'].forEach(id => {
-    $(id).addEventListener('input', e => {
-      if (id === 'from') origin = null; else dest = null;
-      activeField = id;
-      const text = e.target.value.trim();
-      clearTimeout(acTimer);
-      if (text.length < 3) { hideSugg(); return; }
-      acTimer = setTimeout(async () => {
-        const seq = ++acSeq;
-        try {
-          const items = await autocomplete(text);
-          if (seq === acSeq && activeField === id) renderSugg(items, id);
-        } catch (err) { if (seq === acSeq) { hideSugg(); setMsg(err.message); } }
-      }, 250);
-    });
-    $(id).addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('from') && document.activeElement !== $('to')) hideSugg(); }, 150));
+    $(id).addEventListener('click', () => openSearch(id));
+    $(id).addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSearch(id); } });
   });
 
   // ---------- Platser → koordinater ----------
@@ -891,7 +981,6 @@ dialog .row .cta{height:48px;font-size:16px}
       btn.disabled = false; btn.textContent = T('calc');
     }
   };
-  ['from', 'to'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); if (shown.length && (id === 'from' ? !origin : !dest)) { pick(shown[0], id); if (id === 'from') return; } id === 'from' ? $('to').focus() : $('go').click(); } }));
   $('back').onclick = () => { $('v-res').classList.remove('on'); $('v-plan').classList.add('on'); };
 
   applyLang();
