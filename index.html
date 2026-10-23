@@ -204,6 +204,37 @@ dialog .row .cta{height:48px;font-size:16px}
 
 h1,.big,.eta,.speed-val b,.man-dist{font-family:var(--display)}
 h1{font-family:inherit}
+/* ---------- Väder ---------- */
+.wx{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.wx .hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.wx .hd b{font-size:15px;font-weight:600}
+.wx .hd span{font-size:12px;color:var(--faint)}
+.wx-line{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.wx-line::-webkit-scrollbar{display:none}
+.wx-pt{flex:1 0 58px;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--chipbg);border-radius:10px;padding:8px 4px}
+.wx-pt .tm{font-size:12px;color:var(--muted)}
+.wx-pt .ic{font-size:22px;line-height:1.1}
+.wx-pt .tp{font-size:15px;font-weight:600}
+.wx-pt .pr{font-size:11px;color:#7fb6ff;min-height:13px}
+.wx-pt.hl{box-shadow:inset 0 0 0 1px var(--mid)}
+.wx-warns{display:flex;flex-wrap:wrap;gap:6px}
+.wx-w{font-size:13px;border-radius:999px;padding:5px 10px;background:color-mix(in srgb,var(--mid) 18%,transparent);color:var(--text);border:1px solid color-mix(in srgb,var(--mid) 45%,transparent)}
+.wx-w.high{background:color-mix(in srgb,var(--high) 18%,transparent);border-color:color-mix(in srgb,var(--high) 50%,transparent)}
+.wx-ok{font-size:13px;color:var(--muted)}
+.stat small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.nwx{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;margin-left:auto;margin-right:10px}
+.nwx .ic{font-size:24px;line-height:1}
+.nwx .tp{font-size:14px;font-weight:600;margin-top:2px}
+.nav-wx{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 118px);
+  background:var(--panel2);border:1px solid color-mix(in srgb,var(--mid) 55%,transparent);border-radius:12px;padding:10px 14px;font-size:15px;display:flex;gap:10px;align-items:center}
+.nav-wx[hidden]{display:none}
+.nav-wx .ic{font-size:22px}
+.plan-wx{font-size:14px;color:var(--text2);margin-top:8px;display:flex;align-items:center;gap:6px}
+.plan-wx[hidden]{display:none}
+#wxFx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hero.flash::before{content:"";position:absolute;inset:0;background:rgba(220,230,255,.35);z-index:3;animation:flash .6s ease-out}
+@keyframes flash{0%{opacity:1}100%{opacity:0}}
+
 /* ---------- Säkerhet ---------- */
 :root{--safe:#3ecf8e;--mid:#ffc940;--high:#ff5a4f}
 .opts{display:flex;gap:8px}
@@ -282,12 +313,14 @@ h1{font-family:inherit}
     <img id="heroImg" src="epa-hero.webp" alt="">
     <img class="fog f2" src="epa-fog.webp" alt="">
     <img class="fog" src="epa-fog.webp" alt="">
+    <canvas id="wxFx"></canvas>
   </div>
   <div class="plan-inner">
     <div class="top">
       <div>
         <div class="kicker"><span>Slowlane</span> · <span id="profName">EPA/A-traktor</span></div>
         <h1 data-i18n="where">Vart ska du?</h1>
+        <div class="plan-wx" id="planWx" hidden></div>
         <div class="stripes" aria-hidden="true" style="width:120px;margin-top:10px"></div>
         <div class="hazard" aria-hidden="true" style="width:120px;margin-top:10px"></div>
       </div>
@@ -351,13 +384,18 @@ h1{font-family:inherit}
     </div>
     <div class="stats">
       <div class="stat"><span data-i18n="dist">Sträcka</span><b id="rDist">–</b></div>
-      <div class="stat"><span data-i18n="arrival">Ankomst</span><b id="rCar">–</b></div>
+      <div class="stat"><span data-i18n="arrival">Ankomst</span><b id="rCar">–</b><small id="rArrWx"></small></div>
     </div>
     <div class="opts" id="rOpts" hidden></div>
     <div class="safety" id="rSafety" hidden>
       <div class="hd"><b data-i18n="safetyHd">Vägtyper längs rutten</b><span class="badge" id="rBadge"></span></div>
       <div class="bar" id="rBar" aria-hidden="true"></div>
       <div class="legend" id="rLegend"></div>
+    </div>
+    <div class="wx" id="rWx" hidden>
+      <div class="hd"><b data-i18n="wxHd">Väder längs vägen</b><span>Open-Meteo</span></div>
+      <div class="wx-line" id="rWxLine"></div>
+      <div class="wx-warns" id="rWxWarn"></div>
     </div>
     <div class="warn" id="rWarn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17.5v.5"></path></svg>
@@ -393,6 +431,7 @@ h1{font-family:inherit}
     <div><div class="man-dist" id="nDist">–</div><div class="man-text" id="nText">–</div></div>
   </div>
   <div class="nav-banner" id="nBanner" hidden></div>
+  <div class="nav-wx" id="nWxBan" hidden role="status"><span class="ic" id="nWxBanIc"></span><span id="nWxBanTx"></span></div>
   <div class="nav-bottom">
     <div class="nav-panel">
       <div class="eta-row">
@@ -401,6 +440,7 @@ h1{font-family:inherit}
           <div class="eta-sub" id="nEtaSub">Ankomst vid max 30 km/h</div>
           <div class="left" id="nLeft">–</div>
         </div>
+        <div class="nwx" id="nWx" hidden><span class="ic" id="nWxIc"></span><span class="tp" id="nWxTp"></span></div>
         <div class="spd" id="nSpd"><b>–</b><span>km/h</span></div>
       </div>
       <div class="nav-btns">
@@ -457,7 +497,7 @@ h1{font-family:inherit}
       suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Prioritera säkra vägar', safetyHd:'Vägtyper längs rutten', segSafe:'Cykelbana och lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Snabbast och säkrast', lessHigh:'{d} mindre 80-väg', moreTime:'+{t}', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
       minorSub:'Väljer rutten med minst sträcka på 80-vägar. Motorväg och motortrafikled undviks alltid.', calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
       dist:'Sträcka', arrival:'Ankomst', startNav:'Starta navigering', attr:'Rutt: Valhalla via Stadia Maps · Kartdata', navAria:'Navigering',
-      end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', pTrak:'Traktor 40', pLgf:'LGF-fordon', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 25 km/h, kör på cykelbana där det är tillåtet.', hTrak:'Tema: midnattsskörd. Max 40 km/h, motorväg och motortrafikled undviks.', hLgf:'Tema: reflex och regn. För fordon konstruerade för högst 30 km/h, t.ex. motorredskap.', trTitle:'Lugn i kärran, bonden!', trText:'Över 40 km/h? Då är det ingen 40-traktor längre. Kan bli dyrt vid en flygande inspektion.', trOk:'Okej, 40 km/h', trKeep:'Det är en annan traktor', lgTitle:'Triangeln protesterar!', lgText:'LGF-skylten är till för fordon som går högst 30 km/h. Går det fortare gäller inte skylten.', lgOk:'Okej, 30 km/h', lgKeep:'Fordonet är inte LGF', speedHelpTr:'Används för ruttval, restid och ankomsttid under navigeringen. Traktor: 40 km/h.', speedHelpLg:'Används för ruttval, restid och ankomsttid under navigeringen. LGF-skylt gäller för högst 30 km/h.', ksTitle:'Hoppsan!', ksText:'Över 25 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 25 km/h.',
+      end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', wxHd:'Väder längs vägen', wxNow:'just nu', wxIce:'Halkrisk', wxGust:'Kraftig byvind {v} m/s', wxFog:'Dimma, dålig sikt', wxThunder:'Åska', wxDark:'Mörkt vid ankomst', wxHeavy:'Kraftigt regn', wxSnow:'Snö', wxCalm:'Inga varningar längs vägen.', wxSoonRain:'Regn om ca {m} min', wxSoonSnow:'Snöfall om ca {m} min', wxSoonIce:'Halkrisk längre fram, sänk farten', wxSoonGust:'Kraftiga vindbyar längre fram', wxSoonFog:'Dimma längre fram, tänd belysningen', wxDusk:'Det börjar skymma, tänd belysningen', wxStart:'Avresa', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', pTrak:'Traktor 40', pLgf:'LGF-fordon', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 25 km/h, kör på cykelbana där det är tillåtet.', hTrak:'Tema: midnattsskörd. Max 40 km/h, motorväg och motortrafikled undviks.', hLgf:'Tema: reflex och regn. För fordon konstruerade för högst 30 km/h, t.ex. motorredskap.', trTitle:'Lugn i kärran, bonden!', trText:'Över 40 km/h? Då är det ingen 40-traktor längre. Kan bli dyrt vid en flygande inspektion.', trOk:'Okej, 40 km/h', trKeep:'Det är en annan traktor', lgTitle:'Triangeln protesterar!', lgText:'LGF-skylten är till för fordon som går högst 30 km/h. Går det fortare gäller inte skylten.', lgOk:'Okej, 30 km/h', lgKeep:'Fordonet är inte LGF', speedHelpTr:'Används för ruttval, restid och ankomsttid under navigeringen. Traktor: 40 km/h.', speedHelpLg:'Används för ruttval, restid och ankomsttid under navigeringen. LGF-skylt gäller för högst 30 km/h.', ksTitle:'Hoppsan!', ksText:'Över 25 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 25 km/h.',
       speedLbl:'Fordonets maxhastighet', speedHelp:'Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.',
       gkey:'Google API-nyckel', gkeyHelp:'Appen behöver en nyckel från Google Cloud med Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.',
       apiKey:'API-nyckel', cancel:'Avbryt', save:'Spara', langLbl:'Språk',
@@ -483,7 +523,7 @@ h1{font-family:inherit}
       suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prioritise safe roads', safetyHd:'Road types along the route', segSafe:'Cycle paths and calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'Fastest and safest', lessHigh:'{d} less on 80 roads', moreTime:'+{t}', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
       minorSub:'Picks the route with the least distance on 80 roads. Motorways and expressways are always avoided.', calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
       dist:'Distance', arrival:'Arrival', startNav:'Start navigation', attr:'Route: Valhalla via Stadia Maps · Map data', navAria:'Navigation',
-      end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', pEpa:'EPA/A-tractor', pMoped:'Class II moped', pTrak:'Tractor 40', pLgf:'Slow-moving vehicle (LGF)', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 25 km/h, uses cycle paths where allowed.', hTrak:'Theme: midnight harvest. Max 40 km/h, motorways and expressways avoided.', hLgf:'Theme: reflectors and rain. For vehicles built for at most 30 km/h, e.g. work machines.', trTitle:'Easy there, farmer!', trText:'Over 40 km/h? Then it’s not a 40 tractor anymore. Could get expensive at a roadside check.', trOk:'Okay, 40 km/h', trKeep:'It’s a different tractor', lgTitle:'The triangle objects!', lgText:'The LGF sign is for vehicles doing at most 30 km/h. Any faster and the sign doesn’t apply.', lgOk:'Okay, 30 km/h', lgKeep:'It’s not an LGF vehicle', speedHelpTr:'Used for route choice, travel time and arrival time during navigation. Tractor: 40 km/h.', speedHelpLg:'Used for route choice, travel time and arrival time during navigation. The LGF sign applies up to 30 km/h.', ksTitle:'Whoa there!', ksText:'Over 25 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 25 km/h.',
+      end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', wxHd:'Weather along the way', wxNow:'right now', wxIce:'Risk of ice', wxGust:'Strong gusts {v} m/s', wxFog:'Fog, poor visibility', wxThunder:'Thunder', wxDark:'Dark on arrival', wxHeavy:'Heavy rain', wxSnow:'Snow', wxCalm:'No warnings along the way.', wxSoonRain:'Rain in about {m} min', wxSoonSnow:'Snow in about {m} min', wxSoonIce:'Risk of ice ahead, slow down', wxSoonGust:'Strong gusts ahead', wxSoonFog:'Fog ahead, switch on your lights', wxDusk:'It’s getting dark, switch on your lights', wxStart:'Depart', pEpa:'EPA/A-tractor', pMoped:'Class II moped', pTrak:'Tractor 40', pLgf:'Slow-moving vehicle (LGF)', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 25 km/h, uses cycle paths where allowed.', hTrak:'Theme: midnight harvest. Max 40 km/h, motorways and expressways avoided.', hLgf:'Theme: reflectors and rain. For vehicles built for at most 30 km/h, e.g. work machines.', trTitle:'Easy there, farmer!', trText:'Over 40 km/h? Then it’s not a 40 tractor anymore. Could get expensive at a roadside check.', trOk:'Okay, 40 km/h', trKeep:'It’s a different tractor', lgTitle:'The triangle objects!', lgText:'The LGF sign is for vehicles doing at most 30 km/h. Any faster and the sign doesn’t apply.', lgOk:'Okay, 30 km/h', lgKeep:'It’s not an LGF vehicle', speedHelpTr:'Used for route choice, travel time and arrival time during navigation. Tractor: 40 km/h.', speedHelpLg:'Used for route choice, travel time and arrival time during navigation. The LGF sign applies up to 30 km/h.', ksTitle:'Whoa there!', ksText:'Over 25 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 25 km/h.',
       speedLbl:'Vehicle max speed', speedHelp:'Used for route choice, travel time and arrival time during navigation. A-tractor: 30 km/h.',
       gkey:'Google API key', gkeyHelp:'The app needs a Google Cloud key with Maps JavaScript API and Places API (New) enabled. The key is only stored on this phone.',
       apiKey:'API key', cancel:'Cancel', save:'Save', langLbl:'Language',
@@ -584,7 +624,7 @@ h1{font-family:inherit}
       speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed);
       lang = $('langIn').value === 'en' ? 'en' : 'sv'; store.set('lang', lang);
       const nt = THEMES[$('themeIn').value] ? $('themeIn').value : 'epa';
-      if (nt !== theme) { theme = nt; store.set('theme', theme); applyTheme(); }
+      if (nt !== theme) { theme = nt; store.set('theme', theme); applyTheme(); loadNowWeather(); }
       applyLang();
     }
   });
@@ -620,7 +660,7 @@ h1{font-family:inherit}
     if (!navigator.geolocation) { setMsg(T('noGeo')); return; }
     $('from').value = T('locating');
     navigator.geolocation.getCurrentPosition(
-      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; lastPos = origin.coords; store.set('lastPos', lastPos); $('from').value = T('myPos'); setMsg(''); hideSugg(); },
+      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; lastPos = origin.coords; store.set('lastPos', lastPos); loadNowWeather(); $('from').value = T('myPos'); setMsg(''); hideSugg(); },
       () => { origin = null; $('from').value = ''; setMsg(T('geoFail')); },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
@@ -946,6 +986,7 @@ h1{font-family:inherit}
     lastRoute.trip = c.trip; lastRoute.path = c.path; lastRoute.chosen = c;
     showResult(lastRoute); renderOptions(lastRoute); renderSafety(c);
     drawMap(c.path, c.an);
+    if (c.wx) renderWx(c.wx); else loadRouteWeather(c);
   }
 
   function showResult(r) {
@@ -996,6 +1037,159 @@ h1{font-family:inherit}
     const b = new maplibregl.LngLatBounds(); path.forEach(p => b.extend([p.lng, p.lat]));
     const fit = () => { try { rmap.resize(); rmap.fitBounds(b, { padding: { top: 80, right: 30, bottom: 50, left: 30 }, duration: 0 }); } catch {} };
     fit(); requestAnimationFrame(() => requestAnimationFrame(fit));
+  }
+
+  // ---------- Väder (Open-Meteo) ----------
+  const WX = {
+    icon(code, day = 1) {
+      if (code === 0) return day ? '☀️' : '🌙';
+      if (code <= 2) return day ? '🌤️' : '☁️';
+      if (code === 3) return '☁️';
+      if (code === 45 || code === 48) return '🌫️';
+      if (code >= 51 && code <= 57) return '🌦️';
+      if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return '🌧️';
+      if ((code >= 71 && code <= 77) || code === 85 || code === 86) return '🌨️';
+      if (code >= 95) return '⛈️';
+      return '☁️';
+    },
+    kind(code) {
+      if (code >= 95) return 'thunder';
+      if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+      if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
+      if (code === 45 || code === 48) return 'fog';
+      if (code <= 1) return 'clear';
+      return 'cloud';
+    }
+  };
+  async function fetchWx(points) {
+    const q = new URLSearchParams({
+      latitude: points.map(p => p.lat.toFixed(4)).join(','), longitude: points.map(p => p.lng.toFixed(4)).join(','),
+      hourly: 'temperature_2m,precipitation,weather_code,wind_gusts_10m,visibility,dew_point_2m,is_day',
+      daily: 'sunset', timezone: 'auto', forecast_days: '2', wind_speed_unit: 'ms'
+    });
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString());
+    if (!res.ok) throw new Error('wx');
+    const d = await res.json();
+    return Array.isArray(d) ? d : [d];
+  }
+  function wxAt(loc, when) {
+    const h = loc.hourly;
+    // Open-Meteo ger lokal tid utan zon; räkna om med utc_offset
+    const off = (loc.utc_offset_seconds || 0) * 1000;
+    const tt = h.time.map(t => Date.parse(t + 'Z') - off);
+    let i = tt.findIndex(t => t > when); if (i <= 0) i = i === 0 ? 1 : tt.length - 1;
+    const a = i - 1, f = Math.max(0, Math.min(1, (when - tt[a]) / (tt[i] - tt[a])));
+    const lerp = k => h[k][a] + (h[k][i] - h[k][a]) * f;
+    const pick = f < 0.5 ? a : i;
+    const sunset = (loc.daily && loc.daily.sunset || []).map(t => Date.parse(t + 'Z') - off);
+    return { t: when, temp: lerp('temperature_2m'), dew: lerp('dew_point_2m'), precip: h.precipitation[pick], gust: Math.max(h.wind_gusts_10m[a], h.wind_gusts_10m[i]),
+      vis: Math.min(h.visibility[a], h.visibility[i]), code: h.weather_code[pick], day: h.is_day[pick], sunset };
+  }
+  function wxWarnings(pts) {
+    const w = [];
+    const any = fn => pts.some(fn);
+    if (any(p => p.temp <= 1 && (p.precip > 0 || p.temp - p.dew < 1.5))) w.push({ k: 'ice', t: T('wxIce'), high: true });
+    if (any(p => p.code >= 95)) w.push({ k: 'thunder', t: T('wxThunder'), high: true });
+    const g = Math.max(...pts.map(p => p.gust || 0)); if (g >= 14) w.push({ k: 'gust', t: T('wxGust', { v: Math.round(g) }), high: g >= 20 });
+    if (any(p => p.vis < 1000 || p.code === 45 || p.code === 48)) w.push({ k: 'fog', t: T('wxFog') });
+    if (any(p => WX.kind(p.code) === 'snow')) w.push({ k: 'snow', t: T('wxSnow') });
+    else if (any(p => p.precip >= 3)) w.push({ k: 'heavy', t: T('wxHeavy') });
+    const last = pts[pts.length - 1];
+    if (last && !last.day) w.push({ k: 'dark', t: T('wxDark') });
+    return w;
+  }
+  // Punkter längs rutten med beräknad passertid (följer maxhastigheten)
+  function samplePoints(trip, path, startMs) {
+    const nav = buildNav(trip, path), n = path.length, totS = nav.suffix[0] || tripTime(trip);
+    const count = Math.max(2, Math.min(8, Math.ceil(totS / 900) + 1));
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const target = nav.cum[n - 1] * i / (count - 1);
+      let k = 0; while (k < n - 2 && nav.cum[k + 1] < target) k++;
+      const elapsed = totS - nav.suffix[k];
+      out.push({ lat: path[k].lat, lng: path[k].lng, when: startMs + elapsed * 1000, frac: i / (count - 1) });
+    }
+    return out;
+  }
+  async function routeWeather(trip, path, startMs = Date.now()) {
+    const pts = samplePoints(trip, path, startMs);
+    const locs = await fetchWx(pts);
+    return pts.map((p, i) => ({ ...wxAt(locs[i] || locs[0], p.when), lat: p.lat, lng: p.lng, frac: p.frac }));
+  }
+  const hhmm = ms => new Date(ms).toLocaleTimeString(LOC(), { hour: '2-digit', minute: '2-digit' });
+  function renderWx(wx) {
+    if (!wx || !wx.length) { $('rWx').hidden = true; $('rArrWx').textContent = ''; return; }
+    $('rWx').hidden = false;
+    const line = $('rWxLine'); line.innerHTML = '';
+    wx.forEach((p, i) => {
+      const d = document.createElement('div'); d.className = 'wx-pt' + (p.precip > 0.2 || p.temp <= 1 ? ' hl' : '');
+      d.innerHTML = '<span class="tm"></span><span class="ic"></span><span class="tp"></span><span class="pr"></span>';
+      d.querySelector('.tm').textContent = i === 0 ? T('wxStart') : hhmm(p.t);
+      d.querySelector('.ic').textContent = WX.icon(p.code, p.day);
+      d.querySelector('.tp').textContent = Math.round(p.temp) + '°';
+      d.querySelector('.pr').textContent = p.precip > 0.05 ? p.precip.toFixed(1).replace('.', lang === 'sv' ? ',' : '.') + ' mm' : '';
+      line.appendChild(d);
+    });
+    const warns = wxWarnings(wx), box = $('rWxWarn'); box.innerHTML = '';
+    if (!warns.length) { const o = document.createElement('span'); o.className = 'wx-ok'; o.textContent = T('wxCalm'); box.appendChild(o); }
+    warns.forEach(w => { const e = document.createElement('span'); e.className = 'wx-w' + (w.high ? ' high' : ''); e.textContent = w.t; box.appendChild(e); });
+    const a = wx[wx.length - 1];
+    $('rArrWx').textContent = `${Math.round(a.temp)}° ${WX.icon(a.code, a.day)}`;
+  }
+  async function loadRouteWeather(c) {
+    $('rWx').hidden = true; $('rArrWx').textContent = '';
+    try { c.wx = c.wx || await routeWeather(c.trip, c.path); if (lastRoute && lastRoute.chosen === c) renderWx(c.wx); } catch { /* väder är ett tillägg */ }
+  }
+
+  // ---------- Väder i temat ----------
+  const FX = { kind: null, raf: 0, parts: [], c: null, ctx: null, w: 0, h: 0, nextFlash: 0 };
+  function fxSize() { const r = FX.c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); FX.w = r.width; FX.h = r.height; FX.c.width = r.width * dpr; FX.c.height = r.height * dpr; FX.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+  function fxStart(kind, intensity = 1) {
+    FX.c = FX.c || $('wxFx'); FX.ctx = FX.ctx || FX.c.getContext('2d');
+    cancelAnimationFrame(FX.raf); FX.kind = kind; fxSize();
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const N = kind === 'rain' || kind === 'thunder' ? Math.round(140 * intensity) : kind === 'snow' ? Math.round(110 * intensity) : kind === 'clear' ? 18 : 0;
+    FX.parts = Array.from({ length: N }, () => ({ x: Math.random() * FX.w, y: Math.random() * FX.h, z: 0.4 + Math.random() * 0.8, p: Math.random() * 6.28 }));
+    FX.nextFlash = performance.now() + 2500 + Math.random() * 4000;
+    const fogBoost = kind === 'fog' ? 1 : 0;
+    document.querySelectorAll('.hero .fog').forEach(f => { f.style.opacity = fogBoost ? '1' : ''; });
+    const draw = now => {
+      const ctx = FX.ctx; ctx.clearRect(0, 0, FX.w, FX.h);
+      if (kind === 'rain' || kind === 'thunder') {
+        ctx.strokeStyle = 'rgba(190,210,235,0.45)'; ctx.lineCap = 'round';
+        FX.parts.forEach(d => { const L = 14 * d.z; ctx.lineWidth = d.z; ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - L * 0.25, d.y + L); ctx.stroke();
+          if (!reduce) { d.y += 9 * d.z; d.x -= 2.2 * d.z; if (d.y > FX.h) { d.y = -20; d.x = Math.random() * (FX.w + 40); } } });
+        if (kind === 'thunder' && !reduce && now > FX.nextFlash) { const h = document.querySelector('.hero'); h.classList.remove('flash'); void h.offsetWidth; h.classList.add('flash'); FX.nextFlash = now + 4000 + Math.random() * 7000; }
+      } else if (kind === 'snow') {
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        FX.parts.forEach(d => { ctx.globalAlpha = 0.35 + 0.5 * d.z; ctx.beginPath(); ctx.arc(d.x, d.y, 1.4 * d.z + 0.6, 0, 6.28); ctx.fill();
+          if (!reduce) { d.p += 0.02; d.y += 0.7 * d.z; d.x += Math.sin(d.p) * 0.4; if (d.y > FX.h) { d.y = -5; d.x = Math.random() * FX.w; } } });
+        ctx.globalAlpha = 1;
+      } else if (kind === 'clear') {
+        const g = ctx.createRadialGradient(FX.w * 0.85, FX.h * 0.12, 0, FX.w * 0.85, FX.h * 0.12, FX.w * 0.7);
+        g.addColorStop(0, 'rgba(255,220,150,0.28)'); g.addColorStop(1, 'rgba(255,220,150,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, FX.w, FX.h);
+        ctx.fillStyle = 'rgba(255,240,200,0.6)';
+        FX.parts.forEach(d => { if (!reduce) { d.p += 0.01; d.y -= 0.15 * d.z; if (d.y < 0) d.y = FX.h; } ctx.globalAlpha = 0.25 + 0.25 * Math.sin(d.p); ctx.beginPath(); ctx.arc(d.x, d.y, 1.2 * d.z, 0, 6.28); ctx.fill(); });
+        ctx.globalAlpha = 1;
+      }
+      if (!reduce && kind !== 'cloud' && kind !== 'fog' && $('v-plan').classList.contains('on') && !document.hidden) FX.raf = requestAnimationFrame(draw);
+      else if (!reduce && kind !== 'cloud' && kind !== 'fog') FX.raf = requestAnimationFrame(() => setTimeout(() => draw(performance.now()), 500));
+    };
+    if (N || kind === 'clear') FX.raf = requestAnimationFrame(draw); else FX.ctx.clearRect(0, 0, FX.w, FX.h);
+  }
+  window.addEventListener('resize', () => { if (FX.kind) fxStart(FX.kind); });
+  async function loadNowWeather() {
+    const pos = lastPos; if (!pos) return;
+    try {
+      const q = new URLSearchParams({ latitude: pos.lat.toFixed(4), longitude: pos.lng.toFixed(4), current: 'temperature_2m,weather_code,is_day,precipitation', timezone: 'auto', wind_speed_unit: 'ms' });
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString()); if (!res.ok) return;
+      const d = await res.json(), c = d.current; if (!c) return;
+      $('planWx').hidden = false;
+      $('planWx').textContent = `${WX.icon(c.weather_code, c.is_day)} ${Math.round(c.temperature_2m)}° ${T('wxNow')}`;
+      const k = WX.kind(c.weather_code);
+      fxStart(k, c.precipitation > 2 ? 1.6 : 1);
+    } catch {}
   }
 
   // ---------- Navigering ----------
@@ -1141,7 +1335,36 @@ h1{font-family:inherit}
       if (toM < 260 && toM > 80 && !N.said[key + 'a']) { N.said[key + 'a'] = 1; speak(next.verbal_transition_alert_instruction || next.instruction); }
       if (toM <= 45 && !N.said[key + 'b']) { N.said[key + 'b'] = 1; speak(next.verbal_pre_transition_instruction || next.instruction); }
     }
+    navWeather(remS);
     if (remM < 25 && !N.arrived) { N.arrived = true; $('nText').textContent = T('arrived'); $('nDist').textContent = ''; $('nIco').innerHTML = svg('dest'); speak(T('arrived')); }
+  }
+
+  function navWeather(remS) {
+    const wx = N && N.wx; if (!wx || !wx.length) return;
+    const now = Date.now(), n = N.path.length, frac = n > 1 ? N.along / N.cum[n - 1] : 0;
+    // aktuellt väder = närmaste punkt bakom oss
+    let cur = wx[0]; wx.forEach(p => { if (p.frac <= frac + 0.001) cur = p; });
+    $('nWx').hidden = false; $('nWxIc').textContent = WX.icon(cur.code, cur.day); $('nWxTp').textContent = Math.round(cur.temp) + '°';
+    // kommande väder längs rutten (tider räknas om från nuvarande position)
+    const totS = N.suffix[0] || 1, done = totS - remS;
+    const ahead = wx.filter(p => p.frac > frac + 0.001).map(p => ({ ...p, inMin: Math.max(0, (p.frac * totS - done) / 60) }));
+    let msg = null, ic = '', key = null;
+    const wet = p => p.precip > 0.2 || WX.kind(p.code) === 'rain' || WX.kind(p.code) === 'snow';
+    const soon = ahead.find(p => p.inMin <= 15 && wet(p) && !wet(cur));
+    const ice = ahead.find(p => p.inMin <= 20 && p.temp <= 1 && (p.precip > 0 || p.temp - p.dew < 1.5));
+    const gust = ahead.find(p => p.inMin <= 20 && p.gust >= 14);
+    const fog = ahead.find(p => p.inMin <= 20 && (p.vis < 1000 || p.code === 45 || p.code === 48));
+    if (ice) { msg = T('wxSoonIce'); ic = '🧊'; key = 'ice'; }
+    else if (soon) { const m = Math.max(1, Math.round(soon.inMin / 5) * 5 || 1); msg = WX.kind(soon.code) === 'snow' ? T('wxSoonSnow', { m }) : T('wxSoonRain', { m }); ic = WX.icon(soon.code, soon.day); key = 'wet' + soon.frac; }
+    else if (gust) { msg = T('wxSoonGust'); ic = '💨'; key = 'gust'; }
+    else if (fog) { msg = T('wxSoonFog'); ic = '🌫️'; key = 'fog'; }
+    const sunset = (cur.sunset || []).find(t => t > now - 3600e3);
+    if (!msg && sunset && now > sunset - 15 * 60e3 && now < sunset + 30 * 60e3) { msg = T('wxDusk'); ic = '🌆'; key = 'dusk'; }
+    $('nWxBan').hidden = !msg;
+    if (msg) { $('nWxBanIc').textContent = ic; $('nWxBanTx').textContent = msg; if (!N.said['wx' + key]) { N.said['wx' + key] = 1; speak(msg); } }
+  }
+  async function loadNavWeather() {
+    try { if (N) { const wx = await routeWeather(lastRoute.trip, lastRoute.path); if (N) { N.wx = wx; render(); } } } catch {}
   }
 
   async function reroute(p) {
@@ -1151,7 +1374,7 @@ h1{font-family:inherit}
     try {
       const trip = await computeRoute(p, lastRoute.b, $('avoid').checked);
       const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
-      const keep = { marker: N.marker, watch: N.watch };
+      const keep = { marker: N.marker, watch: N.watch, wx: N.wx, said: N.said };
       N = Object.assign(buildNav(trip, path), keep);
       addRouteLayers();
       $('nBanner').hidden = true; speak(T('newRoute'));
@@ -1196,6 +1419,9 @@ h1{font-family:inherit}
     render();
     keepAwake();
     initNavMap(lastRoute.path);
+    $('nWx').hidden = true; $('nWxBan').hidden = true;
+    N.wx = lastRoute.chosen && lastRoute.chosen.wx; loadNavWeather();
+    N.wxTimer = setInterval(loadNavWeather, 15 * 60e3);
     N.watch = navigator.geolocation.watchPosition(onPos, err => {
       $('nBanner').textContent = err.code === 1 ? T('geoDenied') : T('gpsWait');
       $('nBanner').hidden = false;
@@ -1204,6 +1430,7 @@ h1{font-family:inherit}
   function endNav() {
     if (N && N.watch != null) navigator.geolocation.clearWatch(N.watch);
     if (N && N.marker) N.marker.remove();
+    if (N && N.wxTimer) clearInterval(N.wxTimer);
     N = null;
     try { speechSynthesis.cancel(); } catch {}
     if (wake) { wake.release().catch(() => {}); wake = null; }
@@ -1239,10 +1466,11 @@ h1{font-family:inherit}
       btn.disabled = false; btn.textContent = T('calc');
     }
   };
-  $('back').onclick = () => { $('v-res').classList.remove('on'); $('v-plan').classList.add('on'); };
+  $('back').onclick = () => { $('v-res').classList.remove('on'); $('v-plan').classList.add('on'); if (FX.kind) fxStart(FX.kind); };
 
   applyTheme();
   applyLang();
+  loadNowWeather();
 
   // ---------- PWA ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
