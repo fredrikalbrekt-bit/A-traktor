@@ -131,8 +131,9 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 #v-nav{position:relative;background:#0c0d0f}
 #v-nav.on{display:block;height:100vh;height:100dvh}
 #navMap.nav-map{position:absolute;inset:0;width:100%;height:100%}
-.nav-map .maplibregl-ctrl-attrib{background:rgba(0,0,0,.5)!important;font-size:10px}
-.nav-map .maplibregl-ctrl-attrib a{color:#9a9ea6!important}
+.maplibregl-ctrl-attrib{background:rgba(0,0,0,.55)!important;color:#9a9ea6!important;font-size:10px}
+.maplibregl-ctrl-attrib a{color:#9a9ea6!important}
+.maplibregl-ctrl-attrib-button{filter:invert(1)}
 .nav-top{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);
   display:flex;gap:14px;align-items:center;padding:14px 16px;background:rgba(10,11,13,.94);border:1px solid var(--line);border-radius:16px}
 .man-ico{width:52px;height:52px;flex-shrink:0;border-radius:12px;background:#1b2433;display:flex;align-items:center;justify-content:center;color:var(--accent)}
@@ -323,10 +324,6 @@ dialog .row .cta{height:48px;font-size:16px}
     <label for="speedIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="speedLbl">Fordonets maxhastighet</label>
     <select class="key" id="speedIn"><option value="10">10 km/h</option><option value="15">15 km/h</option><option value="20">20 km/h</option><option value="25">25 km/h</option><option value="30">30 km/h</option><option value="35">35 km/h</option><option value="40">40 km/h</option><option value="45">45 km/h</option><option value="50">50 km/h</option><option value="55">55 km/h</option><option value="60">60 km/h</option><option value="65">65 km/h</option><option value="70">70 km/h</option><option value="75">75 km/h</option><option value="80">80 km/h</option><option value="85">85 km/h</option><option value="90">90 km/h</option></select>
     <p style="margin:6px 0 18px" data-i18n="speedHelp">Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.</p>
-    <h3 style="margin:0 0 6px;font-size:17px;font-weight:600" data-i18n="gkey">Google API-nyckel</h3>
-    <p data-i18n="gkeyHelp">Appen behöver en nyckel från Google Cloud med Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.</p>
-    <label for="keyIn" class="t2" style="display:block;font-size:14px;color:var(--muted);margin-bottom:6px" data-i18n="apiKey">API-nyckel</label>
-    <input class="key" id="keyIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…">
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
@@ -364,7 +361,7 @@ dialog .row .cta{height:48px;font-size:16px}
       keyInvalid:'Google-nyckeln är ogiltig. Öppna kugghjulet och klistra in nyckeln från Google Cloud igen (Show key → kopiera).',
       keyReferrer:'Google-nyckeln tillåter inte den här webbadressen ({host}). Lägg till https://{host}/* under Website restrictions.',
       needPlaces:'Sökförslag kräver Places API (New). Slå på den i Google Cloud och lägg till den i nyckelns API-begränsningar.',
-      suggFail:'Sökförslagen kunde inte hämtas (fel {s}{m}).', suggFoot:'Förslag från Google',
+      suggFail:'Sökförslagen kunde inte hämtas (fel {s}{m}).', suggFoot:'Förslag från Stadia Maps · OpenStreetMap',
       noPlace:'Hittade ingen plats som heter "{q}". Välj ett förslag i listan.', placeFail:'Platsens position kunde inte hämtas. Kontrollera att Places API (New) är påslagen för nyckeln.',
       stadiaDenied:'Stadia Maps nekade anropet. Kontrollera att appens webbadress är registrerad i ditt Stadia-konto.',
       noPath:'Ingen laglig väg hittades mellan platserna för fordonet. Prova en annan start- eller målpunkt.', routeFail:'Rutten kunde inte beräknas. ',
@@ -390,7 +387,7 @@ dialog .row .cta{height:48px;font-size:16px}
       keyInvalid:'The Google key is invalid. Open the gear and paste the key from Google Cloud again (Show key → copy).',
       keyReferrer:'The Google key doesn’t allow this web address ({host}). Add https://{host}/* under Website restrictions.',
       needPlaces:'Suggestions need Places API (New). Enable it in Google Cloud and add it to the key’s API restrictions.',
-      suggFail:'Couldn’t load suggestions (error {s}{m}).', suggFoot:'Suggestions from Google',
+      suggFail:'Couldn’t load suggestions (error {s}{m}).', suggFoot:'Suggestions from Stadia Maps · OpenStreetMap',
       noPlace:'No place found called "{q}". Pick a suggestion from the list.', placeFail:'Couldn’t get the place’s position. Check that Places API (New) is enabled for the key.',
       stadiaDenied:'Stadia Maps rejected the request. Check that the app’s web address is registered in your Stadia account.',
       noPath:'No legal road found between the places for this vehicle. Try a different start or destination.', routeFail:'The route couldn’t be calculated. ',
@@ -419,7 +416,6 @@ dialog .row .cta{height:48px;font-size:16px}
   let dest = null;            // {placeId,label}
   let lastPos = store.get('lastPos', null);
   let lastRoute = null;
-  let map = null, line = null, markers = [], mapsLoading = null;
 
   // ---------- Speed ----------
   function renderSpeed() { $('spVal').textContent = speed; $('rSub').textContent = T('atSpeed', { v: speed }); }
@@ -432,16 +428,13 @@ dialog .row .cta{height:48px;font-size:16px}
   $('avoid').onchange = e => store.set('avoid', e.target.checked);
 
   // ---------- Settings / key ----------
-  const getKey = () => store.get('key', '');
   let ajaPrev = 30;
   const getStadia = () => ''; // Stadia använder domänbehörighet
-  $('openSettings').onclick = () => { $('keyIn').value = getKey(); $('speedIn').value = String(speed); $('langIn').value = lang; ajaPrev = speed; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
+  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; ajaPrev = speed; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
-      store.set('key', $('keyIn').value.trim());
       speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed);
       lang = $('langIn').value === 'en' ? 'en' : 'sv'; store.set('lang', lang); applyLang();
-      mapsLoading = null;
     }
   });
 
@@ -510,33 +503,28 @@ dialog .row .cta{height:48px;font-size:16px}
     return out;
   };
 
-  // ---------- Sökförslag (Places API New) ----------
-  const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
-  let session = uuid(), activeField = null, acTimer = null, acSeq = 0, shown = [];
+  // ---------- Sökförslag (Stadia Maps) ----------
+  let activeField = null, acTimer = null, acSeq = 0, shown = [];
   const hideSugg = () => { shown = []; $('sugg').classList.remove('on'); $('sugg').innerHTML = ''; };
   async function autocomplete(text) {
-    const body = { input: text, languageCode: lang, includedRegionCodes: ['se'], sessionToken: session };
-    if (lastPos) body.locationBias = { circle: { center: { latitude: lastPos.lat, longitude: lastPos.lng }, radius: 50000 } };
-    const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': getKey(),
-        'X-Goog-FieldMask': 'suggestions.placePrediction.placeId,suggestions.placePrediction.text.text,suggestions.placePrediction.structuredFormat' },
-      body: JSON.stringify(body)
-    });
+    const q = new URLSearchParams({ text, 'boundary.country': 'SE', lang, size: '6' });
+    if (lastPos) { q.set('focus.point.lat', lastPos.lat); q.set('focus.point.lon', lastPos.lng); }
+    const res = await fetch('https://api.stadiamaps.com/geocoding/v1/autocomplete?' + q.toString());
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const m = (data.error && data.error.message) || '';
-      if (res.status === 400 && /API key/i.test(m)) throw new Error(T('keyInvalid'));
-      if (res.status === 403 && /referer|referrer/i.test(m)) throw new Error(T('keyReferrer', { host: location.host }));
-      if (res.status === 403) throw new Error(T('needPlaces'));
-      throw new Error(T('suggFail', { s: res.status, m: m ? ': ' + m : '' }));
-    }
-    return (data.suggestions || []).map(s => s.placePrediction).filter(Boolean).map(p => ({
-      placeId: p.placeId,
-      label: p.text ? p.text.text : '',
-      main: p.structuredFormat && p.structuredFormat.mainText ? p.structuredFormat.mainText.text : (p.text ? p.text.text : ''),
-      sec: p.structuredFormat && p.structuredFormat.secondaryText ? p.structuredFormat.secondaryText.text : ''
-    }));
+    if (res.status === 401 || res.status === 403) throw new Error(T('stadiaDenied'));
+    if (!res.ok) throw new Error(T('suggFail', { s: res.status, m: '' }));
+    return (data.features || []).filter(f => f.geometry && f.geometry.coordinates).map(f => {
+      const p = f.properties || {};
+      const area = [p.locality || p.localadmin || p.county, p.region].filter((x, i, a) => x && a.indexOf(x) === i);
+      const main = p.name || p.label || '';
+      return {
+        id: p.gid || main,
+        main,
+        sec: area.filter(x => x !== main).join(', '),
+        label: p.label || main,
+        loc: { lat: f.geometry.coordinates[1], lng: f.geometry.coordinates[0] }
+      };
+    });
   }
   function renderSugg(items, field) {
     shown = items;
@@ -558,10 +546,10 @@ dialog .row .cta{height:48px;font-size:16px}
     box.classList.add('on');
   }
   function pick(it, field) {
-    const place = { placeId: it.placeId, label: it.label, short: it.main };
+    const place = { loc: it.loc, label: it.label, short: it.main };
     $(field).value = it.label;
     if (field === 'from') origin = place; else dest = place;
-    hideSugg(); session = uuid();
+    hideSugg();
     if (field === 'from') $('to').focus(); else $('to').blur();
   }
   ['from', 'to'].forEach(id => {
@@ -570,7 +558,7 @@ dialog .row .cta{height:48px;font-size:16px}
       activeField = id;
       const text = e.target.value.trim();
       clearTimeout(acTimer);
-      if (text.length < 3 || !getKey()) { hideSugg(); return; }
+      if (text.length < 3) { hideSugg(); return; }
       acTimer = setTimeout(async () => {
         const seq = ++acSeq;
         try {
@@ -582,21 +570,13 @@ dialog .row .cta{height:48px;font-size:16px}
     $(id).addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('from') && document.activeElement !== $('to')) hideSugg(); }, 150));
   });
 
-  // ---------- Platser → koordinater (Google Place Details) ----------
+  // ---------- Platser → koordinater ----------
   async function placeLocation(p) {
     if (p.coords) return p.coords;
     if (p.loc) return p.loc;
-    if (!p.placeId) {
-      const items = await autocomplete(p.address || p.label || '');
-      if (!items.length) throw new Error(T('noPlace', { q: p.address || p.label }));
-      Object.assign(p, { placeId: items[0].placeId, label: items[0].label, short: items[0].main });
-    }
-    const res = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(p.placeId)}?sessionToken=${encodeURIComponent(session)}&languageCode=${lang}`, {
-      headers: { 'X-Goog-Api-Key': getKey(), 'X-Goog-FieldMask': 'location' }
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.location) throw new Error(T('placeFail'));
-    p.loc = { lat: data.location.latitude, lng: data.location.longitude };
+    const items = await autocomplete(p.address || p.label || '');
+    if (!items.length) throw new Error(T('noPlace', { q: p.address || p.label }));
+    Object.assign(p, { loc: items[0].loc, label: items[0].label, short: items[0].main });
     return p.loc;
   }
 
@@ -634,45 +614,40 @@ dialog .row .cta{height:48px;font-size:16px}
     $('rWarnText').textContent = T('warn');
   }
 
-  // ---------- Map ----------
-  const darkStyle = [
-    { elementType: 'geometry', stylers: [{ color: '#0c0d0f' }] },
-    { elementType: 'labels.text.fill', stylers: [{ color: '#7d8189' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#0c0d0f' }] },
-    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-    { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#202227' }] },
-    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#2c2f35' }] },
-    { featureType: 'road', elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#06080c' }] },
-    { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#0f1113' }] },
-    { featureType: 'administrative', elementType: 'geometry', stylers: [{ visibility: 'off' }] }
-  ];
-  function loadMaps() {
-    if (window.google && google.maps && google.maps.Map) return Promise.resolve();
-    if (mapsLoading) return mapsLoading;
-    mapsLoading = new Promise((resolve, reject) => {
-      window.__atpMapsReady = resolve;
-      const s = document.createElement('script');
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(getKey())}&v=weekly&language=${lang}&region=SE&loading=async&callback=__atpMapsReady`;
-      s.async = true; s.onerror = () => { mapsLoading = null; reject(); };
-      document.head.appendChild(s);
-    });
-    return mapsLoading;
+  // ---------- Karta i resultatvyn (Stadia via MapLibre) ----------
+  let rmap = null, rMarkers = [];
+  function rDot(fill, stroke) { const el = document.createElement('div'); el.style.cssText = `width:16px;height:16px;border-radius:999px;background:${fill};border:3px solid ${stroke};box-sizing:border-box`; return el; }
+  function rAddRoute() {
+    if (!rmap || !rmap.__data) return;
+    try {
+      if (rmap.getSource('route')) { rmap.getSource('route').setData(rmap.__data); return; }
+      rmap.addSource('route', { type: 'geojson', data: rmap.__data });
+      rmap.addLayer({ id: 'route-casing', type: 'line', source: 'route', paint: { 'line-color': '#0b2a52', 'line-width': 9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      rmap.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': '#5aa2ff', 'line-width': 5 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+    } catch {}
   }
   async function drawMap(path) {
-    try { await loadMaps(); } catch { return; }
-    if (!map) {
-      map = new google.maps.Map($('map'), { styles: darkStyle, disableDefaultUI: true, gestureHandling: 'greedy', backgroundColor: '#0c0d0f', center: path[0], zoom: 11 });
+    try { await loadMapLibre(); } catch { return; }
+    if (!rmap) {
+      let fellBack = false;
+      rmap = new maplibregl.Map({ container: 'map', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
+        center: [path[0].lng, path[0].lat], zoom: 11, attributionControl: { compact: true } });
+      const fallback = () => { if (fellBack) return; fellBack = true; rmap.setStyle(FALLBACK_STYLE); };
+      rmap.on('error', e => { if (!fellBack && (!rmap.isStyleLoaded() || (e.error && /40[13]/.test(String(e.error.status))))) fallback(); });
+      setTimeout(() => { if (rmap && !rmap.isStyleLoaded()) fallback(); }, 6000);
+      rmap.on('style.load', rAddRoute);
+    } else {
+      rmap.resize();
     }
-    if (line) line.setMap(null);
-    markers.forEach(m => m.setMap(null)); markers = [];
-    line = new google.maps.Polyline({ path, map, strokeColor: '#5aa2ff', strokeWeight: 5, strokeOpacity: 1 });
-    const dot = (pos, fill, stroke) => new google.maps.Marker({ position: pos, map, clickable: false,
-      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: fill, fillOpacity: 1, strokeColor: stroke, strokeWeight: 3 } });
-    markers.push(dot(path[0], '#000000', '#5aa2ff'), dot(path[path.length - 1], '#f2f3f5', '#f2f3f5'));
-    const b = new google.maps.LatLngBounds(); path.forEach(p => b.extend(p));
-    map.fitBounds(b, { top: 70, right: 30, bottom: 60, left: 30 });
+    rmap.__data = routeGeo(path);
+    if (rmap.isStyleLoaded()) rAddRoute();
+    rMarkers.forEach(m => m.remove());
+    rMarkers = [
+      new maplibregl.Marker({ element: rDot('#000000', '#5aa2ff') }).setLngLat([path[0].lng, path[0].lat]).addTo(rmap),
+      new maplibregl.Marker({ element: rDot('#f2f3f5', '#f2f3f5') }).setLngLat([path[path.length - 1].lng, path[path.length - 1].lat]).addTo(rmap)
+    ];
+    const b = new maplibregl.LngLatBounds(); path.forEach(p => b.extend([p.lng, p.lat]));
+    rmap.fitBounds(b, { padding: { top: 80, right: 30, bottom: 50, left: 30 }, duration: 0 });
   }
 
   // ---------- Navigering ----------
@@ -894,7 +869,6 @@ dialog .row .cta{height:48px;font-size:16px}
   $('go').onclick = async () => {
     setMsg('');
     if (!navigator.onLine) { setMsg(T('offline')); return; }
-    if (!getKey()) { $('keyIn').value = ''; $('settings').showModal(); return; }
     const toTxt = $('to').value.trim(), fromTxt = $('from').value.trim();
     if (!toTxt) { setMsg(T('needTo')); $('to').focus(); return; }
     const from = origin || (fromTxt && !isMyPos(fromTxt) ? { address: fromTxt, label: fromTxt } : null);
@@ -904,7 +878,6 @@ dialog .row .cta{height:48px;font-size:16px}
     const btn = $('go'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>' + T('calcing');
     try {
       const [a, b] = await Promise.all([placeLocation(from), placeLocation(to)]);
-      session = uuid();
       const trip = await computeRoute(a, b, $('avoid').checked);
       const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
       lastRoute = { trip, path, a, b, from, to, fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
