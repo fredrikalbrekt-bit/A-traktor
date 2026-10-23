@@ -222,10 +222,6 @@ dialog .row .cta{height:48px;font-size:16px}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17.5v.5"></path></svg>
       <div id="rWarnText"></div>
     </div>
-    <details class="dir" id="rDir">
-      <summary>Vägbeskrivning <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <ol id="rSteps"></ol>
-    </details>
     <div class="btns">
       <a class="cta" id="openGoogle" target="_blank" rel="noopener">Öppna i Google Maps</a>
       <a class="cta ghost" id="openApple" target="_blank" rel="noopener">Öppna i Apple Kartor</a>
@@ -359,8 +355,11 @@ dialog .row .cta{height:48px;font-size:16px}
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
+      const m = (data.error && data.error.message) || '';
+      if (res.status === 400 && /API key/i.test(m)) throw new Error('Google-nyckeln är ogiltig. Öppna kugghjulet och klistra in nyckeln från Google Cloud igen (Show key → kopiera). Stadia-nyckeln ska i det andra fältet.');
+      if (res.status === 403 && /referer|referrer/i.test(m)) throw new Error(`Google-nyckeln tillåter inte den här webbadressen (${location.host}). Lägg till https://${location.host}/* under Website restrictions.`);
       if (res.status === 403) throw new Error('Sökförslag kräver Places API (New). Slå på den i Google Cloud och lägg till den i nyckelns API-begränsningar.');
-      throw new Error('Sökförslagen kunde inte hämtas.');
+      throw new Error(`Sökförslagen kunde inte hämtas (fel ${res.status}${m ? ': ' + m : ''}).`);
     }
     return (data.suggestions || []).map(s => s.placePrediction).filter(Boolean).map(p => ({
       placeId: p.placeId,
@@ -463,15 +462,6 @@ dialog .row .cta{height:48px;font-size:16px}
     $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
     $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
     $('rWarnText').textContent = 'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.';
-    // Vägbeskrivning
-    const ol = $('rSteps'); ol.innerHTML = '';
-    (t.legs || []).forEach(l => (l.maneuvers || []).forEach(m => {
-      const li = document.createElement('li');
-      const a = document.createElement('span'); a.textContent = m.instruction || '';
-      const b = document.createElement('span'); b.textContent = m.length ? fmtDist(m.length * 1000) : '';
-      li.append(a, b); ol.appendChild(li);
-    }));
-    $('rDir').open = false;
     // Navigering i Google Maps: styr längs A-traktorrutten med mellanpunkter
     const o = `${r.a.lat},${r.a.lng}`, d = `${r.b.lat},${r.b.lng}`;
     const pts = r.path, n = pts.length;
