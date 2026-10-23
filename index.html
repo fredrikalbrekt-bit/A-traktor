@@ -124,6 +124,40 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .attr{font-size:11px;color:#6f737b;text-align:center}
 .attr a{color:#8a8e96}
 
+.ext{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ext .cta{height:48px;font-size:15px;letter-spacing:1px}
+.ext-note{font-size:12px;color:#6f737b;text-align:center}
+
+/* ---------- Navigering ---------- */
+#v-nav{position:relative;background:#0c0d0f}
+#v-nav.on{display:block;height:100vh;height:100dvh}
+.nav-map{position:absolute;inset:0}
+.nav-map .maplibregl-ctrl-attrib{background:rgba(0,0,0,.5)!important;font-size:10px}
+.nav-map .maplibregl-ctrl-attrib a{color:#9a9ea6!important}
+.nav-top{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);
+  display:flex;gap:14px;align-items:center;padding:14px 16px;background:rgba(10,11,13,.94);border:1px solid var(--line);border-radius:16px}
+.man-ico{width:52px;height:52px;flex-shrink:0;border-radius:12px;background:#1b2433;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.man-dist{font-family:var(--cond);font-size:34px;font-weight:600;line-height:1}
+.man-text{font-size:16px;line-height:1.3;margin-top:4px;color:#d5d8dd}
+.nav-banner{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 118px);
+  background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px}
+.nav-bottom{position:absolute;z-index:2;left:0;right:0;bottom:0;background:linear-gradient(rgba(0,0,0,0),#000 28%);
+  padding:40px 16px calc(env(safe-area-inset-bottom) + 14px)}
+.nav-panel{background:rgba(10,11,13,.96);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.eta-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.eta{font-family:var(--cond);font-size:48px;font-weight:600;line-height:1}
+.eta-sub{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-top:4px}
+.left{font-size:16px;color:#d5d8dd;margin-top:6px}
+.spd{width:72px;height:72px;border-radius:999px;border:3px solid var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.spd b{font-family:var(--cond);font-size:28px;font-weight:600;line-height:1}
+.spd span{font-size:11px;color:var(--muted)}
+.spd.over{border-color:var(--err)}
+.spd.over b{color:var(--err)}
+.nav-btns{display:flex;gap:10px}
+.nav-btns .cta{height:48px;font-size:16px}
+.nav-btns .round{width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.me{width:22px;height:22px;border-radius:999px;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 6px rgba(90,162,255,.25)}
+
 /* ---------- Settings ---------- */
 dialog{border:1px solid var(--line);border-radius:18px;background:#0d0e10;color:var(--text);padding:20px;width:min(92vw,420px)}
 dialog::backdrop{background:rgba(0,0,0,.7)}
@@ -223,10 +257,39 @@ dialog .row .cta{height:48px;font-size:16px}
       <div id="rWarnText"></div>
     </div>
     <div class="btns">
-      <a class="cta" id="openGoogle" target="_blank" rel="noopener">Öppna i Google Maps</a>
-      <a class="cta ghost" id="openApple" target="_blank" rel="noopener">Öppna i Apple Kartor</a>
+      <button class="cta" id="startNav">Starta navigering</button>
+      <div class="ext">
+        <a class="cta ghost" id="openGoogle" target="_blank" rel="noopener">Google Maps</a>
+        <a class="cta ghost" id="openApple" target="_blank" rel="noopener">Apple Kartor</a>
+      </div>
+      <div class="ext-note">Google och Apple räknar med biltid och egen rutt.</div>
     </div>
     <div class="attr">Rutt: Valhalla via Stadia Maps · Kartdata © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></div>
+  </div>
+</section>
+
+<section class="view" id="v-nav" aria-label="Navigering">
+  <div class="nav-map" id="navMap"></div>
+  <div class="nav-top" aria-live="polite">
+    <div class="man-ico" id="nIco"></div>
+    <div><div class="man-dist" id="nDist">–</div><div class="man-text" id="nText">Väntar på GPS…</div></div>
+  </div>
+  <div class="nav-banner" id="nBanner" hidden></div>
+  <div class="nav-bottom">
+    <div class="nav-panel">
+      <div class="eta-row">
+        <div>
+          <div class="eta" id="nEta">--:--</div>
+          <div class="eta-sub">Ankomst vid max <span id="nMax">30</span> km/h</div>
+          <div class="left" id="nLeft">–</div>
+        </div>
+        <div class="spd" id="nSpd"><b>–</b><span>km/h</span></div>
+      </div>
+      <div class="nav-btns">
+        <button class="round" id="nMute" aria-label="Stäng av röst" aria-pressed="false"></button>
+        <button class="cta ghost" id="nEnd">Avsluta</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -462,13 +525,8 @@ dialog .row .cta{height:48px;font-size:16px}
     $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
     $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
     $('rWarnText').textContent = 'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.';
-    // Navigering i Google Maps: styr längs A-traktorrutten med mellanpunkter
     const o = `${r.a.lat},${r.a.lng}`, d = `${r.b.lat},${r.b.lng}`;
-    const pts = r.path, n = pts.length;
-    const via = n > 20 ? [0.25, 0.5, 0.75].map(f => pts[Math.floor(n * f)]).map(p => `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`).join('|') : '';
-    let g = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=driving&dir_action=navigate`;
-    if (via) g += `&waypoints=${encodeURIComponent(via)}`;
-    $('openGoogle').href = g;
+    $('openGoogle').href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(o)}&destination=${encodeURIComponent(d)}&travelmode=driving`;
     $('openApple').href = `https://maps.apple.com/?saddr=${encodeURIComponent(o)}&daddr=${encodeURIComponent(d)}&dirflg=d`;
   }
 
@@ -512,6 +570,197 @@ dialog .row .cta{height:48px;font-size:16px}
     const b = new google.maps.LatLngBounds(); path.forEach(p => b.extend(p));
     map.fitBounds(b, { top: 70, right: 30, bottom: 60, left: 30 });
   }
+
+  // ---------- Navigering ----------
+  const ICON = {
+    straight: '<path d="M12 20V5M6 11l6-6 6 6"/>',
+    slightR: '<path d="M8 20v-7a4 4 0 0 1 1.2-2.8L15 4.5M10 4h5v5"/>',
+    right: '<path d="M7 20v-8a3 3 0 0 1 3-3h9M15 5l4 4-4 4"/>',
+    sharpR: '<path d="M7 20V9a4 4 0 0 1 7-2.6L18 12M13 13h5V8"/>',
+    slightL: '<path d="M16 20v-7a4 4 0 0 0-1.2-2.8L9 4.5M14 4H9v5"/>',
+    left: '<path d="M17 20v-8a3 3 0 0 0-3-3H5M9 5L5 9l4 4"/>',
+    sharpL: '<path d="M17 20V9a4 4 0 0 0-7-2.6L6 12M11 13H6V8"/>',
+    uturn: '<path d="M8 20V9a4 4 0 0 1 8 0v4M12 10l4 4 4-4"/>',
+    round: '<circle cx="12" cy="10" r="4"/><path d="M12 14v7M15 7l3-3M18 8V4h-4"/>',
+    dest: '<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>'
+  };
+  const iconFor = t => ({ 9:'slightR',10:'right',11:'sharpR',12:'uturn',13:'uturn',14:'sharpL',15:'left',16:'slightL',
+    18:'slightR',19:'slightL',20:'slightR',21:'slightL',23:'slightR',24:'slightL',25:'straight',26:'round',27:'round',
+    4:'dest',5:'dest',6:'dest',37:'slightR',38:'slightL' })[t] || 'straight';
+  const svg = name => `<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[name]}</svg>`;
+  const SPK_ON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>';
+  const SPK_OFF = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>';
+
+  const R = 6371000, rad = d => d * Math.PI / 180;
+  const hav = (a, b) => { const dl = rad(b.lat - a.lat), dg = rad(b.lng - a.lng);
+    const h = Math.sin(dl/2)**2 + Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dg/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
+
+  let N = null; // navigeringsläge
+  let muted = store.get('muted', false);
+
+  function buildNav(trip, path) {
+    const n = path.length, cum = new Float64Array(n);
+    for (let i = 1; i < n; i++) cum[i] = cum[i-1] + hav(path[i-1], path[i]);
+    const vmax = speed / 3.6;
+    const mans = (trip.legs || []).flatMap(l => l.maneuvers || []);
+    const segV = new Float64Array(Math.max(1, n - 1)).fill(vmax);
+    mans.forEach((m, i) => {
+      const a = m.begin_shape_index || 0, b = i + 1 < mans.length ? (mans[i+1].begin_shape_index || n - 1) : n - 1;
+      let v = m.time > 0 && m.length > 0 ? (m.length * 1000) / m.time : vmax;
+      v = Math.min(v, vmax);  // aldrig snabbare än maxhastigheten
+      for (let k = a; k < b && k < n - 1; k++) segV[k] = v;
+    });
+    const suffix = new Float64Array(n);
+    for (let k = n - 2; k >= 0; k--) suffix[k] = suffix[k+1] + (cum[k+1] - cum[k]) / segV[k];
+    return { path, cum, segV, suffix, mans, idx: 0, along: 0, off: 0, said: {} };
+  }
+
+  function snap(p) {
+    const P = N.path, n = P.length, lat0 = rad(p.lat), kx = Math.cos(lat0) * 111320, ky = 110540;
+    const from = N.idx === 0 && N.along === 0 ? 0 : Math.max(0, N.idx - 5), to = N.idx === 0 && N.along === 0 ? n - 1 : Math.min(n - 1, N.idx + 400);
+    let best = { d: Infinity, k: N.idx, t: 0 };
+    for (let k = from; k < to; k++) {
+      const ax = (P[k].lng - p.lng) * kx, ay = (P[k].lat - p.lat) * ky;
+      const bx = (P[k+1].lng - p.lng) * kx, by = (P[k+1].lat - p.lat) * ky;
+      const dx = bx - ax, dy = by - ay, L = dx*dx + dy*dy;
+      let t = L ? -(ax*dx + ay*dy) / L : 0; t = Math.max(0, Math.min(1, t));
+      const cx = ax + t*dx, cy = ay + t*dy, d = Math.sqrt(cx*cx + cy*cy);
+      if (d < best.d) best = { d, k, t };
+    }
+    return best;
+  }
+
+  function speak(text) {
+    if (muted || !text || !('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'sv-SE'; u.rate = 1;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }
+
+  let wake = null;
+  async function keepAwake() { try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch {} }
+  document.addEventListener('visibilitychange', () => { if (N && document.visibilityState === 'visible') keepAwake(); });
+
+  let nmap = null, mapLib = null;
+  function loadMapLibre() {
+    if (window.maplibregl) return Promise.resolve();
+    if (mapLib) return mapLib;
+    mapLib = new Promise((res, rej) => {
+      const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'; document.head.appendChild(l);
+      const s = document.createElement('script'); s.src = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js';
+      s.onload = res; s.onerror = () => { mapLib = null; rej(); }; document.head.appendChild(s);
+    });
+    return mapLib;
+  }
+  const routeGeo = path => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: path.map(p => [p.lng, p.lat]) } });
+  async function initNavMap(path) {
+    try { await loadMapLibre(); } catch { return; }
+    const k = getStadia();
+    if (!nmap) {
+      nmap = new maplibregl.Map({ container: 'navMap', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json' + (k ? `?api_key=${encodeURIComponent(k)}` : ''),
+        center: [path[0].lng, path[0].lat], zoom: 16, pitch: 45, attributionControl: { compact: true } });
+      const el = document.createElement('div'); el.className = 'me';
+      N.marker = new maplibregl.Marker({ element: el }).setLngLat([path[0].lng, path[0].lat]).addTo(nmap);
+      nmap.on('load', () => {
+        nmap.addSource('route', { type: 'geojson', data: routeGeo(N ? N.path : path) });
+        nmap.addLayer({ id: 'route-casing', type: 'line', source: 'route', paint: { 'line-color': '#0b2a52', 'line-width': 11 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+        nmap.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': '#5aa2ff', 'line-width': 7 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      });
+    } else {
+      nmap.resize();
+      const src = nmap.getSource('route'); if (src) src.setData(routeGeo(path));
+      if (!N.marker) { const el = document.createElement('div'); el.className = 'me'; N.marker = new maplibregl.Marker({ element: el }).setLngLat([path[0].lng, path[0].lat]).addTo(nmap); }
+    }
+  }
+
+  function render(pos) {
+    const n = N.path.length;
+    const remM = Math.max(0, N.cum[n-1] - N.along);
+    const k = Math.min(N.idx, n - 2);
+    let remS = k >= 0 && n > 1 ? Math.max(0, N.cum[k+1] - N.along) / N.segV[k] + N.suffix[k+1] : 0;
+    $('nEta').textContent = new Date(Date.now() + remS * 1000).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+    $('nLeft').textContent = `${fmtTime(remS)} · ${fmtDist(remM)} kvar`;
+    // nästa manöver
+    const next = N.mans.find(m => (m.begin_shape_index || 0) > N.idx) || N.mans[N.mans.length - 1];
+    if (next) {
+      const toM = Math.max(0, N.cum[Math.min(next.begin_shape_index || 0, n - 1)] - N.along);
+      $('nIco').innerHTML = svg(iconFor(next.type));
+      $('nDist').textContent = fmtDist(toM);
+      $('nText').textContent = next.instruction || '';
+      const key = next.begin_shape_index;
+      if (toM < 260 && toM > 80 && !N.said[key + 'a']) { N.said[key + 'a'] = 1; speak(next.verbal_transition_alert_instruction || next.instruction); }
+      if (toM <= 45 && !N.said[key + 'b']) { N.said[key + 'b'] = 1; speak(next.verbal_pre_transition_instruction || next.instruction); }
+    }
+    if (remM < 25 && !N.arrived) { N.arrived = true; $('nText').textContent = 'Du är framme.'; $('nDist').textContent = ''; $('nIco').innerHTML = svg('dest'); speak('Du är framme.'); }
+  }
+
+  async function reroute(p) {
+    if (N.rerouting || Date.now() - (N.lastReroute || 0) < 15000) return;
+    N.rerouting = true; N.lastReroute = Date.now();
+    $('nBanner').textContent = 'Du har lämnat rutten. Beräknar ny rutt…'; $('nBanner').hidden = false;
+    try {
+      const trip = await computeRoute(p, lastRoute.b, $('avoid').checked);
+      const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
+      const keep = { marker: N.marker, watch: N.watch };
+      N = Object.assign(buildNav(trip, path), keep);
+      if (nmap && nmap.getSource('route')) nmap.getSource('route').setData(routeGeo(path));
+      $('nBanner').hidden = true; speak('Ny rutt beräknad.');
+    } catch {
+      $('nBanner').textContent = 'Ny rutt kunde inte beräknas. Försöker igen strax.';
+    } finally { if (N) N.rerouting = false; }
+  }
+
+  function onPos(pos) {
+    if (!N) return;
+    const p = { lat: pos.coords.latitude, lng: pos.coords.longitude }, acc = pos.coords.accuracy || 30;
+    // hastighet
+    let v = pos.coords.speed;
+    if ((v === null || v < 0) && N.lastFix) { const dt = (pos.timestamp - N.lastFix.t) / 1000; v = dt >= 0.8 ? hav(N.lastFix.p, p) / dt : null; }
+    if (v != null && v * 3.6 > 160) v = null; // orimligt GPS-hopp
+    N.lastFix = { p, t: pos.timestamp };
+    const kmh = v != null && v >= 0 ? Math.round(v * 3.6) : null;
+    $('nSpd').querySelector('b').textContent = kmh == null ? '–' : kmh;
+    $('nSpd').classList.toggle('over', kmh != null && kmh > speed + 2);
+    // fäst mot rutten
+    const s = snap(p);
+    if (s.d > Math.max(40, acc * 1.5)) { N.off++; if (N.off >= 3) reroute(p); }
+    else { N.off = 0; N.idx = s.k; N.along = N.cum[s.k] + s.t * (N.cum[s.k+1] - N.cum[s.k]); if (!N.rerouting) $('nBanner').hidden = true; }
+    render(pos);
+    if (N.marker) N.marker.setLngLat([p.lng, p.lat]);
+    if (nmap) {
+      const h = pos.coords.heading;
+      nmap.easeTo({ center: [p.lng, p.lat], bearing: (h != null && !isNaN(h) && kmh > 3) ? h : nmap.getBearing(), zoom: 16.5, pitch: 45, duration: 900 });
+    }
+  }
+
+  function startNav() {
+    if (!lastRoute) return;
+    if (!navigator.geolocation) { alert('Den här webbläsaren kan inte dela position.'); return; }
+    N = buildNav(lastRoute.trip, lastRoute.path);
+    $('nMax').textContent = speed;
+    $('nMute').innerHTML = muted ? SPK_OFF : SPK_ON; $('nMute').setAttribute('aria-pressed', String(muted));
+    $('v-res').classList.remove('on'); $('v-nav').classList.add('on');
+    // lås upp tal på iOS (måste ske i ett tryck)
+    if ('speechSynthesis' in window && !muted) { const u = new SpeechSynthesisUtterance(' '); speechSynthesis.speak(u); }
+    const first = N.mans[0]; if (first) setTimeout(() => speak(first.verbal_pre_transition_instruction || first.instruction), 400);
+    render();
+    keepAwake();
+    initNavMap(lastRoute.path);
+    N.watch = navigator.geolocation.watchPosition(onPos, err => {
+      $('nBanner').textContent = err.code === 1 ? 'Appen får inte använda din position. Tillåt plats för Safari i Inställningar.' : 'Väntar på GPS-signal…';
+      $('nBanner').hidden = false;
+    }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+  }
+  function endNav() {
+    if (N && N.watch != null) navigator.geolocation.clearWatch(N.watch);
+    if (N && N.marker) N.marker.remove();
+    N = null;
+    try { speechSynthesis.cancel(); } catch {}
+    if (wake) { wake.release().catch(() => {}); wake = null; }
+    $('v-nav').classList.remove('on'); $('v-res').classList.add('on');
+  }
+  $('startNav').onclick = startNav;
+  $('nEnd').onclick = endNav;
+  $('nMute').onclick = () => { muted = !muted; store.set('muted', muted); $('nMute').innerHTML = muted ? SPK_OFF : SPK_ON; $('nMute').setAttribute('aria-pressed', String(muted)); if (muted) try { speechSynthesis.cancel(); } catch {} };
 
   // ---------- Go ----------
   $('go').onclick = async () => {
