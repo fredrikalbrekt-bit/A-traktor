@@ -13,7 +13,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=Righteous&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&family=Righteous&family=Bebas+Neue&family=Archivo+Black&display=swap">
 <style>
 :root{
   --bg:#000;--card:#141518;--line:#26282d;--line2:#3a3d44;
@@ -204,23 +204,73 @@ dialog .row .cta{height:48px;font-size:16px}
 
 h1,.big,.eta,.speed-val b,.man-dist{font-family:var(--display)}
 h1{font-family:inherit}
-/* ---------- Tema: KS50 ---------- */
-:root[data-theme="ks50"]{
+/* ---------- Säkerhet ---------- */
+:root{--safe:#3ecf8e;--mid:#ffc940;--high:#ff5a4f}
+.opts{display:flex;gap:8px}
+.opt{flex:1;min-width:0;text-align:left;border:1px solid var(--line2);background:var(--card);border-radius:12px;padding:10px 12px;color:var(--text)}
+.opt[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt .o1{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.opt .o2{display:block;font-family:var(--display);font-size:22px;font-weight:600;margin-top:2px}
+.opt .o3{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.safety{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.safety .hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.safety .hd b{font-size:15px;font-weight:600}
+.badge{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;color:#05140c;background:var(--safe)}
+.badge.mid{background:var(--mid);color:#1c1400}.badge.high{background:var(--high);color:#1f0503}.badge.unk{background:var(--line2);color:var(--text)}
+.bar{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.legend{display:grid;grid-template-columns:auto 1fr auto;gap:4px 8px;font-size:13px;color:var(--text2);align-items:center}
+.legend i{width:10px;height:10px;border-radius:3px;display:block}
+.legend span:nth-child(3n){color:var(--muted);text-align:right;white-space:nowrap}
+
+/* ---------- Tema: Traktor 40 ---------- */
+:root[data-theme="traktor40"]{
+  --bg:#0b130e;--card:#132119;--line:#22382a;--line2:#33523e;
+  --text:#eef5e6;--muted:#a3b5a5;--accent:#8ee05a;--accent-ink:#0a1405;
+  --panel:rgba(18,32,24,.94);--panel2:rgba(10,19,14,.95);--dialog:#101d15;--mapbg:#0d1711;--hover:#1b2e21;--chipbg:#17271c;--accent-soft:#1e3318;
+  --text2:#dbe6d2;--faint:#76897b;--route:#8ee05a;--route-casing:#1f4012;--glass:rgba(10,19,14,.6);--display:'Bebas Neue','Barlow Condensed',sans-serif;
+}
+:root[data-theme="traktor40"] h1{font-family:var(--display);font-weight:400;letter-spacing:1px;font-size:42px}
+:root[data-theme="traktor40"] .kicker{color:#ffd27a}
+:root[data-theme="traktor40"] .cta{font-family:var(--display);font-weight:400;letter-spacing:2px;font-size:22px}
+:root[data-theme="traktor40"] .hero .fog{opacity:.55}
+:root[data-theme="traktor40"] .hero .fog.f2{opacity:.3}
+:root[data-theme="traktor40"] .thumb img{width:440px;height:514px;left:-229px;top:-258px}
+:root[data-theme="traktor40"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(255,210,122,.5),transparent),radial-gradient(closest-side at 70% 60%,rgba(142,224,90,.45),transparent)}
+:root[data-theme="traktor40"] .sub{color:#ffd27a}
+/* ---------- Tema: LGF ---------- */
+:root[data-theme="lgf"]{
+  --bg:#0d0d0f;--card:#18181b;--line:#2a2a2f;--line2:#3d3d44;
+  --text:#f4f4f0;--muted:#a5a5ad;--accent:#d8ff3a;--accent-ink:#121400;
+  --panel:rgba(24,24,27,.94);--panel2:rgba(13,13,15,.95);--dialog:#141417;--mapbg:#111113;--hover:#222226;--chipbg:#1d1d21;--accent-soft:#2b2f12;
+  --text2:#e2e2dc;--faint:#7c7c84;--route:#d8ff3a;--route-casing:#3d4a00;--glass:rgba(13,13,15,.6);--display:'Archivo Black','Barlow Condensed',sans-serif;
+}
+:root[data-theme="lgf"] h1{font-family:var(--display);font-weight:400;font-size:32px}
+:root[data-theme="lgf"] .kicker{color:#ff7a1a}
+:root[data-theme="lgf"] .cta{font-family:var(--display);font-weight:400;letter-spacing:1px}
+:root[data-theme="lgf"] .eta,:root[data-theme="lgf"] .big,:root[data-theme="lgf"] .man-dist,:root[data-theme="lgf"] .speed-val b{font-weight:400}
+:root[data-theme="lgf"] .hazard{display:block}
+.hazard{display:none;height:8px;border-radius:2px;background:repeating-linear-gradient(-45deg,#d8ff3a 0 10px,#121400 10px 20px)}
+:root[data-theme="lgf"] .thumb img{width:440px;height:514px;left:-168px;top:-185px}
+:root[data-theme="lgf"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(255,90,20,.6),transparent),radial-gradient(closest-side at 70% 60%,rgba(216,255,58,.4),transparent)}
+:root[data-theme="lgf"] .sub{color:#ff7a1a}
+/* ---------- Tema: Moped klass II ---------- */
+:root[data-theme="moped2"]{
   --bg:#0c1430;--card:#152147;--line:#263769;--line2:#3a4f8c;
   --text:#fbf2e3;--muted:#b3bad2;--accent:#ff8a3d;--accent-ink:#1a0d04;
   --panel:rgba(20,31,68,.94);--panel2:rgba(12,20,48,.95);--dialog:#111b3c;--mapbg:#0d1633;--hover:#1d2b58;--chipbg:#1a2752;--accent-soft:#3a2416;
   --text2:#e9dfcd;--faint:#7f89a8;--route:#ff8a3d;--route-casing:#5a2408;--glass:rgba(12,20,48,.6);--display:'Righteous','Barlow Condensed',sans-serif;
 }
-:root[data-theme="ks50"] h1{font-family:var(--display);font-weight:400;letter-spacing:.5px}
-:root[data-theme="ks50"] .kicker{color:#ffb55e}
-:root[data-theme="ks50"] .hero .fog{opacity:.75}
-:root[data-theme="ks50"] .hero .fog.f2{opacity:.4}
-:root[data-theme="ks50"] .thumb img{width:440px;height:514px;left:-150px;top:-116px}
-:root[data-theme="ks50"] .stripes{display:block}
+:root[data-theme="moped2"] h1{font-family:var(--display);font-weight:400;letter-spacing:.5px}
+:root[data-theme="moped2"] .kicker{color:#ffb55e}
+:root[data-theme="moped2"] .hero .fog{opacity:.75}
+:root[data-theme="moped2"] .hero .fog.f2{opacity:.4}
+:root[data-theme="moped2"] .thumb img{width:440px;height:514px;left:-150px;top:-116px}
+:root[data-theme="moped2"] .stripes{display:block}
 .stripes{display:none;height:6px;border-radius:3px;background:linear-gradient(90deg,#ffd666 0 33%,#ff8040 33% 66%,#e23e3a 66%)}
-:root[data-theme="ks50"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(255,138,61,.55),transparent),radial-gradient(closest-side at 70% 60%,rgba(255,214,102,.45),transparent)}
-:root[data-theme="ks50"] .cta{font-family:var(--display);letter-spacing:1.5px;font-weight:400}
-:root[data-theme="ks50"] .sub{color:#ffb55e}
+:root[data-theme="moped2"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(255,138,61,.55),transparent),radial-gradient(closest-side at 70% 60%,rgba(255,214,102,.45),transparent)}
+:root[data-theme="moped2"] .cta{font-family:var(--display);letter-spacing:1.5px;font-weight:400}
+:root[data-theme="moped2"] .sub{color:#ffb55e}
 </style>
 </head>
 <body>
@@ -229,16 +279,17 @@ h1{font-family:inherit}
 <!-- ===== Planera ===== -->
 <section class="view on" id="v-plan" data-i18n-aria="planAria" aria-label="Planera resa">
   <div class="hero" aria-hidden="true">
-    <img id="heroImg" src="f11-hero.webp" alt="">
-    <img class="fog f2" src="f11-fog.webp" alt="">
-    <img class="fog" src="f11-fog.webp" alt="">
+    <img id="heroImg" src="epa-hero.webp" alt="">
+    <img class="fog f2" src="epa-fog.webp" alt="">
+    <img class="fog" src="epa-fog.webp" alt="">
   </div>
   <div class="plan-inner">
     <div class="top">
       <div>
-        <div class="kicker">Slowlane</div>
+        <div class="kicker"><span>Slowlane</span> · <span id="profName">EPA/A-traktor</span></div>
         <h1 data-i18n="where">Vart ska du?</h1>
         <div class="stripes" aria-hidden="true" style="width:120px;margin-top:10px"></div>
+        <div class="hazard" aria-hidden="true" style="width:120px;margin-top:10px"></div>
       </div>
       <button class="icon-btn" id="openSettings" data-i18n-aria="settings" aria-label="Inställningar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -253,7 +304,7 @@ h1{font-family:inherit}
 
     <div class="card fields">
       <div class="field">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5aa2ff" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent)" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg>
         <div class="col">
           <label for="from" data-i18n="from">Från</label>
           <input id="from" data-i18n-ph="addrPh" placeholder="Adress eller plats" readonly autocomplete="off">
@@ -296,11 +347,17 @@ h1{font-family:inherit}
         <div class="big" id="rTime">–</div>
         <div class="sub" id="rSub">vid 30 km/h</div>
       </div>
-      <div class="thumb" aria-hidden="true"><img id="thumbImg" src="f11-hero.webp" alt=""></div>
+      <div class="thumb" aria-hidden="true"><img id="thumbImg" src="epa-hero.webp" alt=""></div>
     </div>
     <div class="stats">
       <div class="stat"><span data-i18n="dist">Sträcka</span><b id="rDist">–</b></div>
       <div class="stat"><span data-i18n="arrival">Ankomst</span><b id="rCar">–</b></div>
+    </div>
+    <div class="opts" id="rOpts" hidden></div>
+    <div class="safety" id="rSafety" hidden>
+      <div class="hd"><b data-i18n="safetyHd">Vägtyper längs rutten</b><span class="badge" id="rBadge"></span></div>
+      <div class="bar" id="rBar" aria-hidden="true"></div>
+      <div class="legend" id="rLegend"></div>
     </div>
     <div class="warn" id="rWarn">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v4M12 17.5v.5"></path></svg>
@@ -370,8 +427,9 @@ h1{font-family:inherit}
     <h2 tabindex="-1" autofocus style="outline:none" data-i18n="settings">Inställningar</h2>
     <label for="langIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="langLbl">Språk</label>
     <select class="key" id="langIn"><option value="sv">Svenska</option><option value="en">English</option></select>
-    <label for="themeIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="themeLbl">Tema</label>
-    <select class="key" id="themeIn"><option value="f11">F11</option><option value="ks50">KS50</option></select>
+    <label for="themeIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="themeLbl">Fordon</label>
+    <select class="key" id="themeIn"><option value="epa">EPA/A-traktor</option><option value="moped2">Moped klass II</option><option value="traktor40">Traktor 40</option><option value="lgf">LGF-fordon</option></select>
+    <p style="margin:6px 0 0" id="profHelp"></p>
     <label for="speedIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="speedLbl">Fordonets maxhastighet</label>
     <select class="key" id="speedIn"><option value="10">10 km/h</option><option value="15">15 km/h</option><option value="20">20 km/h</option><option value="25">25 km/h</option><option value="30">30 km/h</option><option value="35">35 km/h</option><option value="40">40 km/h</option><option value="45">45 km/h</option><option value="50">50 km/h</option><option value="55">55 km/h</option><option value="60">60 km/h</option><option value="65">65 km/h</option><option value="70">70 km/h</option><option value="75">75 km/h</option><option value="80">80 km/h</option><option value="85">85 km/h</option><option value="90">90 km/h</option></select>
     <p style="margin:6px 0 18px" id="speedHelp">Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.</p>
@@ -396,10 +454,10 @@ h1{font-family:inherit}
   const STR = {
     sv: {
       planAria:'Planera resa', where:'Vart ska du?', settings:'Inställningar', speedAria:'Ändra maxhastighet i inställningar', kmhMax:'km/h max',
-      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Föredra mindre vägar',
-      minorSub:'Motorväg och motortrafikled undviks alltid', calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
+      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Prioritera säkra vägar', safetyHd:'Vägtyper längs rutten', segSafe:'Cykelbana och lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Snabbast och säkrast', lessHigh:'{d} mindre 80-väg', moreTime:'+{t}', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
+      minorSub:'Väljer rutten med minst sträcka på 80-vägar. Motorväg och motortrafikled undviks alltid.', calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
       dist:'Sträcka', arrival:'Ankomst', startNav:'Starta navigering', attr:'Rutt: Valhalla via Stadia Maps · Kartdata', navAria:'Navigering',
-      end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Tema', ksTitle:'Hoppsan!', ksText:'Över 25 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 25 km/h.',
+      end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', pTrak:'Traktor 40', pLgf:'LGF-fordon', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 25 km/h, kör på cykelbana där det är tillåtet.', hTrak:'Tema: midnattsskörd. Max 40 km/h, motorväg och motortrafikled undviks.', hLgf:'Tema: reflex och regn. För fordon konstruerade för högst 30 km/h, t.ex. motorredskap.', trTitle:'Lugn i kärran, bonden!', trText:'Över 40 km/h? Då är det ingen 40-traktor längre. Kan bli dyrt vid en flygande inspektion.', trOk:'Okej, 40 km/h', trKeep:'Det är en annan traktor', lgTitle:'Triangeln protesterar!', lgText:'LGF-skylten är till för fordon som går högst 30 km/h. Går det fortare gäller inte skylten.', lgOk:'Okej, 30 km/h', lgKeep:'Fordonet är inte LGF', speedHelpTr:'Används för ruttval, restid och ankomsttid under navigeringen. Traktor: 40 km/h.', speedHelpLg:'Används för ruttval, restid och ankomsttid under navigeringen. LGF-skylt gäller för högst 30 km/h.', ksTitle:'Hoppsan!', ksText:'Över 25 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 25 km/h.',
       speedLbl:'Fordonets maxhastighet', speedHelp:'Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.',
       gkey:'Google API-nyckel', gkeyHelp:'Appen behöver en nyckel från Google Cloud med Maps JavaScript API och Places API (New) påslagna. Nyckeln sparas bara i den här telefonen.',
       apiKey:'API-nyckel', cancel:'Avbryt', save:'Spara', langLbl:'Språk',
@@ -422,10 +480,10 @@ h1{font-family:inherit}
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
-      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prefer smaller roads',
-      minorSub:'Motorways and expressways are always avoided', calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
+      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prioritise safe roads', safetyHd:'Road types along the route', segSafe:'Cycle paths and calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'Fastest and safest', lessHigh:'{d} less on 80 roads', moreTime:'+{t}', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
+      minorSub:'Picks the route with the least distance on 80 roads. Motorways and expressways are always avoided.', calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
       dist:'Distance', arrival:'Arrival', startNav:'Start navigation', attr:'Route: Valhalla via Stadia Maps · Map data', navAria:'Navigation',
-      end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Theme', ksTitle:'Whoa there!', ksText:'Over 25 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 25 km/h.',
+      end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', pEpa:'EPA/A-tractor', pMoped:'Class II moped', pTrak:'Tractor 40', pLgf:'Slow-moving vehicle (LGF)', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 25 km/h, uses cycle paths where allowed.', hTrak:'Theme: midnight harvest. Max 40 km/h, motorways and expressways avoided.', hLgf:'Theme: reflectors and rain. For vehicles built for at most 30 km/h, e.g. work machines.', trTitle:'Easy there, farmer!', trText:'Over 40 km/h? Then it’s not a 40 tractor anymore. Could get expensive at a roadside check.', trOk:'Okay, 40 km/h', trKeep:'It’s a different tractor', lgTitle:'The triangle objects!', lgText:'The LGF sign is for vehicles doing at most 30 km/h. Any faster and the sign doesn’t apply.', lgOk:'Okay, 30 km/h', lgKeep:'It’s not an LGF vehicle', speedHelpTr:'Used for route choice, travel time and arrival time during navigation. Tractor: 40 km/h.', speedHelpLg:'Used for route choice, travel time and arrival time during navigation. The LGF sign applies up to 30 km/h.', ksTitle:'Whoa there!', ksText:'Over 25 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 25 km/h.',
       speedLbl:'Vehicle max speed', speedHelp:'Used for route choice, travel time and arrival time during navigation. A-tractor: 30 km/h.',
       gkey:'Google API key', gkeyHelp:'The app needs a Google Cloud key with Maps JavaScript API and Places API (New) enabled. The key is only stored on this phone.',
       apiKey:'API key', cancel:'Cancel', save:'Save', langLbl:'Language',
@@ -482,12 +540,17 @@ h1{font-family:inherit}
   // ---------- Settings / key ----------
   // ---------- Teman ----------
   const THEMES = {
-    f11:  { hero: 'f11-hero.webp',  fog: 'f11-fog.webp',   limit: 30, color: '#000000', emo: '☝️', title: () => 'Aja baja!', text: () => T('ajaText'), ok: () => T('ajaOk'), keep: () => T('ajaKeep'), help: () => T('speedHelp'),
-            alt: 'Svart BMW 5-serie Touring i mörker och dimma' },
-    ks50: { hero: 'ks50-hero.webp', fog: 'ks50-dust.webp', limit: 25, color: '#0c1430', emo: '🛵', title: () => T('ksTitle'), text: () => T('ksText'), ok: () => T('ksOk'), keep: () => T('ksKeep'), help: () => T('speedHelpKs'),
-            alt: 'Förare på en blå Zündapp KS50 framför en retrosol' }
+    epa:       { name: () => T('pEpa'),   about: () => T('hEpa'),   hero: 'epa-hero.webp',       fog: 'epa-fog.webp', def: 30, limit: 30, color: '#000000', emo: '☝️',
+                 title: () => 'Aja baja!',    text: () => T('ajaText'), ok: () => T('ajaOk'), keep: () => T('ajaKeep'), help: () => T('speedHelp') },
+    moped2:    { name: () => T('pMoped'), about: () => T('hMoped'), hero: 'moped2-hero.webp',    fog: 'dust.webp',    def: 25, limit: 25, color: '#0c1430', emo: '🛵', bike: true,
+                 title: () => T('ksTitle'),   text: () => T('ksText'),  ok: () => T('ksOk'),  keep: () => T('ksKeep'),  help: () => T('speedHelpKs') },
+    traktor40: { name: () => T('pTrak'),  about: () => T('hTrak'),  hero: 'traktor40-hero.webp', fog: 'dust.webp',    def: 40, limit: 40, color: '#0b130e', emo: '🚜',
+                 title: () => T('trTitle'),   text: () => T('trText'),  ok: () => T('trOk'),  keep: () => T('trKeep'),  help: () => T('speedHelpTr') },
+    lgf:       { name: () => T('pLgf'),   about: () => T('hLgf'),   hero: 'lgf-hero.webp',       fog: 'epa-fog.webp', def: 20, limit: 30, color: '#0d0d0f', emo: '🔺',
+                 title: () => T('lgTitle'),   text: () => T('lgText'),  ok: () => T('lgOk'),  keep: () => T('lgKeep'),  help: () => T('speedHelpLg') }
   };
-  let theme = THEMES[store.get('theme', 'f11')] ? store.get('theme', 'f11') : 'f11';
+  const LEGACY = { f11: 'epa', ks50: 'moped2' };
+  let theme = store.get('theme', 'epa'); theme = LEGACY[theme] || theme; if (!THEMES[theme]) theme = 'epa';
   const TH = () => THEMES[theme];
   const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   function applyTheme() {
@@ -497,6 +560,7 @@ h1{font-family:inherit}
     document.querySelectorAll('.hero .fog').forEach(f => { f.src = t.fog; });
     const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = t.color;
     $('ajaEmo').textContent = t.emo;
+    $('profName').textContent = t.name();
     renderThemeTexts();
     // kartornas ruttfärg följer temat
     [typeof rmap !== 'undefined' ? rmap : null, typeof nmap !== 'undefined' ? nmap : null].forEach(m => {
@@ -508,15 +572,18 @@ h1{font-family:inherit}
     $('ajaTitle').textContent = t.title(); $('ajaText').textContent = t.text();
     $('ajaOk').textContent = t.ok(); $('ajaKeep').textContent = t.keep();
     $('speedHelp').textContent = t.help();
+    $('profName').textContent = t.name();
+    $('profHelp').textContent = THEMES[$('themeIn').value || theme].about();
+    ['epa', 'moped2', 'traktor40', 'lgf'].forEach(k => { const o = $('themeIn').querySelector(`option[value="${k}"]`); if (o) o.textContent = THEMES[k].name(); });
   }
   let ajaPrev = 30;
   const getStadia = () => ''; // Stadia använder domänbehörighet
-  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; ajaPrev = speed; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
+  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
       speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed);
       lang = $('langIn').value === 'en' ? 'en' : 'sv'; store.set('lang', lang);
-      const nt = THEMES[$('themeIn').value] ? $('themeIn').value : 'f11';
+      const nt = THEMES[$('themeIn').value] ? $('themeIn').value : 'epa';
       if (nt !== theme) { theme = nt; store.set('theme', theme); applyTheme(); }
       applyLang();
     }
@@ -539,8 +606,8 @@ h1{font-family:inherit}
   // Byte av tema i inställningarna sätter fordonets standardhastighet direkt
   $('themeIn').addEventListener('change', () => {
     const t = THEMES[$('themeIn').value]; if (!t) return;
-    $('speedIn').value = String(t.limit); ajaPrev = t.limit;
-    $('speedHelp').textContent = t.help();
+    $('speedIn').value = String(t.def); ajaPrev = t.def;
+    $('speedHelp').textContent = t.help(); $('profHelp').textContent = t.about();
   });
   $('ajaOk').onclick = () => { const l = $('ajabaja').dataset.limit || '30'; $('speedIn').value = l; ajaPrev = +l; $('ajabaja').close(); };
   $('ajaKeep').onclick = () => $('ajabaja').close();
@@ -743,37 +810,152 @@ h1{font-family:inherit}
   }
 
   // ---------- Valhalla (Stadia Maps) ----------
-  async function computeRoute(a, b, minor) {
+  // Moped klass II (KS50-temat, högst 30 km/h) får köra på cykelbana → cykelprofil. Övriga → mopedprofil.
+  const useBikePaths = () => !!TH().bike && speed <= 30;
+  function routeBody(a, b, safe, alternates) {
     const top = Math.max(20, Math.min(120, speed));
     const body = {
-      locations: [{ lat: a.lat, lon: a.lng, type: 'break' }, { lat: b.lat, lon: b.lng, type: 'break' }],
-      costing: 'motor_scooter',
-      costing_options: { motor_scooter: { top_speed: top, use_primary: minor ? 0.15 : 0.5, use_hills: 1, use_ferry: 0.5 } },
+      locations: [{ lat: a.lat, lon: a.lng, type: 'break', ...(a.heading != null ? { heading: a.heading } : {}) }, { lat: b.lat, lon: b.lng, type: 'break' }],
       units: 'kilometers', language: VOICE()
     };
-    const k = getStadia();
-    const url = 'https://api.stadiamaps.com/route/v1' + (k ? `?api_key=${encodeURIComponent(k)}` : '');
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (useBikePaths()) {
+      body.costing = 'bicycle';
+      body.costing_options = { bicycle: { bicycle_type: 'Hybrid', cycling_speed: Math.max(5, Math.min(60, speed)), use_roads: safe ? 0.05 : 0.35, use_hills: 1, avoid_bad_surfaces: 0.4, use_ferry: 0.5, use_living_streets: 0.8 } };
+    } else {
+      body.costing = 'motor_scooter';
+      body.costing_options = { motor_scooter: { top_speed: top, use_primary: safe ? 0.0 : 0.5, use_hills: 1, use_ferry: 0.5, use_living_streets: safe ? 0.9 : 0.5 } };
+    }
+    if (alternates) body.alternates = alternates;
+    return body;
+  }
+  async function stadiaPost(path, body) {
+    const res = await fetch('https://api.stadiamaps.com/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 || res.status === 403) throw new Error(T('stadiaDenied'));
+    return { res, data };
+  }
+  async function fetchTrips(a, b, safe, alternates) {
+    const { res, data } = await stadiaPost('route/v1', routeBody(a, b, safe, alternates));
     if (!res.ok || !data.trip) {
       const m = data.error || data.status_message || '';
       if (/no path|No suitable edges/i.test(m)) throw new Error(T('noPath'));
       throw new Error(T('routeFail') + m);
     }
-    return data.trip;
+    return [data.trip, ...((data.alternates || []).map(x => x.trip).filter(Boolean))];
+  }
+  // Används vid omräkning under navigering
+  async function computeRoute(a, b, safe) { return (await fetchTrips(a, b, safe, 0))[0]; }
+
+  // ---------- Säkerhetsanalys ----------
+  const RISK_COLOR = { safe: '#3ecf8e', mid: '#ffc940', high: '#ff5a4f', unk: '#8a93a8' };
+  function riskOf(e) {
+    const use = e.use || '', rc = e.road_class || '';
+    const lim = typeof e.speed_limit === 'number' && e.speed_limit > 0 ? e.speed_limit : null;
+    if (/cycleway|footway|path|pedestrian|living_street|track|steps/.test(use)) return 'safe';
+    if (lim != null) return lim <= 50 ? 'safe' : lim <= 70 ? 'mid' : 'high';
+    const v = typeof e.speed === 'number' ? e.speed : null;
+    if (/motorway|trunk|primary/.test(rc)) return 'high';
+    if (/residential|service/.test(rc)) return 'safe';
+    if (v != null) return v <= 50 ? 'safe' : v <= 72 ? 'mid' : 'high';
+    if (/secondary/.test(rc)) return 'high';
+    if (/tertiary|unclassified/.test(rc)) return 'mid';
+    return 'unk';
+  }
+  async function analyse(trip) {
+    const shape = (trip.legs || []).map(l => l.shape).filter(Boolean);
+    const out = { safe: 0, mid: 0, high: 0, unk: 0, cycle: 0, segs: null, ok: false };
+    try {
+      const pts = shape.flatMap(sh => decode(sh));
+      const { res, data } = await stadiaPost('trace_attributes/v1', {
+        ...(shape.length === 1 ? { encoded_polyline: shape[0] } : { shape: pts.map(p => ({ lat: p.lat, lon: p.lng })) }),
+        costing: useBikePaths() ? 'bicycle' : 'motor_scooter', shape_match: 'walk_or_snap', units: 'kilometers',
+        filters: { attributes: ['edge.length', 'edge.speed_limit', 'edge.speed', 'edge.road_class', 'edge.use', 'edge.begin_shape_index', 'edge.end_shape_index', 'shape'], action: 'include' }
+      });
+      if (!res.ok || !Array.isArray(data.edges)) throw 0;
+      const mshape = data.shape ? decode(data.shape) : pts;
+      const segs = [];
+      data.edges.forEach(e => {
+        const r = riskOf(e), km = e.length || 0;
+        out[r] += km; if (/cycleway/.test(e.use || '')) out.cycle += km;
+        const a = e.begin_shape_index, z = e.end_shape_index;
+        if (a != null && z != null && z > a) {
+          const last = segs[segs.length - 1];
+          const coords = mshape.slice(a, z + 1).map(p => [p.lng, p.lat]);
+          if (last && last.r === r) last.c.push(...coords.slice(1)); else segs.push({ r, c: coords });
+        }
+      });
+      out.segs = segs; out.ok = true;
+    } catch { /* analys är ett tillägg – rutten fungerar ändå */ }
+    return out;
+  }
+  const score = a => a.high * 3 + a.mid;  // lägre är säkrare
+  async function planRoutes(a, b) {
+    const [fast, safe] = await Promise.all([fetchTrips(a, b, false, 2), fetchTrips(a, b, true, 0).catch(() => [])]);
+    const all = [...fast, ...safe], uniq = [];
+    all.forEach(t => { const s = t.summary || {}; if (!uniq.some(u => Math.abs(u.summary.length - s.length) < 0.05 && Math.abs(u.summary.time - s.time) < 20)) uniq.push(t); });
+    const cands = await Promise.all(uniq.slice(0, 4).map(async trip => ({ trip, path: (trip.legs || []).flatMap(l => decode(l.shape || '')), an: await analyse(trip) })));
+    const byTime = [...cands].sort((x, y) => x.trip.summary.time - y.trip.summary.time);
+    const fastest = byTime[0];
+    const analysed = cands.filter(c => c.an.ok);
+    let safest = analysed.length ? [...analysed].sort((x, y) => score(x.an) - score(y.an) || x.trip.summary.time - y.trip.summary.time)[0] : fastest;
+    // Inget att vinna: samma rutt eller ingen mätbar skillnad
+    if (safest !== fastest && score(safest.an) >= score(fastest.an) - 0.2) safest = fastest;
+    return { fastest, safest };
+  }
+  const tripTime = t => { let x = (t.summary && t.summary.time) || 0; if (speed < 20 && !useBikePaths()) x = x * 20 / speed; return x; };
+
+  function renderSafety(c) {
+    const an = c.an;
+    $('rSafety').hidden = !an.ok;
+    if (!an.ok) return;
+    const tot = an.safe + an.mid + an.high + an.unk || 1;
+    const parts = [['safe', an.safe], ['mid', an.mid], ['high', an.high], ['unk', an.unk]].filter(p => p[1] > 0.01);
+    $('rBar').innerHTML = parts.map(([k, v]) => `<span style="width:${(v / tot * 100).toFixed(1)}%;background:${RISK_COLOR[k]}"></span>`).join('');
+    const label = { safe: T('segSafe'), mid: T('segMid'), high: T('segHigh'), unk: T('segUnk') };
+    $('rLegend').innerHTML = '';
+    parts.forEach(([k, v]) => {
+      const i = document.createElement('i'); i.style.background = RISK_COLOR[k];
+      const n = document.createElement('span'); n.textContent = label[k] + (k === 'safe' && an.cycle > 0.1 ? ' · ' + T('cycleKm', { d: fmtDist(an.cycle * 1000) }) : '');
+      const d = document.createElement('span'); d.textContent = fmtDist(v * 1000);
+      $('rLegend').append(i, n, d);
+    });
+    const hiShare = an.high / tot, midShare = an.mid / tot;
+    const b = $('rBadge');
+    b.className = 'badge ' + (hiShare > 0.25 ? 'high' : hiShare > 0.05 || midShare > 0.4 ? 'mid' : '');
+    b.textContent = hiShare > 0.25 ? T('bHigh') : hiShare > 0.05 || midShare > 0.4 ? T('bMid') : T('bSafe');
+  }
+  function renderOptions(r) {
+    const box = $('rOpts'); box.innerHTML = '';
+    if (r.fastest === r.safest) { box.hidden = true; return; }
+    box.hidden = false;
+    const mk = (c, title, extra) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt';
+      b.setAttribute('aria-pressed', String(c === r.chosen));
+      b.innerHTML = '<span class="o1"></span><span class="o2"></span><span class="o3"></span>';
+      b.querySelector('.o1').textContent = title; b.querySelector('.o2').textContent = fmtTime(tripTime(c.trip)); b.querySelector('.o3').textContent = extra;
+      b.onclick = () => { selectRoute(c); };
+      return b;
+    };
+    const dHigh = Math.max(0, r.fastest.an.high - r.safest.an.high);
+    box.append(
+      mk(r.safest, T('optSafe'), dHigh > 0.05 ? T('lessHigh', { d: fmtDist(dHigh * 1000) }) : fmtDist(r.safest.trip.summary.length * 1000)),
+      mk(r.fastest, T('optFast'), fmtDist(r.fastest.trip.summary.length * 1000))
+    );
+  }
+  function selectRoute(c) {
+    lastRoute.trip = c.trip; lastRoute.path = c.path; lastRoute.chosen = c;
+    showResult(lastRoute); renderOptions(lastRoute); renderSafety(c);
+    drawMap(c.path, c.an);
   }
 
   function showResult(r) {
     const t = r.trip, sum = t.summary || {};
-    // Valhalla räknar redan med top_speed; vid lägre hastighet än 20 skalas tiden linjärt
-    let time = sum.time || 0;
-    if (speed < 20) time = time * 20 / speed;
+    const time = tripTime(t);
     $('rName').textContent = `${r.fromLabel} → ${r.toLabel}`;
     $('rTime').textContent = fmtTime(time);
     $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
     $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString(LOC(), { hour: '2-digit', minute: '2-digit' });
-    $('rWarnText').textContent = T('warn');
+    $('rWarnText').textContent = useBikePaths() ? T('warnBike') : T('warn');
   }
 
   // ---------- Karta i resultatvyn (Stadia via MapLibre) ----------
@@ -782,13 +964,14 @@ h1{font-family:inherit}
   function rAddRoute() {
     if (!rmap || !rmap.__data) return;
     try {
-      if (rmap.getSource('route')) { rmap.getSource('route').setData(rmap.__data); return; }
+      const color = ['match', ['get', 'r'], 'safe', RISK_COLOR.safe, 'mid', RISK_COLOR.mid, 'high', RISK_COLOR.high, 'unk', RISK_COLOR.unk, cssVar('--route')];
+      if (rmap.getSource('route')) { rmap.getSource('route').setData(rmap.__data); if (rmap.getLayer('route')) rmap.setPaintProperty('route', 'line-color', color); return; }
       rmap.addSource('route', { type: 'geojson', data: rmap.__data });
       rmap.addLayer({ id: 'route-casing', type: 'line', source: 'route', paint: { 'line-color': cssVar('--route-casing'), 'line-width': 9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-      rmap.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': cssVar('--route'), 'line-width': 5 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      rmap.addLayer({ id: 'route', type: 'line', source: 'route', paint: { 'line-color': ['match', ['get', 'r'], 'safe', RISK_COLOR.safe, 'mid', RISK_COLOR.mid, 'high', RISK_COLOR.high, 'unk', RISK_COLOR.unk, cssVar('--route')], 'line-width': 5 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
     } catch {}
   }
-  async function drawMap(path) {
+  async function drawMap(path, an) {
     try { await loadMapLibre(); } catch { return; }
     if (!rmap) {
       let fellBack = false;
@@ -801,7 +984,9 @@ h1{font-family:inherit}
     } else {
       rmap.resize();
     }
-    rmap.__data = routeGeo(path);
+    rmap.__data = an && an.ok && an.segs && an.segs.length
+      ? { type: 'FeatureCollection', features: an.segs.map(sg => ({ type: 'Feature', properties: { r: sg.r }, geometry: { type: 'LineString', coordinates: sg.c } })) }
+      : { type: 'FeatureCollection', features: [{ ...routeGeo(path), properties: { r: 'none' } }] };
     if (rmap.isStyleLoaded()) rAddRoute();
     rMarkers.forEach(m => m.remove());
     rMarkers = [
@@ -809,7 +994,8 @@ h1{font-family:inherit}
       new maplibregl.Marker({ element: rDot(cssVar('--text'), cssVar('--text')) }).setLngLat([path[path.length - 1].lng, path[path.length - 1].lat]).addTo(rmap)
     ];
     const b = new maplibregl.LngLatBounds(); path.forEach(p => b.extend([p.lng, p.lat]));
-    rmap.fitBounds(b, { padding: { top: 80, right: 30, bottom: 50, left: 30 }, duration: 0 });
+    const fit = () => { try { rmap.resize(); rmap.fitBounds(b, { padding: { top: 80, right: 30, bottom: 50, left: 30 }, duration: 0 }); } catch {} };
+    fit(); requestAnimationFrame(() => requestAnimationFrame(fit));
   }
 
   // ---------- Navigering ----------
@@ -1040,13 +1226,13 @@ h1{font-family:inherit}
     const btn = $('go'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>' + T('calcing');
     try {
       const [a, b] = await Promise.all([placeLocation(from), placeLocation(to)]);
-      const trip = await computeRoute(a, b, $('avoid').checked);
-      const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
-      lastRoute = { trip, path, a, b, from, to, fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
+      const plan = await planRoutes(a, b);
+      const chosen = $('avoid').checked ? plan.safest : plan.fastest;
+      lastRoute = { trip: chosen.trip, path: chosen.path, a, b, from, to, fastest: plan.fastest, safest: plan.safest, chosen,
+        fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
       addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
-      showResult(lastRoute);
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
-      drawMap(path);
+      selectRoute(chosen);
     } catch (e) {
       setMsg(e.message || T('generic'));
     } finally {
