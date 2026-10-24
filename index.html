@@ -204,6 +204,7 @@ dialog .row .cta{height:48px;font-size:16px}
 
 h1,.big,.eta,.speed-val b,.man-dist{font-family:var(--display)}
 h1{font-family:inherit}
+[hidden]{display:none!important}
 /* ---------- Väder ---------- */
 .wx{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .wx .hd{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -494,7 +495,7 @@ h1{font-family:inherit}
   const STR = {
     sv: {
       planAria:'Planera resa', where:'Vart ska du?', settings:'Inställningar', speedAria:'Ändra maxhastighet i inställningar', kmhMax:'km/h max',
-      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Prioritera säkra vägar', safetyHd:'Vägtyper längs rutten', segSafe:'Cykelbana och lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Snabbast och säkrast', lessHigh:'{d} mindre 80-väg', moreTime:'+{t}', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
+      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', minor:'Prioritera säkra vägar', safetyHd:'Vägtyper längs rutten', ferryWarn:'Rutten innehåller {n} färja/färjor, kontrollera tider och att fordonet får åka med.', tooLong:'Rutten är för lång för analys av vägtyper.', segSafe:'Cykelbana och lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Snabbast och säkrast', lessHigh:'{d} mindre 80-väg', moreTime:'+{t}', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
       minorSub:'Väljer rutten med minst sträcka på 80-vägar. Motorväg och motortrafikled undviks alltid.', calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
       dist:'Sträcka', arrival:'Ankomst', startNav:'Starta navigering', attr:'Rutt: Valhalla via Stadia Maps · Kartdata', navAria:'Navigering',
       end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', wxHd:'Väder längs vägen', wxNow:'just nu', wxIce:'Halkrisk', wxGust:'Kraftig byvind {v} m/s', wxFog:'Dimma, dålig sikt', wxThunder:'Åska', wxDark:'Mörkt vid ankomst', wxHeavy:'Kraftigt regn', wxSnow:'Snö', wxCalm:'Inga varningar längs vägen.', wxSoonRain:'Regn om ca {m} min', wxSoonSnow:'Snöfall om ca {m} min', wxSoonIce:'Halkrisk längre fram, sänk farten', wxSoonGust:'Kraftiga vindbyar längre fram', wxSoonFog:'Dimma längre fram, tänd belysningen', wxDusk:'Det börjar skymma, tänd belysningen', wxStart:'Avresa', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', pTrak:'Traktor 40', pLgf:'LGF-fordon', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 25 km/h, kör på cykelbana där det är tillåtet.', hTrak:'Tema: midnattsskörd. Max 40 km/h, motorväg och motortrafikled undviks.', hLgf:'Tema: reflex och regn. För fordon konstruerade för högst 30 km/h, t.ex. motorredskap.', trTitle:'Lugn i kärran, bonden!', trText:'Över 40 km/h? Då är det ingen 40-traktor längre. Kan bli dyrt vid en flygande inspektion.', trOk:'Okej, 40 km/h', trKeep:'Det är en annan traktor', lgTitle:'Triangeln protesterar!', lgText:'LGF-skylten är till för fordon som går högst 30 km/h. Går det fortare gäller inte skylten.', lgOk:'Okej, 30 km/h', lgKeep:'Fordonet är inte LGF', speedHelpTr:'Används för ruttval, restid och ankomsttid under navigeringen. Traktor: 40 km/h.', speedHelpLg:'Används för ruttval, restid och ankomsttid under navigeringen. LGF-skylt gäller för högst 30 km/h.', ksTitle:'Hoppsan!', ksText:'Över 25 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 25 km/h.',
@@ -520,7 +521,7 @@ h1{font-family:inherit}
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
-      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prioritise safe roads', safetyHd:'Road types along the route', segSafe:'Cycle paths and calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'Fastest and safest', lessHigh:'{d} less on 80 roads', moreTime:'+{t}', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
+      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', minor:'Prioritise safe roads', safetyHd:'Road types along the route', ferryWarn:'The route includes {n} ferry crossing(s); check times and that your vehicle is allowed on board.', tooLong:'The route is too long for road type analysis.', segSafe:'Cycle paths and calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'Fastest and safest', lessHigh:'{d} less on 80 roads', moreTime:'+{t}', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
       minorSub:'Picks the route with the least distance on 80 roads. Motorways and expressways are always avoided.', calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
       dist:'Distance', arrival:'Arrival', startNav:'Start navigation', attr:'Route: Valhalla via Stadia Maps · Map data', navAria:'Navigation',
       end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', wxHd:'Weather along the way', wxNow:'right now', wxIce:'Risk of ice', wxGust:'Strong gusts {v} m/s', wxFog:'Fog, poor visibility', wxThunder:'Thunder', wxDark:'Dark on arrival', wxHeavy:'Heavy rain', wxSnow:'Snow', wxCalm:'No warnings along the way.', wxSoonRain:'Rain in about {m} min', wxSoonSnow:'Snow in about {m} min', wxSoonIce:'Risk of ice ahead, slow down', wxSoonGust:'Strong gusts ahead', wxSoonFog:'Fog ahead, switch on your lights', wxDusk:'It’s getting dark, switch on your lights', wxStart:'Depart', pEpa:'EPA/A-tractor', pMoped:'Class II moped', pTrak:'Tractor 40', pLgf:'Slow-moving vehicle (LGF)', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 25 km/h, uses cycle paths where allowed.', hTrak:'Theme: midnight harvest. Max 40 km/h, motorways and expressways avoided.', hLgf:'Theme: reflectors and rain. For vehicles built for at most 30 km/h, e.g. work machines.', trTitle:'Easy there, farmer!', trText:'Over 40 km/h? Then it’s not a 40 tractor anymore. Could get expensive at a roadside check.', trOk:'Okay, 40 km/h', trKeep:'It’s a different tractor', lgTitle:'The triangle objects!', lgText:'The LGF sign is for vehicles doing at most 30 km/h. Any faster and the sign doesn’t apply.', lgOk:'Okay, 30 km/h', lgKeep:'It’s not an LGF vehicle', speedHelpTr:'Used for route choice, travel time and arrival time during navigation. Tractor: 40 km/h.', speedHelpLg:'Used for route choice, travel time and arrival time during navigation. The LGF sign applies up to 30 km/h.', ksTitle:'Whoa there!', ksText:'Over 25 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 25 km/h.',
@@ -583,6 +584,7 @@ h1{font-family:inherit}
     epa:       { name: () => T('pEpa'),   about: () => T('hEpa'),   hero: 'epa-hero.webp',       fog: 'epa-fog.webp', def: 30, limit: 30, color: '#000000', emo: '☝️',
                  title: () => 'Aja baja!',    text: () => T('ajaText'), ok: () => T('ajaOk'), keep: () => T('ajaKeep'), help: () => T('speedHelp') },
     moped2:    { name: () => T('pMoped'), about: () => T('hMoped'), hero: 'moped2-hero.webp',    fog: 'dust.webp',    def: 25, limit: 25, color: '#0c1430', emo: '🛵', bike: true,
+                 wxHero: { sun: 'moped2-hero.webp', rain: 'moped2-rain.webp', cool: 'moped2-cool.webp', cold: 'moped2-cold.webp' },
                  title: () => T('ksTitle'),   text: () => T('ksText'),  ok: () => T('ksOk'),  keep: () => T('ksKeep'),  help: () => T('speedHelpKs') },
     traktor40: { name: () => T('pTrak'),  about: () => T('hTrak'),  hero: 'traktor40-hero.webp', fog: 'dust.webp',    def: 40, limit: 40, color: '#0b130e', emo: '🚜',
                  title: () => T('trTitle'),   text: () => T('trText'),  ok: () => T('trOk'),  keep: () => T('trKeep'),  help: () => T('speedHelpTr') },
@@ -593,10 +595,20 @@ h1{font-family:inherit}
   let theme = store.get('theme', 'epa'); theme = LEGACY[theme] || theme; if (!THEMES[theme]) theme = 'epa';
   const TH = () => THEMES[theme];
   const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  let nowWx = null;  // senaste väder på startsidan
+  function heroFor(t) {
+    if (!t.wxHero || !nowWx) return t.hero;
+    const k = WX.kind(nowWx.code);
+    // regn (och snöfall) går först, därefter temperaturen
+    if (nowWx.precip > 0.1 || k === 'rain' || k === 'snow' || k === 'thunder') return t.wxHero.rain;
+    if (nowWx.temp < 5) return t.wxHero.cold;
+    if (nowWx.temp < 15) return t.wxHero.cool;
+    return t.wxHero.sun;
+  }
   function applyTheme() {
     const t = TH();
     document.documentElement.dataset.theme = theme;
-    $('heroImg').src = t.hero; $('thumbImg').src = t.hero;
+    const hero = heroFor(t); if ($('heroImg').getAttribute('src') !== hero) { $('heroImg').src = hero; $('thumbImg').src = hero; }
     document.querySelectorAll('.hero .fog').forEach(f => { f.src = t.fog; });
     const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = t.color;
     $('ajaEmo').textContent = t.emo;
@@ -860,10 +872,10 @@ h1{font-family:inherit}
     };
     if (useBikePaths()) {
       body.costing = 'bicycle';
-      body.costing_options = { bicycle: { bicycle_type: 'Hybrid', cycling_speed: Math.max(5, Math.min(60, speed)), use_roads: safe ? 0.05 : 0.35, use_hills: 1, avoid_bad_surfaces: 0.4, use_ferry: 0.5, use_living_streets: 0.8 } };
+      body.costing_options = { bicycle: { bicycle_type: 'Hybrid', cycling_speed: Math.max(5, Math.min(60, speed)), use_roads: safe ? 0.12 : 0.35, use_hills: 1, avoid_bad_surfaces: 0.4, use_ferry: 0.2, use_living_streets: 0.8 } };
     } else {
       body.costing = 'motor_scooter';
-      body.costing_options = { motor_scooter: { top_speed: top, use_primary: safe ? 0.0 : 0.5, use_hills: 1, use_ferry: 0.5, use_living_streets: safe ? 0.9 : 0.5 } };
+      body.costing_options = { motor_scooter: { top_speed: top, use_primary: safe ? 0.15 : 0.5, use_hills: 1, use_ferry: 0.2, use_living_streets: safe ? 0.9 : 0.5 } };
     }
     if (alternates) body.alternates = alternates;
     return body;
@@ -901,45 +913,81 @@ h1{font-family:inherit}
     if (/tertiary|unclassified/.test(rc)) return 'mid';
     return 'unk';
   }
-  async function analyse(trip) {
-    const shape = (trip.legs || []).map(l => l.shape).filter(Boolean);
-    const out = { safe: 0, mid: 0, high: 0, unk: 0, cycle: 0, segs: null, ok: false };
-    try {
-      const pts = shape.flatMap(sh => decode(sh));
-      const { res, data } = await stadiaPost('trace_attributes/v1', {
-        ...(shape.length === 1 ? { encoded_polyline: shape[0] } : { shape: pts.map(p => ({ lat: p.lat, lon: p.lng })) }),
-        costing: useBikePaths() ? 'bicycle' : 'motor_scooter', shape_match: 'walk_or_snap', units: 'kilometers',
-        filters: { attributes: ['edge.length', 'edge.speed_limit', 'edge.speed', 'edge.road_class', 'edge.use', 'edge.begin_shape_index', 'edge.end_shape_index', 'shape'], action: 'include' }
-      });
-      if (!res.ok || !Array.isArray(data.edges)) throw 0;
-      const mshape = data.shape ? decode(data.shape) : pts;
-      const segs = [];
-      data.edges.forEach(e => {
-        const r = riskOf(e), km = e.length || 0;
-        out[r] += km; if (/cycleway/.test(e.use || '')) out.cycle += km;
-        const a = e.begin_shape_index, z = e.end_shape_index;
-        if (a != null && z != null && z > a) {
-          const last = segs[segs.length - 1];
-          const coords = mshape.slice(a, z + 1).map(p => [p.lng, p.lat]);
-          if (last && last.r === r) last.c.push(...coords.slice(1)); else segs.push({ r, c: coords });
-        }
-      });
-      out.segs = segs; out.ok = true;
-    } catch { /* analys är ett tillägg – rutten fungerar ändå */ }
+  // Stadia analyserar högst ett par hundra km per anrop → långa rutter delas upp i bitar
+  const CHUNK_M = 150000, MAX_CHUNKS = 8;
+  function chunkPath(pts) {
+    const out = []; let cur = [pts[0]], acc = 0;
+    for (let i = 1; i < pts.length; i++) {
+      acc += hav(pts[i - 1], pts[i]); cur.push(pts[i]);
+      if (acc >= CHUNK_M && i < pts.length - 1) { out.push(cur); cur = [pts[i]]; acc = 0; }
+    }
+    if (cur.length > 1) out.push(cur);
     return out;
   }
+  async function traceOne(body) {
+    const { res, data } = await stadiaPost('trace_attributes/v1', {
+      ...body, costing: useBikePaths() ? 'bicycle' : 'motor_scooter', shape_match: 'walk_or_snap', units: 'kilometers',
+      filters: { attributes: ['edge.length', 'edge.speed_limit', 'edge.speed', 'edge.road_class', 'edge.use', 'edge.begin_shape_index', 'edge.end_shape_index', 'shape'], action: 'include' }
+    });
+    if (!res.ok || !Array.isArray(data.edges) || !data.edges.length) throw 0;
+    return data;
+  }
+  async function analyse(trip) {
+    const shape = (trip.legs || []).map(l => l.shape).filter(Boolean);
+    const out = { safe: 0, mid: 0, high: 0, unk: 0, cycle: 0, ferry: 0, segs: null, ok: false };
+    try {
+      const pts = shape.flatMap(sh => decode(sh));
+      const totKm = (trip.summary && trip.summary.length) || 0;
+      let parts;
+      if (totKm * 1000 <= CHUNK_M && shape.length === 1) parts = [{ body: { encoded_polyline: shape[0] }, pts }];
+      else {
+        const ch = chunkPath(pts);
+        if (ch.length > MAX_CHUNKS) throw 0;            // för lång resa – analysen blir okänd
+        parts = ch.map(c => ({ body: { shape: c.map(p => ({ lat: p.lat, lon: p.lng })) }, pts: c }));
+      }
+      const results = await Promise.all(parts.map(p => traceOne(p.body)));
+      const segs = [];
+      results.forEach((data, pi) => {
+        const mshape = data.shape ? decode(data.shape) : parts[pi].pts;
+        data.edges.forEach(e => {
+          const r = /ferry/.test(e.use || '') ? 'unk' : riskOf(e), km = e.length || 0;
+          out[r] += km; if (/cycleway/.test(e.use || '')) out.cycle += km; if (/ferry/.test(e.use || '')) out.ferry += km;
+          const a = e.begin_shape_index, z = e.end_shape_index;
+          if (a != null && z != null && z > a) {
+            const last = segs[segs.length - 1];
+            const coords = mshape.slice(a, z + 1).map(p => [p.lng, p.lat]);
+            if (last && last.r === r) last.c.push(...coords.slice(1)); else segs.push({ r, c: coords });
+          }
+        });
+      });
+      // Ett tomt eller ofullständigt svar räknas som okänt, aldrig som säkert
+      const covered = out.safe + out.mid + out.high + out.unk;
+      if (totKm > 0 && covered < totKm * 0.6) throw 0;
+      out.segs = segs; out.ok = true;
+    } catch { out.ok = false; /* analys är ett tillägg – rutten fungerar ändå */ }
+    return out;
+  }
+  const ferries = trip => (trip.legs || []).flatMap(l => l.maneuvers || []).filter(m => m.type === 28).length;
   const score = a => a.high * 3 + a.mid;  // lägre är säkrare
+  // Det säkra alternativet får inte bli en orimlig omväg
+  const MAX_TIME = 1.3, MAX_LEN = 1.35;
   async function planRoutes(a, b) {
     const [fast, safe] = await Promise.all([fetchTrips(a, b, false, 2), fetchTrips(a, b, true, 0).catch(() => [])]);
     const all = [...fast, ...safe], uniq = [];
     all.forEach(t => { const s = t.summary || {}; if (!uniq.some(u => Math.abs(u.summary.length - s.length) < 0.05 && Math.abs(u.summary.time - s.time) < 20)) uniq.push(t); });
-    const cands = await Promise.all(uniq.slice(0, 4).map(async trip => ({ trip, path: (trip.legs || []).flatMap(l => decode(l.shape || '')), an: await analyse(trip) })));
+    const tMin = Math.min(...uniq.map(t => t.summary.time)), lMin = Math.min(...uniq.map(t => t.summary.length));
+    // Släng orimliga omvägar innan något analyseras
+    const sane = uniq.filter(t => t.summary.time <= tMin * MAX_TIME && t.summary.length <= lMin * MAX_LEN);
+    const cands = await Promise.all(sane.slice(0, 4).map(async trip => ({ trip, path: (trip.legs || []).flatMap(l => decode(l.shape || '')), an: await analyse(trip), ferries: ferries(trip) })));
     const byTime = [...cands].sort((x, y) => x.trip.summary.time - y.trip.summary.time);
     const fastest = byTime[0];
     const analysed = cands.filter(c => c.an.ok);
-    let safest = analysed.length ? [...analysed].sort((x, y) => score(x.an) - score(y.an) || x.trip.summary.time - y.trip.summary.time)[0] : fastest;
-    // Inget att vinna: samma rutt eller ingen mätbar skillnad
-    if (safest !== fastest && score(safest.an) >= score(fastest.an) - 0.2) safest = fastest;
+    let safest = fastest;
+    if (fastest.an.ok && analysed.length > 1) {
+      safest = [...analysed].sort((x, y) => score(x.an) - score(y.an) || x.trip.summary.time - y.trip.summary.time)[0];
+      // Inget att vinna: ingen mätbar skillnad, eller fler färjor än den snabbaste
+      if (safest !== fastest && (score(safest.an) >= score(fastest.an) - 0.2 || safest.ferries > fastest.ferries)) safest = fastest;
+    }
     return { fastest, safest };
   }
   const tripTime = t => { let x = (t.summary && t.summary.time) || 0; if (speed < 20 && !useBikePaths()) x = x * 20 / speed; return x; };
@@ -996,7 +1044,11 @@ h1{font-family:inherit}
     $('rTime').textContent = fmtTime(time);
     $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
     $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString(LOC(), { hour: '2-digit', minute: '2-digit' });
-    $('rWarnText').textContent = useBikePaths() ? T('warnBike') : T('warn');
+    const nf = ferries(t);
+    let w = useBikePaths() ? T('warnBike') : T('warn');
+    if (nf) w = T('ferryWarn', { n: nf }) + ' ' + w;
+    if (r.chosen && !r.chosen.an.ok && (sum.length || 0) > CHUNK_M * MAX_CHUNKS / 1000) w = T('tooLong') + ' ' + w;
+    $('rWarnText').textContent = w;
   }
 
   // ---------- Karta i resultatvyn (Stadia via MapLibre) ----------
@@ -1179,12 +1231,15 @@ h1{font-family:inherit}
     if (N || kind === 'clear') FX.raf = requestAnimationFrame(draw); else FX.ctx.clearRect(0, 0, FX.w, FX.h);
   }
   window.addEventListener('resize', () => { if (FX.kind) fxStart(FX.kind); });
+  window.__slowlaneRefreshWx = () => loadNowWeather();
   async function loadNowWeather() {
     const pos = lastPos; if (!pos) return;
     try {
       const q = new URLSearchParams({ latitude: pos.lat.toFixed(4), longitude: pos.lng.toFixed(4), current: 'temperature_2m,weather_code,is_day,precipitation', timezone: 'auto', wind_speed_unit: 'ms' });
       const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString()); if (!res.ok) return;
       const d = await res.json(), c = d.current; if (!c) return;
+      nowWx = { code: c.weather_code, temp: c.temperature_2m, precip: c.precipitation || 0 };
+      applyTheme();
       $('planWx').hidden = false;
       $('planWx').textContent = `${WX.icon(c.weather_code, c.is_day)} ${Math.round(c.temperature_2m)}° ${T('wxNow')}`;
       const k = WX.kind(c.weather_code);
@@ -1372,7 +1427,7 @@ h1{font-family:inherit}
     N.rerouting = true; N.lastReroute = Date.now();
     $('nBanner').textContent = T('offRoute'); $('nBanner').hidden = false;
     try {
-      const trip = await computeRoute(p, lastRoute.b, $('avoid').checked);
+      const trip = await computeRoute(p, lastRoute.b, !!(lastRoute.chosen && lastRoute.safest && lastRoute.chosen === lastRoute.safest && lastRoute.safest !== lastRoute.fastest));
       const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
       const keep = { marker: N.marker, watch: N.watch, wx: N.wx, said: N.said };
       N = Object.assign(buildNav(trip, path), keep);
