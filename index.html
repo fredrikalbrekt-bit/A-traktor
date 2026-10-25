@@ -1078,9 +1078,11 @@ h1{font-family:inherit}
       let fellBack = false;
       rmap = new maplibregl.Map({ container: 'map', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
         center: [path[0].lng, path[0].lat], zoom: 11, attributionControl: { compact: true } });
-      const fallback = () => { if (fellBack) return; fellBack = true; rmap.setStyle(FALLBACK_STYLE); };
-      rmap.on('error', e => { if (!fellBack && (!rmap.isStyleLoaded() || (e.error && /40[13]/.test(String(e.error.status))))) fallback(); });
-      setTimeout(() => { if (rmap && !rmap.isStyleLoaded()) fallback(); }, 6000);
+      let styleOk = false;
+      const fallback = () => { if (fellBack || styleOk) return; fellBack = true; rmap.setStyle(FALLBACK_STYLE); };
+      rmap.once('style.load', () => { styleOk = true; });
+      rmap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      setTimeout(() => { if (rmap && !styleOk) fallback(); }, 15000);
       rmap.on('style.load', rAddRoute);
     } else {
       rmap.resize();
@@ -1338,12 +1340,14 @@ h1{font-family:inherit}
   }
   const routeGeo = path => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: path.map(p => [p.lng, p.lat]) } });
   // Reservkarta: mörka rasterbrickor från CARTO (OpenStreetMap-data)
+  // Reservkarta (CARTO kräver numera nyckel): OpenStreetMap, nedtonad till mörkt läge
   const FALLBACK_STYLE = {
     version: 8,
-    sources: { carto: { type: 'raster', tileSize: 256, maxzoom: 19,
-      tiles: ['a', 'b', 'c', 'd'].map(sd => 'https://' + sd + '.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'),
-      attribution: '© OpenStreetMap © CARTO' } },
-    layers: [{ id: 'carto', type: 'raster', source: 'carto' }]
+    sources: { osm: { type: 'raster', tileSize: 256, maxzoom: 19, tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], attribution: '© OpenStreetMap' } },
+    layers: [
+      { id: 'bg', type: 'background', paint: { 'background-color': '#111214' } },
+      { id: 'osm', type: 'raster', source: 'osm', paint: { 'raster-brightness-max': 0.42, 'raster-brightness-min': 0.04, 'raster-saturation': -0.85, 'raster-contrast': 0.15 } }
+    ]
   };
   function addRouteLayers() {
     if (!nmap || !N) return;
@@ -1364,15 +1368,17 @@ h1{font-family:inherit}
     if (!nmap) {
       const k = getStadia();
       let fellBack = false;
-      const fallback = () => { if (fellBack || !nmap) return; fellBack = true; nmap.setStyle(FALLBACK_STYLE); };
+      let styleOk = false;
+      const fallback = () => { if (fellBack || styleOk || !nmap) return; fellBack = true; nmap.setStyle(FALLBACK_STYLE); };
       nmap = new maplibregl.Map({
         container: 'navMap',
         style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json' + (k ? `?api_key=${encodeURIComponent(k)}` : ''),
         center: [path[0].lng, path[0].lat], zoom: 16, pitch: 45, attributionControl: { compact: true }
       });
       nmap.on('style.load', addRouteLayers);
-      nmap.on('error', e => { if (!fellBack && (!nmap.isStyleLoaded() || /stadiamaps/.test((e.error && e.error.url) || '') || (e.error && /40[13]/.test(String(e.error.status))))) fallback(); });
-      setTimeout(() => { if (nmap && !nmap.isStyleLoaded()) fallback(); }, 6000);
+      nmap.once('style.load', () => { styleOk = true; });
+      nmap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      setTimeout(() => { if (nmap && !styleOk) fallback(); }, 15000);
     } else {
       nmap.resize();
       addRouteLayers();
