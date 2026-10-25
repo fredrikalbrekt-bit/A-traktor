@@ -901,8 +901,120 @@ h1{font-family:inherit}
     }
     return [data.trip, ...((data.alternates || []).map(x => x.trip).filter(Boolean))];
   }
+  // ---------- Snabbaste lagliga väg: bilprofil + kontroll mot motorväg/motortrafikled ----------
+  // Mopedprofilen undviker alla större vägar (även riksvägar som är lagliga). Därför räknas den
+  // snabbaste rutten med bilprofil och maxhastighet som tak, och kontrolleras sedan mot OpenStreetMaps
+  // märkning av motorväg och motortrafikled (gröna skyltar). Träffar rutten en sådan väg stängs den av
+  // och rutten räknas om. Går det inte att kontrollera används mopedprofilen, som alltid är laglig.
+  const OVERPASS = 'https://overpass-api.de/api/interpreter';
+  const forbidCache = new Map();
+  async function forbiddenWays(path) {
+    let S = 90, N = -90, Wb = 180, E = -180;
+    path.forEach(p => { S = Math.min(S, p.lat); N = Math.max(N, p.lat); Wb = Math.min(Wb, p.lng); E = Math.max(E, p.lng); });
+    const pad = 0.01, r = v => Math.round(v * 100) / 100;
+    const bb = [r(S - pad), r(Wb - pad), r(N + pad), r(E + pad)];
+    const key = bb.join(',');
+    if (forbidCache.has(key)) return forbidCache.get(key);
+    const q = `[out:json][timeout:25];(way["motorroad"="yes"](${key});way["highway"~"^(motorway|motorway_link)$"](${key}););out geom;`;
+    const res = await fetch(OVERPASS, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'data=' + encodeURIComponent(q) });
+    if (!res.ok) throw new Error('overpass');
+    const d = await res.json();
+    const ways = (d.elements || []).filter(e => e.geometry && e.geometry.length > 1).map(e => e.geometry.map(g => ({ lat: g.lat, lng: g.lon })));
+    forbidCache.set(key, ways);
+    return ways;
+  }
+  // Hitta sträckor där rutten följer en förbjuden väg (nära OCH parallellt, så att broar och korsningar inte räknas)
+  function findViolations(path, ways) {
+    if (!ways.length) return [];
+    const lat0 = path[0].lat * Math.PI / 180, kx = Math.cos(lat0) * 111320, ky = 110540, cell = 0.004;
+    const grid = new Map(), keyOf = (la, lo) => Math.floor(la / cell) + ':' + Math.floor(lo / cell);
+    ways.forEach((w, wi) => { for (let i = 0; i < w.length - 1; i++) {
+      const a = w[i], b = w[i + 1];
+      const cells = new Set([keyOf(a.lat, a.lng), keyOf(b.lat, b.lng), keyOf((a.lat + b.lat) / 2, (a.lng + b.lng) / 2)]);
+      cells.forEach(k => { if (!grid.has(k)) grid.set(k, []); grid.get(k).push([wi, i]); });
+    } });
+    const near = (p, dirx, diry) => {
+      const ci = Math.floor(p.lat / cell), cj = Math.floor(p.lng / cell);
+      for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+        const list = grid.get((ci + di) + ':' + (cj + dj)); if (!list) continue;
+        for (const [wi, i] of list) {
+          const a = ways[wi][i], b = ways[wi][i + 1];
+          const ax = (a.lng - p.lng) * kx, ay = (a.lat - p.lat) * ky, bx = (b.lng - p.lng) * kx, by = (b.lat - p.lat) * ky;
+          const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy) || 1;
+          let t = -(ax * dx + ay * dy) / (L * L); t = Math.max(0, Math.min(1, t));
+          const d = Math.hypot(ax + t * dx, ay + t * dy);
+          if (d > 14) continue;
+          const cos = Math.abs((dx * dirx + dy * diry) / L);   // parallellt?
+          if (cos > 0.87) return { wi, i };
+        }
+      }
+      return null;
+    };
+    const hits = []; let run = 0, runHits = [];
+    for (let k = 0; k < path.length - 1; k++) {
+      const p = path[k], q = path[k + 1];
+      const vx = (q.lng - p.lng) * kx, vy = (q.lat - p.lat) * ky, seg = Math.hypot(vx, vy);
+      if (seg < 0.5) continue;
+      const m = { lat: (p.lat + q.lat) / 2, lng: (p.lng + q.lng) / 2 };
+      const h = near(m, vx / seg, vy / seg);
+      if (h) { run += seg; runHits.push(h); }
+      else { if (run >= 120) hits.push(...runHits); run = 0; runHits = []; }
+    }
+    if (run >= 120) hits.push(...runHits);
+    // Punkter mitt på de förbjudna vägbitarna – används för att stänga av dem i nästa beräkning
+    const pts = [], seen = new Set();
+    hits.forEach(({ wi, i }) => { const id = wi + ':' + i; if (seen.has(id)) return; seen.add(id);
+      const a = ways[wi][i], b = ways[wi][i + 1]; pts.push({ lat: (a.lat + b.lat) / 2, lon: (a.lng + b.lng) / 2 }); });
+    // glesa ut till högst 40 punkter
+    const step = Math.max(1, Math.ceil(pts.length / 40));
+    return pts.filter((_, i) => i % step === 0);
+  }
+  function autoBody(a, b, exclude, alternates) {
+    const body = {
+      locations: [{ lat: a.lat, lon: a.lng, type: 'break', ...(a.heading != null ? { heading: a.heading } : {}) }, { lat: b.lat, lon: b.lng, type: 'break' }],
+      costing: 'auto', units: 'kilometers', language: VOICE(),
+      costing_options: { auto: { top_speed: Math.max(10, Math.min(140, speed)), use_highways: 0, use_tolls: 0.5, use_ferry: 0.2, use_tracks: 0, use_living_streets: 0.3 } }
+    };
+    if (exclude && exclude.length) body.exclude_locations = exclude;
+    if (alternates) body.alternates = alternates;
+    return body;
+  }
+  async function legalFastTrips(a, b, alternates = 2) {
+    let exclude = [];
+    for (let round = 0; round < 3; round++) {
+      const { res, data } = await stadiaPost('route/v1', autoBody(a, b, exclude, round === 0 ? alternates : 0));
+      if (!res.ok || !data.trip) return [];
+      const trips = [data.trip, ...((data.alternates || []).map(x => x.trip).filter(Boolean))];
+      const ok = [], bad = [];
+      for (const t of trips) {
+        const path = (t.legs || []).flatMap(l => decode(l.shape || ''));
+        const ways = await forbiddenWays(path);          // kastar om kontrollen inte går att göra
+        const v = findViolations(path, ways);
+        if (v.length) bad.push(...v); else ok.push(t);
+      }
+      if (ok.length) return ok;
+      const before = exclude.length;
+      bad.forEach(p => { if (!exclude.some(e => Math.abs(e.lat - p.lat) < 1e-5 && Math.abs(e.lon - p.lon) < 1e-5)) exclude.push(p); });
+      exclude = exclude.slice(0, 50);
+      if (exclude.length === before) break;
+    }
+    return [];
+  }
+  // Snabbaste lagliga resor: bilprofil (kontrollerad) + mopedprofil som alltid är laglig
+  async function fastTrips(a, b, alternates) {
+    if (useBikePaths()) return fetchTrips(a, b, false, alternates);
+    const [legal, scooter] = await Promise.all([
+      legalFastTrips(a, b, alternates).catch(() => []),
+      fetchTrips(a, b, false, alternates).catch(e => { throw e; })
+    ]);
+    return [...legal, ...scooter];
+  }
   // Används vid omräkning under navigering
-  async function computeRoute(a, b, safe) { return (await fetchTrips(a, b, safe, 0))[0]; }
+  async function computeRoute(a, b, safe) {
+    if (safe) return (await fetchTrips(a, b, true, 0))[0];
+    const trips = await fastTrips(a, b, 0);
+    return trips.sort((x, y) => x.summary.time - y.summary.time)[0];
+  }
 
   // ---------- Säkerhetsanalys ----------
   const RISK_COLOR = { safe: '#3ecf8e', mid: '#ffc940', high: '#ff5a4f', unk: '#8a93a8' };
@@ -978,7 +1090,7 @@ h1{font-family:inherit}
   // Det säkra alternativet får inte bli en orimlig omväg
   const MAX_TIME = 1.3, MAX_LEN = 1.35;
   async function planRoutes(a, b, safeMode) {
-    const [fast, safe] = await Promise.all([fetchTrips(a, b, false, 2), safeMode ? fetchTrips(a, b, true, 0).catch(() => []) : Promise.resolve([])]);
+    const [fast, safe] = await Promise.all([fastTrips(a, b, 2), safeMode ? fetchTrips(a, b, true, 0).catch(() => []) : Promise.resolve([])]);
     const all = [...fast, ...safe], uniq = [];
     all.forEach(t => { const s = t.summary || {}; if (!uniq.some(u => Math.abs(u.summary.length - s.length) < 0.05 && Math.abs(u.summary.time - s.time) < 20)) uniq.push(t); });
     const tMin = Math.min(...uniq.map(t => t.summary.time)), lMin = Math.min(...uniq.map(t => t.summary.length));
