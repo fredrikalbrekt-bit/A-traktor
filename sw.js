@@ -1,5 +1,5 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v17';
+const VERSION = 'slowlane-v18';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './epa-hero.webp', './epa-fog.webp', './moped2-hero.webp', './moped2-rain.webp', './moped2-cool.webp', './moped2-cold.webp', './dust.webp', './mopedbil-hero.webp', './moped1-hero.webp'];
 const LIBS = ['cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
@@ -26,6 +26,16 @@ self.addEventListener('fetch', e => {
         return res;
       }).catch(() => caches.match(req.mode === 'navigate' ? './index.html' : req).then(r => r || caches.match('./index.html')))
     );
+    return;
+  }
+
+  // Gröna vägar: visa sparad fil direkt, hämta ny i bakgrunden
+  if (url.origin === location.origin && url.pathname.endsWith('grona-vagar.json')) {
+    e.respondWith(caches.open(VERSION).then(async c => {
+      const hit = await c.match(req, { ignoreSearch: true });
+      const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
+      return hit || net;
+    }));
     return;
   }
 
