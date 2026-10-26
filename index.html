@@ -162,6 +162,28 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .nav-btns .round{width:48px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .me{width:22px;height:22px;border-radius:999px;background:var(--accent);border:3px solid #fff;box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 30%,transparent)}
 
+/* ---------- Förare i närheten ---------- */
+:root{--rider:#f2f3f5}
+.live-chip{display:inline-flex;align-items:center;gap:8px;margin-top:12px;color:var(--text2);background:var(--glass)}
+.live-chip i{width:8px;height:8px;border-radius:999px;background:var(--safe)}
+.live-chip.err i{background:var(--err)}
+#v-near{position:relative;background:var(--mapbg)}
+#v-near.on{display:block;height:100vh;height:100dvh}
+#nearMap{position:absolute;inset:0}
+.near-info{position:absolute;z-index:2;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text2)}
+.rider{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.rider i{width:14px;height:14px;border-radius:999px;background:var(--rider);border:3px solid #000;box-shadow:0 0 0 1px rgba(255,255,255,.5)}
+.rider b{font-size:12px;font-weight:600;line-height:1.3;color:#fff;background:rgba(0,0,0,.72);border-radius:6px;padding:1px 6px;white-space:nowrap}
+.maplibregl-popup .maplibregl-popup-content{background:var(--dialog);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 30px 12px 14px}
+.maplibregl-popup .maplibregl-popup-tip{display:none}
+.maplibregl-popup .maplibregl-popup-close-button{color:var(--muted);font-size:18px;width:28px;height:28px}
+.r-pop{display:flex;flex-direction:column;gap:4px;min-width:150px}
+.r-pop b{font-size:16px}
+.r-pop span{font-size:13px;color:var(--muted)}
+.r-pop button{margin-top:6px;border:1px solid var(--err);background:transparent;color:var(--err);border-radius:8px;min-height:36px;font-size:14px}
+dialog .toggle{border:1px solid var(--line2);border-radius:10px;background:var(--bg);margin-top:12px}
+dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
+
 /* ---------- Aja baja ---------- */
 #ajabaja{text-align:center;overflow:hidden;position:relative;padding:28px 22px 22px}
 #ajabaja .lights{position:absolute;inset:-40% -20% auto;height:70%;pointer-events:none;
@@ -327,6 +349,7 @@ h1{font-family:inherit}
         <div class="stripes" aria-hidden="true" style="width:120px;margin-top:10px"></div>
         <div class="neon" aria-hidden="true" style="width:120px;margin-top:10px"></div>
         <div class="gloss" aria-hidden="true" style="width:120px;margin-top:10px"></div>
+        <button class="chip live-chip" id="liveChip" type="button" hidden><i aria-hidden="true"></i><span id="liveTx"></span></button>
       </div>
       <button class="icon-btn" id="openSettings" data-i18n-aria="settings" aria-label="Inställningar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
@@ -458,6 +481,14 @@ h1{font-family:inherit}
   </div>
 </section>
 
+<section class="view" id="v-near" data-i18n-aria="nearAria" aria-label="Förare nära dig">
+  <div id="nearMap"></div>
+  <button class="icon-btn back" id="nearBack" type="button" data-i18n-aria="back" aria-label="Tillbaka">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+  </button>
+  <div class="near-info" id="nearInfo" aria-live="polite"></div>
+</section>
+
 <dialog id="ajabaja" aria-labelledby="ajaTitle">
   <div class="lights" aria-hidden="true"></div>
   <div class="emo" id="ajaEmo" aria-hidden="true">☝️</div>
@@ -480,11 +511,18 @@ h1{font-family:inherit}
     <label for="speedIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="speedLbl">Fordonets maxhastighet</label>
     <select class="key" id="speedIn"><option value="10">10 km/h</option><option value="15">15 km/h</option><option value="20">20 km/h</option><option value="25">25 km/h</option><option value="30">30 km/h</option><option value="35">35 km/h</option><option value="40">40 km/h</option><option value="45">45 km/h</option><option value="50">50 km/h</option><option value="55">55 km/h</option><option value="60">60 km/h</option><option value="65">65 km/h</option><option value="70">70 km/h</option><option value="75">75 km/h</option><option value="80">80 km/h</option><option value="85">85 km/h</option><option value="90">90 km/h</option></select>
     <p style="margin:6px 0 18px" id="speedHelp">Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.</p>
+    <label for="nickIn" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="nickLbl">Smeknamn</label>
+    <input class="key" id="nickIn" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="nickPh" placeholder="Syns för andra förare">
+    <label class="toggle">
+      <span><span class="t1" data-i18n="visLbl">Visa min position</span><span class="t2" data-i18n="visSub">Förare inom 50 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.</span></span>
+      <span class="switch"><input type="checkbox" id="visIn"><span></span></span>
+    </label>
+    <p class="msg" id="visMsg" role="alert" style="margin:6px 0 0"></p>
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 23</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 24</p>
   </form>
 </dialog>
 </div>
@@ -519,7 +557,14 @@ h1{font-family:inherit}
       noPath:'Ingen laglig väg hittades mellan platserna för fordonet. Prova en annan start- eller målpunkt.', routeFail:'Rutten kunde inte beräknas. ',
       warn:'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.',
       offline:'Ingen internetanslutning. Rutten kräver nät, försök igen när du har täckning.', needTo:'Skriv in vart du ska.',
-      needFrom:'Ange var du startar, eller tryck på Min position.', generic:'Något gick fel. Kontrollera anslutningen och försök igen.'
+      needFrom:'Ange var du startar, eller tryck på Min position.', generic:'Något gick fel. Kontrollera anslutningen och försök igen.',
+      nickLbl:'Smeknamn', nickPh:'Syns för andra förare', visLbl:'Visa min position',
+      visSub:'Förare inom 50 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.',
+      nickNeed:'Skriv ett smeknamn på 3–16 tecken för att kunna synas.', nearAria:'Förare nära dig',
+      liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
+      liveNone:'inga andra inom 50 km', liveOne:'1 förare inom 50 km', liveCount:'{n} förare inom 50 km',
+      liveOffTx:'Du syns inte. Slå på Visa min position i inställningarna.',
+      block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.'
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
@@ -540,7 +585,14 @@ h1{font-family:inherit}
       noPath:'No legal road found between the places for this vehicle. Try a different start or destination.', routeFail:'The route couldn’t be calculated. ',
       warn:'The route avoids motorways and expressways according to OpenStreetMap. Always follow the road signs, map data can be incomplete.',
       offline:'No internet connection. Routing needs a connection, try again when you have coverage.', needTo:'Enter where you’re going.',
-      needFrom:'Enter where you start, or tap My location.', generic:'Something went wrong. Check your connection and try again.'
+      needFrom:'Enter where you start, or tap My location.', generic:'Something went wrong. Check your connection and try again.',
+      nickLbl:'Nickname', nickPh:'Shown to other riders', visLbl:'Show my position',
+      visSub:'Riders within 50 km see your nickname and where you are while Slowlane is open. You only see them while you’re visible.',
+      nickNeed:'Enter a nickname of 3–16 characters to be visible.', nearAria:'Riders near you',
+      liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
+      liveNone:'no one else within 50 km', liveOne:'1 rider within 50 km', liveCount:'{n} riders within 50 km',
+      liveOffTx:'You’re not visible. Turn on Show my position in settings.',
+      block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.'
     }
   };
   let lang = store.get('lang', (navigator.language || 'sv').toLowerCase().startsWith('sv') ? 'sv' : 'en');
@@ -629,14 +681,18 @@ h1{font-family:inherit}
   }
   let ajaPrev = 30;
   const getStadia = () => ''; // Stadia använder domänbehörighet
-  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
+  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('visMsg').textContent = ''; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
+      const nick = $('nickIn').value.trim().replace(/\s+/g, ' ');
+      if ($('visIn').checked && !validNick(nick)) { e.preventDefault(); $('visMsg').textContent = T('nickNeed'); $('nickIn').focus(); return; }
+      store.set('nick', nick); store.set('visible', $('visIn').checked);
       speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed);
       lang = $('langIn').value === 'en' ? 'en' : 'sv'; store.set('lang', lang);
       const nt = THEMES[$('themeIn').value] ? $('themeIn').value : 'epa';
       if (nt !== theme) { theme = nt; store.set('theme', theme); applyTheme(); loadNowWeather(); }
       applyLang();
+      liveSync(); renderRiders();
     }
   });
 
@@ -1331,6 +1387,7 @@ h1{font-family:inherit}
     const b = new maplibregl.LngLatBounds(); path.forEach(p => b.extend([p.lng, p.lat]));
     const fit = () => { try { rmap.resize(); rmap.fitBounds(b, { padding: { top: 80, right: 30, bottom: 50, left: 30 }, duration: 0 }); } catch {} };
     fit(); requestAnimationFrame(() => requestAnimationFrame(fit));
+    renderRiders();
   }
 
   // ---------- Väder (Open-Meteo) ----------
@@ -1616,6 +1673,7 @@ h1{font-family:inherit}
       addRouteLayers();
     }
     ensureMarker(path[0]);
+    renderRiders();
   }
 
   function render(pos) {
@@ -1740,6 +1798,150 @@ h1{font-family:inherit}
   $('startNav').onclick = startNav;
   $('nEnd').onclick = endNav;
   $('nMute').onclick = () => { muted = !muted; store.set('muted', muted); $('nMute').innerHTML = muted ? SPK_OFF : SPK_ON; $('nMute').setAttribute('aria-pressed', String(muted)); $('nMute').setAttribute('aria-label', muted ? T('muteOn') : T('muteOff')); if (muted) try { speechSynthesis.cancel(); } catch {} };
+
+  // ---------- Förare i närheten (Supabase) ----------
+  // Publik nyckel: tabellerna nås bara via databasfunktionerna i supabase/live-riders.sql
+  const SUPA_URL = 'https://whpfdexdxwumaiiriqkt.supabase.co', SUPA_KEY = 'sb_publishable_minOWomD8yovDIT35L9BQA_V2MN-aJD';
+  const PING_MS = 15000;
+  const RIDER_ICON = { epa: '🚜', moped2: '🛵', moped1: '🏍️', mopedbil: '🚗' };
+  const validNick = n => [...n].length >= 3 && [...n].length <= 16;
+  const LIVE = { on: false, watch: null, timer: null, pos: null, riders: [], pinged: false, busy: false, err: null };
+  let supa = store.get('supa', null);
+
+  async function supaAuth(path, body) {
+    const res = await fetch(SUPA_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok || !d.access_token) throw new Error('auth ' + res.status);
+    supa = { token: d.access_token, refresh: d.refresh_token, exp: d.expires_at || Date.now() / 1000 + (d.expires_in || 3600) };
+    store.set('supa', supa);
+  }
+  async function supaToken() {
+    if (supa && supa.exp - 60 > Date.now() / 1000) return supa.token;
+    if (supa && supa.refresh) try { await supaAuth('token?grant_type=refresh_token', { refresh_token: supa.refresh }); return supa.token; } catch {}
+    await supaAuth('signup', {});
+    return supa.token;
+  }
+  async function supaRpc(fn, args, keepalive) {
+    const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive,
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + await supaToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
+    if (!res.ok) throw new Error(fn + ' ' + res.status);
+    const t = await res.text(); return t ? JSON.parse(t) : null;
+  }
+
+  const liveWanted = () => store.get('visible', false) && validNick(store.get('nick', '')) && document.visibilityState === 'visible';
+  function liveSync() { if (liveWanted()) liveStart(); else liveStop(); }
+  function liveStart() {
+    if (LIVE.on || !navigator.geolocation) return;
+    LIVE.on = true;
+    LIVE.watch = navigator.geolocation.watchPosition(p => {
+      const first = !LIVE.pos;
+      LIVE.pos = { lat: p.coords.latitude, lng: p.coords.longitude, heading: p.coords.heading, speed: p.coords.speed };
+      if (LIVE.err === 'geo') LIVE.err = null;
+      if (first) livePing();
+    }, err => { if (err.code === 1) { LIVE.err = 'geo'; renderRiders(); } }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
+    LIVE.timer = setInterval(livePing, PING_MS);
+    renderRiders();
+  }
+  async function livePing() {
+    if (!LIVE.on || !LIVE.pos || LIVE.busy) return;
+    LIVE.busy = true;
+    try {
+      const rows = await supaRpc('ride_ping', { p_nick: store.get('nick', ''), p_vehicle: theme, p_lat: LIVE.pos.lat, p_lng: LIVE.pos.lng, p_heading: LIVE.pos.heading, p_speed: LIVE.pos.speed });
+      // appen hann döljas medan anropet pågick → ta bort positionen igen
+      if (!LIVE.on) supaRpc('ride_stop', {}, true).catch(() => {});
+      else { LIVE.riders = rows || []; LIVE.pinged = true; LIVE.err = null; }
+    } catch { LIVE.err = 'net'; }
+    finally { LIVE.busy = false; }
+    renderRiders();
+  }
+  function liveStop() {
+    if (!LIVE.on) return;
+    LIVE.on = false;
+    if (LIVE.watch != null) navigator.geolocation.clearWatch(LIVE.watch);
+    clearInterval(LIVE.timer);
+    if (LIVE.pinged) supaRpc('ride_stop', {}, true).catch(() => {});
+    Object.assign(LIVE, { watch: null, timer: null, pos: null, riders: [], pinged: false, err: null });
+    renderRiders();
+  }
+  document.addEventListener('visibilitychange', liveSync);
+  window.addEventListener('pagehide', liveStop);
+  window.addEventListener('pageshow', liveSync);
+
+  const liveStatus = () => LIVE.err === 'geo' ? T('liveGeo') : LIVE.err === 'net' ? T('liveFail') : !LIVE.pinged ? T('liveWait')
+    : LIVE.riders.length === 0 ? T('liveNone') : LIVE.riders.length === 1 ? T('liveOne') : T('liveCount', { n: LIVE.riders.length });
+  const riderLabel = r => (RIDER_ICON[r.vehicle] || '') + ' ' + r.nick;
+  const riderMarks = new Map();  // karta → (förar-id → markör)
+  let nearMap = null, nearMe = null, riderPop = null;
+
+  function renderRiders() {
+    $('liveChip').hidden = !LIVE.on;
+    $('liveChip').classList.toggle('err', !!LIVE.err);
+    $('liveTx').textContent = T('liveOn') + ' · ' + liveStatus();
+    $('nearInfo').textContent = LIVE.on ? T('liveOn') + ' · ' + liveStatus() : T('liveOffTx');
+    if (!window.maplibregl) return;
+    [rmap, nmap, nearMap].forEach(m => { if (m) syncRiders(m); });
+    if (nearMap && LIVE.pos) {
+      if (!nearMe) nearMe = new maplibregl.Marker({ element: Object.assign(document.createElement('div'), { className: 'me' }) }).setLngLat([LIVE.pos.lng, LIVE.pos.lat]).addTo(nearMap);
+      else nearMe.setLngLat([LIVE.pos.lng, LIVE.pos.lat]);
+    } else if (nearMe) { nearMe.remove(); nearMe = null; }
+  }
+  function syncRiders(m) {
+    let marks = riderMarks.get(m); if (!marks) riderMarks.set(m, marks = new Map());
+    const ids = new Set(LIVE.riders.map(r => r.id));
+    marks.forEach((mk, id) => { if (!ids.has(id)) { mk.remove(); marks.delete(id); } });
+    LIVE.riders.forEach(r => {
+      const mk = marks.get(r.id);
+      if (mk) { mk.setLngLat([r.lng, r.lat]); mk.getElement().querySelector('b').textContent = riderLabel(r); return; }
+      const el = document.createElement('div'); el.className = 'rider';
+      el.append(document.createElement('i'), Object.assign(document.createElement('b'), { textContent: riderLabel(r) }));
+      el.onclick = e => { e.stopPropagation(); riderPopup(m, r.id); };
+      marks.set(r.id, new maplibregl.Marker({ element: el, anchor: 'top', offset: [0, -7] }).setLngLat([r.lng, r.lat]).addTo(m));
+    });
+  }
+  function riderPopup(m, id) {
+    const r = LIVE.riders.find(x => x.id === id); if (!r) return;
+    if (riderPop) riderPop.remove();
+    const box = document.createElement('div'); box.className = 'r-pop';
+    const btn = Object.assign(document.createElement('button'), { type: 'button', textContent: T('block') });
+    btn.onclick = () => blockRider(r);
+    box.append(Object.assign(document.createElement('b'), { textContent: r.nick }),
+      Object.assign(document.createElement('span'), { textContent: THEMES[r.vehicle] ? THEMES[r.vehicle].name() : '' }), btn);
+    riderPop = new maplibregl.Popup({ offset: 12, maxWidth: '240px' }).setLngLat([r.lng, r.lat]).setDOMContent(box).addTo(m);
+  }
+  async function blockRider(r) {
+    if (!confirm(T('blockAsk', { n: r.nick }))) return;
+    try { await supaRpc('block_rider', { p_id: r.id }); } catch { alert(T('generic')); return; }
+    if (riderPop) riderPop.remove();
+    LIVE.riders = LIVE.riders.filter(x => x.id !== r.id);
+    renderRiders();
+  }
+
+  async function openNear() {
+    $('v-plan').classList.remove('on'); $('v-near').classList.add('on');
+    renderRiders();
+    try { await loadMapLibre(); } catch { $('nearInfo').textContent = T('mapFail'); return; }
+    const c = LIVE.pos || lastPos;
+    if (!nearMap) {
+      let styleOk = false, fellBack = false;
+      nearMap = new maplibregl.Map({ container: 'nearMap', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
+        center: c ? [c.lng, c.lat] : [16.5, 62.5], zoom: c ? 9 : 4, attributionControl: { compact: true } });
+      const fallback = () => { if (fellBack || styleOk) return; fellBack = true; nearMap.setStyle(FALLBACK_STYLE); };
+      nearMap.once('style.load', () => { styleOk = true; });
+      nearMap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      setTimeout(() => { if (!styleOk) fallback(); }, 15000);
+    } else {
+      nearMap.resize();
+      if (c) nearMap.jumpTo({ center: [c.lng, c.lat] });
+    }
+    renderRiders();
+  }
+  $('liveChip').onclick = openNear;
+  $('nearBack').onclick = () => {
+    if (riderPop) riderPop.remove();
+    $('v-near').classList.remove('on'); $('v-plan').classList.add('on');
+    if (FX.kind) fxStart(FX.kind);
+  };
+  liveSync();
 
   // ---------- Go ----------
   $('go').onclick = async () => {
