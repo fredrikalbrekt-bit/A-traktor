@@ -1,0 +1,83 @@
+# Hämtar alla svenska motorvägar och motortrafikleder (gröna skyltar) från OpenStreetMap
+# och sparar dem som grona-vagar.json i repot. Slowlane läser filen för att kontrollera rutter.
+# Körs automatiskt varje måndag, och kan startas för hand under fliken Actions.
+name: Uppdatera gröna vägar
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Hämta från OpenStreetMap
+        run: |
+          python3 - <<'PY'
+          import json, math, time, urllib.parse, urllib.request
+          Q = """[out:json][timeout:300];
+          area["ISO3166-1"="SE"][admin_level=2]->.se;
+          (way(area.se)["motorroad"="yes"];
+           way(area.se)["highway"~"^(motorway|motorway_link)$"];);
+          out geom;"""
+          servers = ["https://overpass-api.de/api/interpreter",
+                     "https://overpass.private.coffee/api/interpreter",
+                     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+                     "https://overpass.kumi.systems/api/interpreter"]
+          data = None
+          for attempt in range(3):
+              for url in servers:
+                  try:
+                      req = urllib.request.Request(url, data=urllib.parse.urlencode({"data": Q}).encode(),
+                                                   headers={"User-Agent": "Slowlane-gron-vag/1.0"})
+                      with urllib.request.urlopen(req, timeout=400) as r:
+                          data = json.load(r)
+                      if data.get("elements"): break
+                  except Exception as e:
+                      print("fel", url, e)
+              if data and data.get("elements"): break
+              time.sleep(60)
+          els = data["elements"]
+          # förenkla: ta bort punkter som ligger närmare än ~5 m från en rak linje
+          def simplify(pts, tol=5.0):
+              if len(pts) < 3: return pts
+              lat0 = math.radians(pts[0][0]); kx = math.cos(lat0) * 111320; ky = 110540
+              def dist(p, a, b):
+                  ax, ay = (a[1]-p[1])*kx, (a[0]-p[0])*ky; bx, by = (b[1]-p[1])*kx, (b[0]-p[0])*ky
+                  dx, dy = bx-ax, by-ay; L = dx*dx+dy*dy
+                  t = 0 if L == 0 else max(0, min(1, -(ax*dx+ay*dy)/L))
+                  return math.hypot(ax+t*dx, ay+t*dy)
+              keep = [0, len(pts)-1]; stack = [(0, len(pts)-1)]
+              while stack:
+                  i, j = stack.pop(); best, bi = 0, -1
+                  for k in range(i+1, j):
+                      d = dist(pts[k], pts[i], pts[j])
+                      if d > best: best, bi = d, k
+                  if best > tol: keep.append(bi); stack += [(i, bi), (bi, j)]
+              return [pts[k] for k in sorted(keep)]
+          ways = []
+          for e in els:
+              g = e.get("geometry") or []
+              pts = simplify([(p["lat"], p["lon"]) for p in g])
+              if len(pts) < 2: continue
+              flat = []
+              for la, lo in pts: flat += [round(la*1e5), round(lo*1e5)]
+              ways.append(flat)
+          out = {"generated": time.strftime("%Y-%m-%d"), "scale": 1e5, "count": len(ways), "ways": ways}
+          json.dump(out, open("grona-vagar.json", "w"), separators=(",", ":"))
+          print("vägar:", len(ways))
+          PY
+
+      - name: Spara i repot
+        run: |
+          git config user.name "slowlane-bot"
+          git config user.email "slowlane-bot@users.noreply.github.com"
+          git add grona-vagar.json
+          git diff --cached --quiet || git commit -m "Uppdatera gröna vägar"
+          git push
