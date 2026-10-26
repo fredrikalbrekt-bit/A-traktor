@@ -120,8 +120,6 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .route-name{font-size:14px;color:var(--muted);overflow-wrap:anywhere}
 .big{font-family:var(--cond);font-size:52px;font-weight:600;line-height:1;margin:6px 0}
 .sub{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--accent)}
-.thumb{width:104px;height:104px;border-radius:16px;overflow:hidden;border:1px solid var(--line);flex-shrink:0;position:relative;background:var(--bg)}
-.thumb img{position:absolute;width:326px;height:381px;left:-85px;top:-163px;max-width:none}
 .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .stat span{display:block;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
@@ -271,7 +269,6 @@ h1{font-family:inherit}
 :root[data-theme="mopedbil"] .eta,:root[data-theme="mopedbil"] .big,:root[data-theme="mopedbil"] .man-dist,:root[data-theme="mopedbil"] .speed-val b{font-weight:600}
 :root[data-theme="mopedbil"] .gloss{display:block}
 .gloss{display:none;height:4px;border-radius:2px;background:linear-gradient(90deg,#8e3ff0,#d9b3ff 50%,#8e3ff0)}
-:root[data-theme="mopedbil"] .thumb img{width:440px;height:514px;left:-100px;top:-237px}
 :root[data-theme="mopedbil"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(180,107,255,.55),transparent),radial-gradient(closest-side at 70% 60%,rgba(255,255,255,.2),transparent)}
 :root[data-theme="mopedbil"] .sub{color:#c99bff}
 /* ---------- Tema: Moped klass I ---------- */
@@ -290,7 +287,6 @@ h1{font-family:inherit}
   background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.022) 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,rgba(0,0,0,.25) 0 3px,transparent 3px 6px)}
 :root[data-theme="moped1"] .neon{display:block}
 .neon{display:none;height:3px;border-radius:2px;background:#a8ff2e;box-shadow:0 0 10px #a8ff2e,0 0 22px rgba(168,255,46,.6)}
-:root[data-theme="moped1"] .thumb img{width:440px;height:514px;left:-214px;top:-113px}
 :root[data-theme="moped1"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(168,255,46,.55),transparent),radial-gradient(closest-side at 70% 60%,rgba(255,255,255,.25),transparent)}
 :root[data-theme="moped1"] .sub{color:#a8ff2e}
 /* ---------- Tema: Moped klass II ---------- */
@@ -304,7 +300,6 @@ h1{font-family:inherit}
 :root[data-theme="moped2"] .kicker{color:#ffb55e}
 :root[data-theme="moped2"] .hero .fog{opacity:.75}
 :root[data-theme="moped2"] .hero .fog.f2{opacity:.4}
-:root[data-theme="moped2"] .thumb img{width:440px;height:514px;left:-150px;top:-116px}
 :root[data-theme="moped2"] .stripes{display:block}
 .stripes{display:none;height:6px;border-radius:3px;background:linear-gradient(90deg,#ffd666 0 33%,#ff8040 33% 66%,#e23e3a 66%)}
 :root[data-theme="moped2"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(255,138,61,.55),transparent),radial-gradient(closest-side at 70% 60%,rgba(255,214,102,.45),transparent)}
@@ -389,7 +384,6 @@ h1{font-family:inherit}
         <div class="big" id="rTime">–</div>
         <div class="sub" id="rSub">vid 30 km/h</div>
       </div>
-      <div class="thumb" aria-hidden="true"><img id="thumbImg" src="epa-hero.webp" alt=""></div>
     </div>
     <div class="stats">
       <div class="stat"><span data-i18n="dist">Sträcka</span><b id="rDist">–</b></div>
@@ -613,7 +607,7 @@ h1{font-family:inherit}
   function applyTheme() {
     const t = TH();
     document.documentElement.dataset.theme = theme;
-    const hero = heroFor(t); if ($('heroImg').getAttribute('src') !== hero) { $('heroImg').src = hero; $('thumbImg').src = hero; }
+    const hero = heroFor(t); if ($('heroImg').getAttribute('src') !== hero) $('heroImg').src = hero;
     document.querySelectorAll('.hero .fog').forEach(f => { f.src = t.fog; });
     const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = t.color;
     $('ajaEmo').textContent = t.emo;
