@@ -167,9 +167,10 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .live-chip{display:inline-flex;align-items:center;gap:8px;margin-top:12px;color:var(--text2);background:var(--glass)}
 .live-chip i{width:8px;height:8px;border-radius:999px;background:var(--safe)}
 .live-chip.err i{background:var(--err)}
-#v-near{position:relative;background:var(--mapbg)}
-#v-near.on{display:block;height:100vh;height:100dvh}
-#nearMap{position:absolute;inset:0}
+#v-near,#v-pick{position:relative;background:var(--mapbg)}
+#v-near.on,#v-pick.on{display:block;height:100vh;height:100dvh}
+#nearMap,#pickMap{position:absolute;inset:0}
+.pick-bar{display:flex;flex-direction:column;gap:12px}
 .near-info{position:absolute;z-index:2;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 14px);background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text2)}
 .rider{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
 .rider i{width:14px;height:14px;border-radius:999px;background:var(--rider);border:3px solid #000;box-shadow:0 0 0 1px rgba(255,255,255,.5)}
@@ -491,6 +492,17 @@ h1{font-family:inherit}
   <div class="near-info" id="nearInfo" aria-live="polite"></div>
 </section>
 
+<section class="view" id="v-pick" data-i18n-aria="pickAria" aria-label="Välj mål på kartan">
+  <div id="pickMap"></div>
+  <button class="icon-btn back" id="pickBack" type="button" data-i18n-aria="back" aria-label="Tillbaka">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+  </button>
+  <div class="near-info pick-bar">
+    <div id="pickHint" data-i18n="pickHint">Tryck på kartan där du vill åka. Dra nålen för att flytta den.</div>
+    <button class="cta" id="pickUse" type="button" data-i18n="pickUse" disabled>Välj som mål</button>
+  </div>
+</section>
+
 <dialog id="ajabaja" aria-labelledby="ajaTitle">
   <div class="lights" aria-hidden="true"></div>
   <div class="emo" id="ajaEmo" aria-hidden="true">☝️</div>
@@ -524,7 +536,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 26</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 27</p>
   </form>
 </dialog>
 </div>
@@ -566,7 +578,9 @@ h1{font-family:inherit}
       liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
       liveNone:'inga andra inom 50 km', liveOne:'1 förare inom 50 km', liveCount:'{n} förare inom 50 km',
       liveOffTx:'Du syns inte. Slå på Visa min position i inställningarna.',
-      block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit'
+      block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit',
+      pickMap:'Välj på kartan', pickSub:'Sätt en kartnål dit du ska', pickAria:'Välj mål på kartan',
+      pickHint:'Tryck på kartan där du vill åka. Dra nålen för att flytta den.', pickUse:'Välj som mål', pinLabel:'📍 Kartnål'
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
@@ -594,7 +608,9 @@ h1{font-family:inherit}
       liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
       liveNone:'no one else within 50 km', liveOne:'1 rider within 50 km', liveCount:'{n} riders within 50 km',
       liveOffTx:'You’re not visible. Turn on Show my position in settings.',
-      block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here'
+      block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here',
+      pickMap:'Choose on map', pickSub:'Drop a pin where you’re going', pickAria:'Choose destination on map',
+      pickHint:'Tap the map where you want to go. Drag the pin to move it.', pickUse:'Set as destination', pinLabel:'📍 Map pin'
     }
   };
   let lang = store.get('lang', (navigator.language || 'sv').toLowerCase().startsWith('sv') ? 'sv' : 'en');
@@ -823,6 +839,7 @@ h1{font-family:inherit}
     SLIST.innerHTML = '';
     const text = SIN.value.trim();
     if (searchField === 'from') SLIST.appendChild(row(LOCATE, T('myPos'), '', () => { closeSearch(false); useMyLocation(); }, 'loc'));
+    if (searchField === 'to') SLIST.appendChild(row(PIN, T('pickMap'), T('pickSub'), () => { closeSearch(false); openPick(); }, 'loc'));
     if (text.length < 3) {
       const rec = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x);
       if (rec.length) {
@@ -1966,6 +1983,47 @@ h1{font-family:inherit}
     $('v-near').classList.remove('on'); $('v-plan').classList.add('on');
     if (FX.kind) fxStart(FX.kind);
   };
+
+  // ---------- Mål med kartnål ----------
+  let pickMap = null, pickPin = null;
+  function placePin(ll) {
+    if (!pickPin) pickPin = new maplibregl.Marker({ color: cssVar('--accent'), draggable: true }).setLngLat(ll).addTo(pickMap);
+    else pickPin.setLngLat(ll);
+    $('pickUse').disabled = false;
+  }
+  async function openPick() {
+    $('v-plan').classList.remove('on'); $('v-pick').classList.add('on');
+    try { await loadMapLibre(); } catch { $('pickHint').textContent = T('mapFail'); return; }
+    const had = dest && dest.pin ? dest.loc : null;
+    const c = had || LIVE.pos || (origin && origin.coords) || lastPos;
+    if (!pickMap) {
+      let styleOk = false, fellBack = false;
+      pickMap = new maplibregl.Map({ container: 'pickMap', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
+        center: c ? [c.lng, c.lat] : [16.5, 62.5], zoom: c ? 13 : 4, attributionControl: { compact: true } });
+      const fallback = () => { if (fellBack || styleOk) return; fellBack = true; pickMap.setStyle(FALLBACK_STYLE); };
+      pickMap.once('style.load', () => { styleOk = true; });
+      pickMap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      setTimeout(() => { if (!styleOk) fallback(); }, 15000);
+      pickMap.on('click', e => placePin(e.lngLat));
+    } else {
+      pickMap.resize();
+      if (c) pickMap.jumpTo({ center: [c.lng, c.lat] });
+    }
+    if (had) placePin([had.lng, had.lat]);
+    else if (pickPin) { pickPin.remove(); pickPin = null; }
+    $('pickUse').disabled = !pickPin;
+  }
+  function closePick() {
+    $('v-pick').classList.remove('on'); $('v-plan').classList.add('on');
+    if (FX.kind) fxStart(FX.kind);
+  }
+  $('pickBack').onclick = closePick;
+  $('pickUse').onclick = () => {
+    if (!pickPin) return;
+    const p = pickPin.getLngLat();
+    dest = { loc: { lat: p.lat, lng: p.lng }, label: T('pinLabel'), short: T('pinLabel'), pin: true }; $('to').value = T('pinLabel');
+    closePick();
+  };
   liveSync();
 
   // ---------- Go ----------
@@ -1986,7 +2044,7 @@ h1{font-family:inherit}
       const chosen = safeMode ? plan.safest : plan.fastest;
       lastRoute = { trip: chosen.trip, path: chosen.path, a, b, from, to, fastest: plan.fastest, safest: plan.safest, chosen, diag: plan.diag,
         fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
-      if (!to.rider) addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
+      if (!to.rider && !to.pin) addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
       selectRoute(chosen);
     } catch (e) {
