@@ -174,6 +174,7 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .rider{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
 .rider i{width:14px;height:14px;border-radius:999px;background:var(--rider);border:3px solid #000;box-shadow:0 0 0 1px rgba(255,255,255,.5)}
 .rider b{font-size:12px;font-weight:600;line-height:1.3;color:#fff;background:rgba(0,0,0,.72);border-radius:6px;padding:1px 6px;white-space:nowrap}
+.rider b img{width:12px;height:12px;vertical-align:-1px;margin-right:4px;filter:invert(1)}
 .maplibregl-popup .maplibregl-popup-content{background:var(--dialog);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 30px 12px 14px}
 .maplibregl-popup .maplibregl-popup-tip{display:none}
 .maplibregl-popup .maplibregl-popup-close-button{color:var(--muted);font-size:18px;width:28px;height:28px}
@@ -523,7 +524,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 25</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 26</p>
   </form>
 </dialog>
 </div>
@@ -1871,6 +1872,12 @@ h1{font-family:inherit}
   const liveStatus = () => LIVE.err === 'geo' ? T('liveGeo') : LIVE.err === 'net' ? T('liveFail') : !LIVE.pinged ? T('liveWait')
     : LIVE.riders.length === 0 ? T('liveNone') : LIVE.riders.length === 1 ? T('liveOne') : T('liveCount', { n: LIVE.riders.length });
   const riderLabel = r => (RIDER_ICON[r.vehicle] || '') + ' ' + r.nick;
+  const NICK_LOGO = { silas: 'https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/bmw.svg' };
+  function fillLabel(b, r) {
+    const k = r.vehicle + ':' + r.nick; if (b.dataset.k === k) return; b.dataset.k = k;
+    const logo = NICK_LOGO[r.nick.trim().toLowerCase()];
+    b.replaceChildren(logo ? Object.assign(document.createElement('img'), { src: logo, alt: '' }) : (RIDER_ICON[r.vehicle] || '') + ' ', r.nick);
+  }
   const riderMarks = new Map();  // karta → (förar-id → markör)
   let nearMap = null, nearMe = null, riderPop = null;
 
@@ -1892,9 +1899,10 @@ h1{font-family:inherit}
     marks.forEach((mk, id) => { if (!ids.has(id)) { mk.remove(); marks.delete(id); } });
     LIVE.riders.forEach(r => {
       const mk = marks.get(r.id);
-      if (mk) { mk.setLngLat([r.lng, r.lat]); mk.getElement().querySelector('b').textContent = riderLabel(r); return; }
+      if (mk) { mk.setLngLat([r.lng, r.lat]); fillLabel(mk.getElement().querySelector('b'), r); return; }
       const el = document.createElement('div'); el.className = 'rider';
-      el.append(document.createElement('i'), Object.assign(document.createElement('b'), { textContent: riderLabel(r) }));
+      const b = document.createElement('b'); fillLabel(b, r);
+      el.append(document.createElement('i'), b);
       el.onclick = e => { e.stopPropagation(); riderPopup(m, r.id); };
       marks.set(r.id, new maplibregl.Marker({ element: el, anchor: 'top', offset: [0, -7] }).setLngLat([r.lng, r.lat]).addTo(m));
     });
