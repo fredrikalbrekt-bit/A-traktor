@@ -498,7 +498,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 18</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 19</p>
   </form>
 </dialog>
 </div>
@@ -1051,7 +1051,8 @@ h1{font-family:inherit}
     const body = {
       locations: [{ lat: a.lat, lon: a.lng, type: 'break', ...(a.heading != null ? { heading: a.heading } : {}) }, { lat: b.lat, lon: b.lng, type: 'break' }],
       costing: 'auto', units: 'kilometers', language: VOICE(),
-      costing_options: { auto: { top_speed: Math.max(10, Math.min(140, speed)), use_highways: 0, use_tolls: 0.5, use_ferry: 0.2, use_tracks: 0, use_living_streets: 0.3 } }
+      // use_highways bestraffar även riksvägar (trunk) – därför neutralt läge. Motorvägar stoppas av kontrollen mot gröna vägar.
+      costing_options: { auto: { top_speed: Math.max(10, Math.min(140, speed)), use_highways: 0.5, use_tolls: 0.5, use_ferry: 0.2, use_tracks: 0, use_living_streets: 0.3 } }
     };
     if (exclude && exclude.length) body.exclude_locations = exclude;
     if (alternates) body.alternates = alternates;
