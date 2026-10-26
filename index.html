@@ -181,6 +181,7 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .r-pop b{font-size:16px}
 .r-pop span{font-size:13px;color:var(--muted)}
 .r-pop button{margin-top:6px;border:1px solid var(--err);background:transparent;color:var(--err);border-radius:8px;min-height:36px;font-size:14px}
+.r-pop .go{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600}
 dialog .toggle{border:1px solid var(--line2);border-radius:10px;background:var(--bg);margin-top:12px}
 dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 
@@ -522,7 +523,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 24</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 25</p>
   </form>
 </dialog>
 </div>
@@ -564,7 +565,7 @@ h1{font-family:inherit}
       liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
       liveNone:'inga andra inom 50 km', liveOne:'1 förare inom 50 km', liveCount:'{n} förare inom 50 km',
       liveOffTx:'Du syns inte. Slå på Visa min position i inställningarna.',
-      block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.'
+      block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit'
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
@@ -592,7 +593,7 @@ h1{font-family:inherit}
       liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
       liveNone:'no one else within 50 km', liveOne:'1 rider within 50 km', liveCount:'{n} riders within 50 km',
       liveOffTx:'You’re not visible. Turn on Show my position in settings.',
-      block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.'
+      block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here'
     }
   };
   let lang = store.get('lang', (navigator.language || 'sv').toLowerCase().startsWith('sv') ? 'sv' : 'en');
@@ -1905,8 +1906,24 @@ h1{font-family:inherit}
     const btn = Object.assign(document.createElement('button'), { type: 'button', textContent: T('block') });
     btn.onclick = () => blockRider(r);
     box.append(Object.assign(document.createElement('b'), { textContent: r.nick }),
-      Object.assign(document.createElement('span'), { textContent: THEMES[r.vehicle] ? THEMES[r.vehicle].name() : '' }), btn);
+      Object.assign(document.createElement('span'), { textContent: THEMES[r.vehicle] ? THEMES[r.vehicle].name() : '' }));
+    // inte under navigering: ingen ny rutt medan man kör
+    if (m !== nmap) {
+      const go = Object.assign(document.createElement('button'), { type: 'button', className: 'go', textContent: T('driveTo') });
+      go.onclick = () => driveTo(r);
+      box.append(go);
+    }
+    box.append(btn);
     riderPop = new maplibregl.Popup({ offset: 12, maxWidth: '240px' }).setLngLat([r.lng, r.lat]).setDOMContent(box).addTo(m);
+  }
+  function driveTo(r) {
+    if (!LIVE.pos) return;
+    if (riderPop) riderPop.remove();
+    origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng } }; $('from').value = T('myPos');
+    dest = { loc: { lat: r.lat, lng: r.lng }, label: riderLabel(r), short: r.nick, rider: true }; $('to').value = riderLabel(r);
+    $('v-near').classList.remove('on'); $('v-res').classList.remove('on'); $('v-plan').classList.add('on');
+    if (FX.kind) fxStart(FX.kind);
+    $('go').click();
   }
   async function blockRider(r) {
     if (!confirm(T('blockAsk', { n: r.nick }))) return;
@@ -1961,7 +1978,7 @@ h1{font-family:inherit}
       const chosen = safeMode ? plan.safest : plan.fastest;
       lastRoute = { trip: chosen.trip, path: chosen.path, a, b, from, to, fastest: plan.fastest, safest: plan.safest, chosen, diag: plan.diag,
         fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
-      addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
+      if (!to.rider) addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
       selectRoute(chosen);
     } catch (e) {
