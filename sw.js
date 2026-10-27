@@ -1,5 +1,5 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v32';
+const VERSION = 'slowlane-v33';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './epa-hero.webp', './epa-fog.webp', './moped2-hero.webp', './moped2-rain.webp', './moped2-cool.webp', './moped2-cold.webp', './dust.webp', './mopedbil-hero.webp', './moped1-hero.webp'];
 const LIBS = ['cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
@@ -17,6 +17,9 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // Andra sidor (t.ex. integritet.html) går direkt mot nätet och sparas inte som appen
+  const page = url.pathname.split('/').pop();
+  if (req.mode === 'navigate' && page.endsWith('.html') && page !== 'index.html') return;
 
   // Appen själv: hämta alltid senaste versionen, använd cachen bara offline
   if (req.mode === 'navigate' || (url.origin === location.origin && SHELL.some(p => url.pathname.endsWith(p.replace('./', '/')) && p !== './'))) {

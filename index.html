@@ -189,6 +189,12 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .r-pop .go{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600}
 dialog .toggle{border:1px solid var(--line2);border-radius:10px;background:var(--bg);margin-top:12px}
 dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
+.acct{border:1px solid var(--line2);border-radius:10px;background:var(--bg);padding:14px 16px;margin:0 0 12px}
+.acct p{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
+.acct .who{font-size:15px;color:var(--text);overflow-wrap:anywhere}
+#gBtn:not(:empty){margin-top:12px;min-height:44px}
+.lnk{background:none;border:0;padding:4px 0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
+.lnk.danger{color:var(--err)}
 
 /* ---------- Aja baja ---------- */
 #ajabaja{text-align:center;overflow:hidden;position:relative;padding:28px 22px 22px}
@@ -541,6 +547,13 @@ h1{font-family:inherit}
     <label for="speedIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="speedLbl">Fordonets maxhastighet</label>
     <select class="key" id="speedIn"><option value="10">10 km/h</option><option value="15">15 km/h</option><option value="20">20 km/h</option><option value="25">25 km/h</option><option value="30">30 km/h</option><option value="35">35 km/h</option><option value="40">40 km/h</option><option value="45">45 km/h</option><option value="50">50 km/h</option><option value="55">55 km/h</option><option value="60">60 km/h</option><option value="65">65 km/h</option><option value="70">70 km/h</option><option value="75">75 km/h</option><option value="80">80 km/h</option><option value="85">85 km/h</option><option value="90">90 km/h</option></select>
     <p style="margin:6px 0 18px" id="speedHelp">Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.</p>
+    <div class="acct">
+      <p class="who" id="acctWho" hidden></p>
+      <p id="acctTx" data-i18n="signWhy">Logga in med Google för att kunna synas för andra förare. De ser bara ditt smeknamn, aldrig din e-post.</p>
+      <div id="gBtn"></div>
+      <p class="msg" id="acctMsg" role="alert" style="margin-top:6px"></p>
+      <p id="acctOut" hidden><button type="button" class="lnk" id="signOut" data-i18n="signOut">Logga ut</button> · <button type="button" class="lnk danger" id="delAcct" data-i18n="delAcct">Radera mitt konto</button></p>
+    </div>
     <label for="nickIn" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="nickLbl">Smeknamn</label>
     <input class="key" id="nickIn" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="nickPh" placeholder="Syns för andra förare">
     <label class="toggle">
@@ -552,7 +565,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 32</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 33</p>
   </form>
 </dialog>
 </div>
@@ -594,7 +607,12 @@ h1{font-family:inherit}
       nickNeed:'Skriv ett smeknamn på 3–16 tecken för att kunna synas.', nearAria:'Förare nära dig',
       liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
       liveNone:'inga andra inom 30 km', liveOne:'1 förare inom 30 km', liveCount:'{n} förare inom 30 km',
-      liveOffTx:'Du syns inte. Slå på Visa min position i inställningarna.',
+      liveOffTx:'Du syns inte. Logga in med Google och slå på Visa min position i inställningarna.', liveSign:'logga in med Google igen',
+      signWhy:'Logga in med Google för att kunna synas för andra förare. De ser bara ditt smeknamn, aldrig din e-post.',
+      signedAs:'Inloggad som {e}', signOut:'Logga ut', delAcct:'Radera mitt konto', signNeed:'Logga in med Google ovan för att kunna synas.',
+      signFail:'Inloggningen misslyckades. Försök igen.', signOff:'Inloggning med Google är inte påslagen än.',
+      delAsk:'Radera ditt konto? Din position, dina blockeringar och kopplingen till ditt Google-konto tas bort direkt. Det går inte att ångra.',
+      delDone:'Kontot är raderat.', privacy:'Så hanteras dina uppgifter',
       block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit',
       pickMap:'Välj på kartan', pickSub:'Sätt en kartnål dit du ska', pickAria:'Välj mål på kartan',
       pickHint:'Tryck på kartan där du vill åka. Dra nålen för att flytta den.', pickUse:'Välj som mål', pinLabel:'📍 Kartnål',
@@ -628,7 +646,12 @@ h1{font-family:inherit}
       nickNeed:'Enter a nickname of 3–16 characters to be visible.', nearAria:'Riders near you',
       liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
       liveNone:'no one else within 30 km', liveOne:'1 rider within 30 km', liveCount:'{n} riders within 30 km',
-      liveOffTx:'You’re not visible. Turn on Show my position in settings.',
+      liveOffTx:'You’re not visible. Sign in with Google and turn on Show my position in settings.', liveSign:'sign in with Google again',
+      signWhy:'Sign in with Google to be visible to other riders. They only see your nickname, never your email.',
+      signedAs:'Signed in as {e}', signOut:'Sign out', delAcct:'Delete my account', signNeed:'Sign in with Google above to be visible.',
+      signFail:'Sign-in failed. Try again.', signOff:'Google sign-in isn’t switched on yet.',
+      delAsk:'Delete your account? Your position, your blocks and the link to your Google account are removed right away. This can’t be undone.',
+      delDone:'Your account has been deleted.', privacy:'How your data is handled',
       block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here',
       pickMap:'Choose on map', pickSub:'Drop a pin where you’re going', pickAria:'Choose destination on map',
       pickHint:'Tap the map where you want to go. Drag the pin to move it.', pickUse:'Set as destination', pinLabel:'📍 Map pin',
@@ -724,10 +747,11 @@ h1{font-family:inherit}
   }
   let ajaPrev = 30;
   const getStadia = () => ''; // Stadia använder domänbehörighet
-  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('visMsg').textContent = ''; $('settings').showModal(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
+  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('visMsg').textContent = ''; $('acctMsg').textContent = ''; $('settings').showModal(); renderAccount(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
       const nick = $('nickIn').value.trim().replace(/\s+/g, ' ');
+      if ($('visIn').checked && !signedIn()) { e.preventDefault(); $('visIn').checked = false; $('visMsg').textContent = T('signNeed'); return; }
       if ($('visIn').checked && !validNick(nick)) { e.preventDefault(); $('visMsg').textContent = T('nickNeed'); $('nickIn').focus(); return; }
       store.set('nick', nick); store.set('visible', $('visIn').checked);
       speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed);
@@ -737,6 +761,10 @@ h1{font-family:inherit}
       applyLang();
       liveSync(); renderRiders();
     }
+  });
+  $('visIn').addEventListener('change', () => {
+    if ($('visIn').checked && !signedIn()) { $('visIn').checked = false; $('visMsg').textContent = T('signNeed'); }
+    else $('visMsg').textContent = '';
   });
 
   // ---------- Aja baja ----------
@@ -1855,21 +1883,91 @@ h1{font-family:inherit}
   const RIDER_ICON = { epa: '🚜', moped2: '🛵', moped1: '🏍️', mopedbil: '🚗' };
   const validNick = n => [...n].length >= 3 && [...n].length <= 16;
   const LIVE = { on: false, watch: null, timer: null, pos: null, riders: [], pinged: false, busy: false, err: null, sent: 0 };
+  // OAuth-klient (webb) från Google Cloud. Id:t är inte hemligt.
+  const GOOGLE_ID = '640116075433-21ivc9b6cij9rcuk4fuplc8kn3583dh7.apps.googleusercontent.com';
   let supa = store.get('supa', null);
+  // Bara Google-konton kan synas. Äldre sessioner utan anon-flagga kommer från anonyma konton.
+  const signedIn = () => !!(supa && supa.anon === false);
+  if (store.get('visible', false) && !signedIn()) store.set('visible', false);
+  const needSign = () => Object.assign(new Error('signin'), { status: 401 });
+  function dropSession() { supa = null; store.set('supa', null); }
 
-  async function supaAuth(path, body) {
-    const res = await fetch(SUPA_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: timeout(15000) });
+  async function supaAuth(path, body, jwt) {
+    const headers = { apikey: SUPA_KEY, 'Content-Type': 'application/json' };
+    if (jwt) headers.Authorization = 'Bearer ' + jwt;
+    const res = await fetch(SUPA_URL + '/auth/v1/' + path, { method: 'POST', headers, body: JSON.stringify(body), signal: timeout(15000) });
     const d = await res.json().catch(() => ({}));
-    if (!res.ok || !d.access_token) throw new Error('auth ' + res.status);
-    supa = { token: d.access_token, refresh: d.refresh_token, exp: d.expires_at || Date.now() / 1000 + (d.expires_in || 3600) };
+    if (!res.ok || !d.access_token) throw Object.assign(new Error('auth ' + res.status), { status: res.status });
+    supa = { token: d.access_token, refresh: d.refresh_token, exp: d.expires_at || Date.now() / 1000 + (d.expires_in || 3600),
+             anon: !(d.user && d.user.is_anonymous === false), email: (d.user && d.user.email) || '' };
     store.set('supa', supa);
   }
   async function supaToken() {
     if (supa && supa.exp - 60 > Date.now() / 1000) return supa.token;
-    if (supa && supa.refresh) try { await supaAuth('token?grant_type=refresh_token', { refresh_token: supa.refresh }); return supa.token; } catch {}
-    await supaAuth('signup', {});
+    if (!supa || !supa.refresh) throw needSign();
+    try { await supaAuth('token?grant_type=refresh_token', { refresh_token: supa.refresh }); }
+    catch (e) {
+      // ogiltig refresh-token (utloggad eller raderad på en annan telefon): logga ut här också
+      if (e.status === 400 || e.status === 401 || e.status === 403) { dropSession(); throw needSign(); }
+      throw e;
+    }
     return supa.token;
   }
+
+  // ---------- Inloggning med Google ----------
+  // Googles egen knapp öppnar ett litet fönster och lämnar en id-token, som Supabase byter mot en session.
+  // Noncen binder token till just den här sidan: Google får hashen, Supabase originalet.
+  let gisReady = null, gisNonce = null;
+  function gis() {
+    return gisReady || (gisReady = (async () => {
+      if (!window.google || !google.accounts) await loadScript('https://accounts.google.com/gsi/client');
+      const raw = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(24))));
+      const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw)))].map(b => b.toString(16).padStart(2, '0')).join('');
+      google.accounts.id.initialize({ client_id: GOOGLE_ID, callback: googleDone, nonce: hash, ux_mode: 'popup', auto_select: false, context: 'signin' });
+      gisNonce = raw;
+    })().catch(e => { gisReady = null; throw e; }));
+  }
+  function renderAccount() {
+    const on = signedIn();
+    $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('acctTx').hidden = on; $('gBtn').hidden = on;
+    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); return; }
+    if (!GOOGLE_ID) { $('acctMsg').textContent = T('signOff'); return; }
+    gis().then(() => google.accounts.id.renderButton($('gBtn'), { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
+      text: 'signin_with', locale: lang, width: Math.max(200, Math.min(400, $('gBtn').clientWidth || 280)) }))
+      .catch(() => { $('acctMsg').textContent = T('generic'); });
+  }
+  async function googleDone(res) {
+    $('acctMsg').textContent = '';
+    const body = { provider: 'google', id_token: res.credential, nonce: gisNonce };
+    try {
+      // Ett anonymt konto från en äldre version uppgraderas, så att blockeringarna följer med.
+      // Går det inte (Google-kontot finns redan, eller sessionen är borta) loggas man in vanligt.
+      let linked = false;
+      if (supa && !signedIn()) try { await supaAuth('token?grant_type=id_token', { ...body, link_identity: true }, await supaToken()); linked = true; } catch (e) { if (!e.status) throw e; }
+      if (!linked) await supaAuth('token?grant_type=id_token', body);
+    } catch (e) { $('acctMsg').textContent = isTimeout(e) ? T('slowNet') : T('signFail'); return; }
+    renderAccount();
+  }
+  function signedOut() {
+    dropSession(); store.set('visible', false); $('visIn').checked = false;
+    try { google.accounts.id.disableAutoSelect(); } catch {}
+    renderAccount();
+  }
+  $('signOut').onclick = () => {
+    const t = supa && supa.token;
+    // först bort från kartan, sedan utloggning (som gör sessionen ogiltig)
+    Promise.resolve(liveStop()).then(() => t && fetch(SUPA_URL + '/auth/v1/logout?scope=local', { method: 'POST', keepalive: true, headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + t } })).catch(() => {});
+    signedOut();
+  };
+  $('delAcct').onclick = async () => {
+    if (!confirm(T('delAsk'))) return;
+    $('acctMsg').textContent = '';
+    try { await supaRpc('delete_me'); } catch (e) { $('acctMsg').textContent = isTimeout(e) ? T('slowNet') : T('generic'); return; }
+    LIVE.pinged = false; liveStop();   // positionen försvann med kontot
+    store.set('nick', ''); $('nickIn').value = '';
+    signedOut();
+    alert(T('delDone'));
+  };
   async function supaRpc(fn, args, keepalive) {
     const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive, signal: timeout(15000),
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + await supaToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
@@ -1877,7 +1975,7 @@ h1{font-family:inherit}
     const t = await res.text(); return t ? JSON.parse(t) : null;
   }
 
-  const liveWanted = () => store.get('visible', false) && validNick(store.get('nick', '')) && document.visibilityState === 'visible';
+  const liveWanted = () => signedIn() && store.get('visible', false) && validNick(store.get('nick', '')) && document.visibilityState === 'visible';
   function liveSync() { if (liveWanted()) liveStart(); else liveStop(); }
   function liveStart() {
     if (LIVE.on || !navigator.geolocation) return;
@@ -1902,7 +2000,9 @@ h1{font-family:inherit}
       else { LIVE.riders = rows || []; LIVE.pinged = true; LIVE.err = null; }
     } catch (e) {
       // 429: för tätt, 422: GPS-hopp som servern inte tror på. Nästa position brukar gå igenom.
-      if (e.status !== 429 && e.status !== 422) LIVE.err = 'net';
+      // 401/403: sessionen är borta eller kontot är inte ett Google-konto
+      if (e.status === 401 || e.status === 403) LIVE.err = 'signin';
+      else if (e.status !== 429 && e.status !== 422) LIVE.err = 'net';
     }
     finally { LIVE.busy = false; }
     renderRiders();
@@ -1912,15 +2012,16 @@ h1{font-family:inherit}
     LIVE.on = false;
     if (LIVE.watch != null) navigator.geolocation.clearWatch(LIVE.watch);
     clearInterval(LIVE.timer);
-    if (LIVE.pinged) supaRpc('ride_stop', {}, true).catch(() => {});
+    const stopped = LIVE.pinged ? supaRpc('ride_stop', {}, true).catch(() => {}) : null;
     Object.assign(LIVE, { watch: null, timer: null, pos: null, riders: [], pinged: false, err: null });
     renderRiders();
+    return stopped;
   }
   document.addEventListener('visibilitychange', liveSync);
   window.addEventListener('pagehide', liveStop);
   window.addEventListener('pageshow', liveSync);
 
-  const liveStatus = () => LIVE.err === 'geo' ? T('liveGeo') : LIVE.err === 'net' ? T('liveFail') : !LIVE.pinged ? T('liveWait')
+  const liveStatus = () => LIVE.err === 'geo' ? T('liveGeo') : LIVE.err === 'net' ? T('liveFail') : LIVE.err === 'signin' ? T('liveSign') : !LIVE.pinged ? T('liveWait')
     : LIVE.riders.length === 0 ? T('liveNone') : LIVE.riders.length === 1 ? T('liveOne') : T('liveCount', { n: LIVE.riders.length });
   const riderLabel = r => (RIDER_ICON[r.vehicle] || '') + ' ' + r.nick;
   const NICK_LOGO = { silas: 'https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/bmw.svg' };

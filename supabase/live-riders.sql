@@ -1,4 +1,4 @@
--- Slowlane: förare som syns för andra inom 30 km medan appen är öppen.
+-- Slowlane: förare som syns för andra inom 30 km medan appen är öppen. Kräver inloggning med Google.
 -- Körs en gång i Supabase → SQL Editor. Går att köra om.
 
 create extension if not exists postgis with schema extensions;
@@ -53,6 +53,11 @@ declare
   prev record;
 begin
   if me is null then raise exception 'not signed in'; end if;
+
+  -- Bara Google-konton syns. Anonyma konton och e-postkonton går att skapa i mängd.
+  if not exists (select 1 from auth.identities i where i.user_id = me and i.provider = 'google') then
+    raise sqlstate 'PT403' using message = 'sign in with Google';
+  end if;
 
   -- Högst en position per 10 sekunder, och inga hopp som inget fordon klarar
   -- (150 km/h plus 1 km för GPS-fel). Annars går det att svepa över landet och se alla.
@@ -111,34 +116,53 @@ as $$
   insert into public.blocks (blocker, blocked) values (auth.uid(), p_id) on conflict do nothing;
 $$;
 
+-- Radera mitt konto: position, blockeringar och kopplingen till Google försvinner med kontot
+create or replace function public.delete_me()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from auth.users where id = auth.uid();
+$$;
+
 revoke execute on function public.ride_ping(text, text, double precision, double precision, real, real) from public, anon;
 revoke execute on function public.ride_stop() from public, anon;
 revoke execute on function public.block_rider(uuid) from public, anon;
+revoke execute on function public.delete_me() from public, anon;
 grant execute on function public.ride_ping(text, text, double precision, double precision, real, real) to authenticated;
 grant execute on function public.ride_stop() to authenticated;
 grant execute on function public.block_rider(uuid) to authenticated;
+grant execute on function public.delete_me() to authenticated;
 
--- Städning: anonyma konton som inte synts på 30 dagar tas bort, med blockeringar och allt.
--- Kommer de tillbaka får de ett nytt konto automatiskt.
+-- Städning varje natt. Senast godkända position sparas bara ett dygn: efter det släpper
+-- hoppkontrollen ändå igenom hela Sverige. Anonyma konton från äldre versioner kan inte synas
+-- längre och tas bort när de är 30 dagar gamla, med blockeringar och allt.
 create or replace function public.cleanup_riders()
 returns integer
 language sql
 security definer
 set search_path = public
 as $$
-  with gone as (
+  with old_pos as (
+    delete from public.ride_last where pinged_at < now() - interval '1 day'),
+  gone as (
     delete from auth.users u
-    where u.is_anonymous
-      and u.created_at < now() - interval '30 days'
-      and not exists (select 1 from public.ride_last l
-                      where l.id = u.id and l.pinged_at > now() - interval '30 days')
+    where u.is_anonymous and u.created_at < now() - interval '30 days'
     returning 1)
   select count(*)::integer from gone;
 $$;
 revoke execute on function public.cleanup_riders() from public, anon, authenticated;
 
--- Kör städningen varje natt kl. 03:23
-create extension if not exists pg_cron with schema pg_catalog;
-grant usage on schema cron to postgres;
-grant all privileges on all tables in schema cron to postgres;
+-- Kör städningen varje natt kl. 03:23. pg_cron och rättigheterna sätts bara upp första gången:
+-- körs de igen krockar de med Supabases egna rättigheter på cron.
+do $$
+begin
+  if not exists (select 1 from pg_extension where extname = 'pg_cron') then
+    create extension pg_cron with schema pg_catalog;
+    grant usage on schema cron to postgres;
+    grant all privileges on all tables in schema cron to postgres;
+  end if;
+end
+$$;
 select cron.schedule('slowlane-cleanup', '23 3 * * *', 'select public.cleanup_riders()');
