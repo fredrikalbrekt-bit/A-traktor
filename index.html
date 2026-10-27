@@ -536,7 +536,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 28</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 29</p>
   </form>
 </dialog>
 </div>
@@ -572,6 +572,7 @@ h1{font-family:inherit}
       warn:'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.',
       offline:'Ingen internetanslutning. Rutten kräver nät, försök igen när du har täckning.', needTo:'Skriv in vart du ska.',
       needFrom:'Ange var du startar, eller tryck på Min position.', generic:'Något gick fel. Kontrollera anslutningen och försök igen.',
+      slowNet:'Inget svar från servern. Täckningen är kanske svag här, försök igen om en stund.',
       nickLbl:'Smeknamn', nickPh:'Syns för andra förare', visLbl:'Visa min position',
       visSub:'Förare inom 30 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.',
       nickNeed:'Skriv ett smeknamn på 3–16 tecken för att kunna synas.', nearAria:'Förare nära dig',
@@ -603,6 +604,7 @@ h1{font-family:inherit}
       warn:'The route avoids motorways and expressways according to OpenStreetMap. Always follow the road signs, map data can be incomplete.',
       offline:'No internet connection. Routing needs a connection, try again when you have coverage.', needTo:'Enter where you’re going.',
       needFrom:'Enter where you start, or tap My location.', generic:'Something went wrong. Check your connection and try again.',
+      slowNet:'No answer from the server. Coverage may be weak here, try again in a moment.',
       nickLbl:'Nickname', nickPh:'Shown to other riders', visLbl:'Show my position',
       visSub:'Riders within 30 km see your nickname and where you are while Slowlane is open. You only see them while you’re visible.',
       nickNeed:'Enter a nickname of 3–16 characters to be visible.', nearAria:'Riders near you',
@@ -621,6 +623,9 @@ h1{font-family:inherit}
   const VOICE = () => lang === 'sv' ? 'sv-SE' : 'en-US';   // vägbeskrivning och röst
   const isMyPos = v => v === STR.sv.myPos || v === STR.en.myPos;
   const isPin = v => v === STR.sv.pinLabel || v === STR.en.pinLabel;
+  // Svagt nät på landet: ge upp efter en stund i stället för att vänta i minuter
+  const timeout = ms => AbortSignal.timeout ? AbortSignal.timeout(ms) : undefined;
+  const isTimeout = e => !!e && (e.name === 'TimeoutError' || e.name === 'AbortError');
   function applyLang() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); });
@@ -801,7 +806,7 @@ h1{font-family:inherit}
   async function autocomplete(text) {
     const q = new URLSearchParams({ text, 'boundary.country': 'SE', lang, size: '6' });
     if (lastPos) { q.set('focus.point.lat', lastPos.lat); q.set('focus.point.lon', lastPos.lng); }
-    const res = await fetch('https://api.stadiamaps.com/geocoding/v1/autocomplete?' + q.toString());
+    const res = await fetch('https://api.stadiamaps.com/geocoding/v1/autocomplete?' + q.toString(), { signal: timeout(10000) });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 || res.status === 403) throw new Error(T('stadiaDenied'));
     if (!res.ok) throw new Error(T('suggFail', { s: res.status, m: '' }));
@@ -959,7 +964,7 @@ h1{font-family:inherit}
     return body;
   }
   async function stadiaPost(path, body) {
-    const res = await fetch('https://api.stadiamaps.com/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const res = await fetch('https://api.stadiamaps.com/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: timeout(25000) });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 || res.status === 403) throw new Error(T('stadiaDenied'));
     return { res, data };
@@ -1011,7 +1016,7 @@ h1{font-family:inherit}
   let greenP = null;
   function greenData() {
     if (!greenP) greenP = (async () => {
-      const res = await fetch('grona-vagar.json', { cache: 'no-cache' });
+      const res = await fetch('grona-vagar.json', { cache: 'no-cache', signal: timeout(30000) });
       if (!res.ok) throw new Error('grona-vagar.json saknas (' + res.status + ')');
       const d = await res.json(), sc = d.scale || 1e5;
       const ways = d.ways.map(f => { const w = []; for (let i = 0; i < f.length; i += 2) w.push({ lat: f[i] / sc, lng: f[i + 1] / sc }); return w; });
@@ -1441,7 +1446,7 @@ h1{font-family:inherit}
       hourly: 'temperature_2m,precipitation,weather_code,wind_gusts_10m,visibility,dew_point_2m,is_day',
       daily: 'sunset', timezone: 'auto', forecast_days: '2', wind_speed_unit: 'ms'
     });
-    const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString());
+    const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString(), { signal: timeout(15000) });
     if (!res.ok) throw new Error('wx');
     const d = await res.json();
     return Array.isArray(d) ? d : [d];
@@ -1558,7 +1563,7 @@ h1{font-family:inherit}
     const pos = lastPos; if (!pos) return;
     try {
       const q = new URLSearchParams({ latitude: pos.lat.toFixed(4), longitude: pos.lng.toFixed(4), current: 'temperature_2m,weather_code,is_day,precipitation', timezone: 'auto', wind_speed_unit: 'ms' });
-      const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString()); if (!res.ok) return;
+      const res = await fetch('https://api.open-meteo.com/v1/forecast?' + q.toString(), { signal: timeout(15000) }); if (!res.ok) return;
       const d = await res.json(), c = d.current; if (!c) return;
       nowWx = { code: c.weather_code, temp: c.temperature_2m, precip: c.precipitation || 0 };
       applyTheme();
@@ -1828,11 +1833,11 @@ h1{font-family:inherit}
   const PING_MS = 15000;
   const RIDER_ICON = { epa: '🚜', moped2: '🛵', moped1: '🏍️', mopedbil: '🚗' };
   const validNick = n => [...n].length >= 3 && [...n].length <= 16;
-  const LIVE = { on: false, watch: null, timer: null, pos: null, riders: [], pinged: false, busy: false, err: null };
+  const LIVE = { on: false, watch: null, timer: null, pos: null, riders: [], pinged: false, busy: false, err: null, sent: 0 };
   let supa = store.get('supa', null);
 
   async function supaAuth(path, body) {
-    const res = await fetch(SUPA_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const res = await fetch(SUPA_URL + '/auth/v1/' + path, { method: 'POST', headers: { apikey: SUPA_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: timeout(15000) });
     const d = await res.json().catch(() => ({}));
     if (!res.ok || !d.access_token) throw new Error('auth ' + res.status);
     supa = { token: d.access_token, refresh: d.refresh_token, exp: d.expires_at || Date.now() / 1000 + (d.expires_in || 3600) };
@@ -1845,9 +1850,9 @@ h1{font-family:inherit}
     return supa.token;
   }
   async function supaRpc(fn, args, keepalive) {
-    const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive,
+    const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive, signal: timeout(15000),
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + await supaToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
-    if (!res.ok) throw new Error(fn + ' ' + res.status);
+    if (!res.ok) throw Object.assign(new Error(fn + ' ' + res.status), { status: res.status });
     const t = await res.text(); return t ? JSON.parse(t) : null;
   }
 
@@ -1866,14 +1871,18 @@ h1{font-family:inherit}
     renderRiders();
   }
   async function livePing() {
-    if (!LIVE.on || !LIVE.pos || LIVE.busy) return;
-    LIVE.busy = true;
+    // servern tar emot högst en position per 10 s
+    if (!LIVE.on || !LIVE.pos || LIVE.busy || Date.now() - LIVE.sent < 11000) return;
+    LIVE.busy = true; LIVE.sent = Date.now();
     try {
       const rows = await supaRpc('ride_ping', { p_nick: store.get('nick', ''), p_vehicle: theme, p_lat: LIVE.pos.lat, p_lng: LIVE.pos.lng, p_heading: LIVE.pos.heading, p_speed: LIVE.pos.speed });
       // appen hann döljas medan anropet pågick → ta bort positionen igen
       if (!LIVE.on) supaRpc('ride_stop', {}, true).catch(() => {});
       else { LIVE.riders = rows || []; LIVE.pinged = true; LIVE.err = null; }
-    } catch { LIVE.err = 'net'; }
+    } catch (e) {
+      // 429: för tätt, 422: GPS-hopp som servern inte tror på. Nästa position brukar gå igenom.
+      if (e.status !== 429 && e.status !== 422) LIVE.err = 'net';
+    }
     finally { LIVE.busy = false; }
     renderRiders();
   }
@@ -2059,7 +2068,7 @@ h1{font-family:inherit}
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
       selectRoute(chosen);
     } catch (e) {
-      setMsg(e.message || T('generic'));
+      setMsg(isTimeout(e) ? T('slowNet') : e.message || T('generic'));
     } finally {
       btn.disabled = false; btn.textContent = T('calc');
     }
