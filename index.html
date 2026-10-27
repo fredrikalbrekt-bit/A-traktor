@@ -672,7 +672,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 39</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 40</p>
   </form>
 </dialog>
 
@@ -2358,10 +2358,11 @@ h1{font-family:inherit}
     renderMeets(); showWantedMeet();
   }
   function renderMeets() {
-    const box = $('meetCards'), x = box.scrollLeft;
-    box.hidden = !MEETS.length;
-    box.classList.toggle('many', MEETS.length > 1);
-    box.replaceChildren(...MEETS.map(meetCard));
+    // Har man svarat Kommer inte försvinner kortet från startsidan. Träffen finns kvar i gruppen och på kartan.
+    const box = $('meetCards'), x = box.scrollLeft, shown = MEETS.filter(m => m.my_answer !== false);
+    box.hidden = !shown.length;
+    box.classList.toggle('many', shown.length > 1);
+    box.replaceChildren(...shown.map(meetCard));
     box.scrollLeft = x;   // uppdateras varje minut, då ska man inte hoppa tillbaka till första kortet
     if ($('grp').open && grpMode === 'view') renderGroupMeets();
     if (nearMap) syncMeets();
