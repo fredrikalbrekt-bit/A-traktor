@@ -192,6 +192,8 @@ dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 .acct{border:1px solid var(--line2);border-radius:10px;background:var(--bg);padding:14px 16px;margin:0 0 12px}
 .acct p{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
 .acct .who{font-size:15px;color:var(--text);overflow-wrap:anywhere}
+/* Googles knapp är en ljus iframe. Med appens mörka färgschema målar webbläsaren en vit ruta bakom den. */
+#gBtn{color-scheme:light;display:flex;justify-content:center}
 #gBtn:not(:empty){margin-top:12px;min-height:44px}
 .lnk{background:none;border:0;padding:4px 0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
 .lnk.danger{color:var(--err)}
@@ -554,6 +556,7 @@ h1{font-family:inherit}
       <p class="msg" id="acctMsg" role="alert" style="margin-top:6px"></p>
       <p id="acctOut" hidden><button type="button" class="lnk" id="signOut" data-i18n="signOut">Logga ut</button> · <button type="button" class="lnk danger" id="delAcct" data-i18n="delAcct">Radera mitt konto</button></p>
     </div>
+    <div id="visBox" hidden>
     <label for="nickIn" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="nickLbl">Smeknamn</label>
     <input class="key" id="nickIn" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="nickPh" placeholder="Syns för andra förare">
     <label class="toggle">
@@ -561,11 +564,12 @@ h1{font-family:inherit}
       <span class="switch"><input type="checkbox" id="visIn"><span></span></span>
     </label>
     <p class="msg" id="visMsg" role="alert" style="margin:6px 0 0"></p>
+    </div>
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 33</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 34</p>
   </form>
 </dialog>
 </div>
@@ -1929,7 +1933,8 @@ h1{font-family:inherit}
   }
   function renderAccount() {
     const on = signedIn();
-    $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('acctTx').hidden = on; $('gBtn').hidden = on;
+    // smeknamn och Visa min position behövs bara för den som kan synas
+    $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('visBox').hidden = !on; $('acctTx').hidden = on; $('gBtn').hidden = on;
     if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); return; }
     if (!GOOGLE_ID) { $('acctMsg').textContent = T('signOff'); return; }
     gis().then(() => google.accounts.id.renderButton($('gBtn'), { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
