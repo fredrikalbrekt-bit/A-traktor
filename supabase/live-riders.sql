@@ -52,13 +52,36 @@ create table if not exists public.group_members (
 );
 create index if not exists group_members_user_idx on public.group_members (user_id);
 
+-- Träffar i en grupp: plats, tid och vilka som kommer. Syns för gruppen tills 3 timmar efter
+-- starttiden och raderas ett dygn efter den.
+create table if not exists public.meetups (
+  id uuid primary key default gen_random_uuid(),
+  group_id uuid not null references public.groups (id) on delete cascade,
+  creator uuid not null references auth.users (id) on delete cascade,
+  title text not null check (char_length(btrim(title)) between 2 and 40),
+  pos extensions.geography(point, 4326) not null,
+  starts_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists meetups_group_idx on public.meetups (group_id, starts_at);
+create table if not exists public.meetup_answers (
+  meetup_id uuid not null references public.meetups (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  coming boolean not null,
+  answered_at timestamptz not null default now(),
+  primary key (meetup_id, user_id)
+);
+
 -- Tabellerna nås bara via funktionerna nedan, aldrig direkt från appen
 alter table public.riders enable row level security;
 alter table public.blocks enable row level security;
 alter table public.ride_last enable row level security;
 alter table public.groups enable row level security;
 alter table public.group_members enable row level security;
-revoke all on public.riders, public.blocks, public.ride_last, public.groups, public.group_members from anon, authenticated;
+alter table public.meetups enable row level security;
+alter table public.meetup_answers enable row level security;
+revoke all on public.riders, public.blocks, public.ride_last, public.groups, public.group_members,
+              public.meetups, public.meetup_answers from anon, authenticated;
 
 -- ---------- Hjälpfunktioner (bara för funktionerna nedan) ----------
 
@@ -379,11 +402,156 @@ begin
 end;
 $$;
 
+-- ---------- Träffar ----------
+-- Alla i gruppen kan skapa träffar, högst 10 kommande per grupp. Skaparen och gruppens skapare kan ta bort dem.
+
+create or replace function public.meetup_create(
+  p_group uuid, p_title text, p_lat double precision, p_lng double precision, p_starts timestamptz)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  me uuid := public.google_me();
+  v_id uuid;
+begin
+  if not exists (select 1 from public.group_members m where m.group_id = p_group and m.user_id = me) then
+    raise sqlstate 'PT403' using message = 'not a member';
+  end if;
+  if char_length(btrim(coalesce(p_title, ''))) not between 2 and 40 then
+    raise sqlstate 'PT400' using message = 'bad title';
+  end if;
+  if p_starts is null or p_starts < now() - interval '10 minutes' or p_starts > now() + interval '30 days' then
+    raise sqlstate 'PT400' using message = 'bad time';
+  end if;
+  if p_lat is null or p_lng is null or p_lat not between -90 and 90 or p_lng not between -180 and 180 then
+    raise sqlstate 'PT400' using message = 'bad place';
+  end if;
+  if (select count(*) from public.meetups x where x.group_id = p_group and x.starts_at > now() - interval '3 hours') >= 10 then
+    raise sqlstate 'PT409' using message = 'too many meetups';
+  end if;
+  insert into public.meetups (group_id, creator, title, pos, starts_at)
+  values (p_group, me, btrim(p_title), st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography, p_starts)
+  returning id into v_id;
+  insert into public.meetup_answers (meetup_id, user_id, coming) values (v_id, me, true);
+  return v_id;
+end;
+$$;
+
+-- Kommande träffar i alla mina grupper. Svar från den som lämnat gruppen räknas inte.
+create or replace function public.meetup_list()
+returns table (id uuid, group_id uuid, group_name text, title text, lat double precision, lng double precision,
+               starts_at timestamptz, creator_nick text, can_delete boolean, coming integer, my_answer boolean)
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+#variable_conflict use_column
+declare
+  me uuid := public.google_me();
+begin
+  return query
+    select u.id, u.group_id, g.name, u.title, st_y(u.pos::geometry), st_x(u.pos::geometry), u.starts_at,
+           cm.nick, (u.creator = me or g.owner = me),
+           (select count(*)::integer from public.meetup_answers a
+            join public.group_members gm on gm.group_id = u.group_id and gm.user_id = a.user_id
+            where a.meetup_id = u.id and a.coming),
+           (select a.coming from public.meetup_answers a where a.meetup_id = u.id and a.user_id = me)
+    from public.meetups u
+    join public.groups g on g.id = u.group_id
+    join public.group_members mine on mine.group_id = u.group_id and mine.user_id = me
+    left join public.group_members cm on cm.group_id = u.group_id and cm.user_id = u.creator
+    where u.starts_at > now() - interval '3 hours'
+    order by u.starts_at
+    limit 50;
+end;
+$$;
+
+-- Träffens grupp, om träffen finns kvar och jag är med i gruppen. Annars fel.
+create or replace function public.meetup_group(p_meetup uuid, me uuid)
+returns uuid
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_group uuid;
+begin
+  select u.group_id into v_group from public.meetups u where u.id = p_meetup and u.starts_at > now() - interval '3 hours';
+  if v_group is null then
+    raise sqlstate 'PT404' using message = 'no such meetup';
+  end if;
+  if not exists (select 1 from public.group_members m where m.group_id = v_group and m.user_id = me) then
+    raise sqlstate 'PT403' using message = 'not a member';
+  end if;
+  return v_group;
+end;
+$$;
+
+create or replace function public.meetup_people(p_meetup uuid)
+returns table (nick text, coming boolean, is_me boolean)
+language plpgsql
+security definer
+set search_path = public
+as $$
+#variable_conflict use_column
+declare
+  me uuid := public.google_me();
+  v_group uuid := public.meetup_group(p_meetup, me);
+begin
+  return query
+    select gm.nick, a.coming, a.user_id = me
+    from public.meetup_answers a
+    join public.group_members gm on gm.group_id = v_group and gm.user_id = a.user_id
+    where a.meetup_id = p_meetup
+    order by a.coming desc, a.answered_at;
+end;
+$$;
+
+create or replace function public.meetup_answer(p_meetup uuid, p_coming boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := public.google_me();
+begin
+  perform public.meetup_group(p_meetup, me);
+  insert into public.meetup_answers (meetup_id, user_id, coming) values (p_meetup, me, coalesce(p_coming, false))
+  on conflict on constraint meetup_answers_pkey do update set coming = excluded.coming, answered_at = now();
+end;
+$$;
+
+create or replace function public.meetup_delete(p_meetup uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := public.google_me();
+begin
+  if not exists (select 1 from public.meetups u where u.id = p_meetup) then
+    raise sqlstate 'PT404' using message = 'no such meetup';
+  end if;
+  delete from public.meetups u
+  where u.id = p_meetup
+    and (u.creator = me or exists (select 1 from public.groups g where g.id = u.group_id and g.owner = me));
+  if not found then
+    raise sqlstate 'PT403' using message = 'not allowed';
+  end if;
+end;
+$$;
+
 -- ---------- Rättigheter ----------
 revoke execute on function public.google_me() from public, anon, authenticated;
 revoke execute on function public.clean_nick(text) from public, anon, authenticated;
 revoke execute on function public.clean_code(text) from public, anon, authenticated;
 revoke execute on function public.new_group_code() from public, anon, authenticated;
+revoke execute on function public.meetup_group(uuid, uuid) from public, anon, authenticated;
 
 revoke execute on function public.ride_ping(text, text, double precision, double precision, real, real, text) from public, anon;
 revoke execute on function public.ride_stop() from public, anon;
@@ -397,6 +565,11 @@ revoke execute on function public.group_people(uuid) from public, anon;
 revoke execute on function public.group_kick(uuid, uuid) from public, anon;
 revoke execute on function public.group_new_code(uuid) from public, anon;
 revoke execute on function public.group_leave(uuid) from public, anon;
+revoke execute on function public.meetup_create(uuid, text, double precision, double precision, timestamptz) from public, anon;
+revoke execute on function public.meetup_list() from public, anon;
+revoke execute on function public.meetup_people(uuid) from public, anon;
+revoke execute on function public.meetup_answer(uuid, boolean) from public, anon;
+revoke execute on function public.meetup_delete(uuid) from public, anon;
 grant execute on function public.ride_ping(text, text, double precision, double precision, real, real, text) to authenticated;
 grant execute on function public.ride_stop() to authenticated;
 grant execute on function public.block_rider(uuid) to authenticated;
@@ -409,11 +582,17 @@ grant execute on function public.group_people(uuid) to authenticated;
 grant execute on function public.group_kick(uuid, uuid) to authenticated;
 grant execute on function public.group_new_code(uuid) to authenticated;
 grant execute on function public.group_leave(uuid) to authenticated;
+grant execute on function public.meetup_create(uuid, text, double precision, double precision, timestamptz) to authenticated;
+grant execute on function public.meetup_list() to authenticated;
+grant execute on function public.meetup_people(uuid) to authenticated;
+grant execute on function public.meetup_answer(uuid, boolean) to authenticated;
+grant execute on function public.meetup_delete(uuid) to authenticated;
 
 -- ---------- Städning ----------
 -- Varje natt. Senast godkända position sparas bara ett dygn: efter det släpper
--- hoppkontrollen ändå igenom hela Sverige. Anonyma konton från äldre versioner kan inte synas
--- längre och tas bort när de är 30 dagar gamla, med blockeringar och allt.
+-- hoppkontrollen ändå igenom hela Sverige. Träffar raderas ett dygn efter starttiden.
+-- Anonyma konton från äldre versioner kan inte synas längre och tas bort när de är
+-- 30 dagar gamla, med blockeringar och allt.
 create or replace function public.cleanup_riders()
 returns integer
 language sql
@@ -422,6 +601,8 @@ set search_path = public
 as $$
   with old_pos as (
     delete from public.ride_last where pinged_at < now() - interval '1 day'),
+  old_meets as (
+    delete from public.meetups where starts_at < now() - interval '1 day'),
   gone as (
     delete from auth.users u
     where u.is_anonymous and u.created_at < now() - interval '30 days'

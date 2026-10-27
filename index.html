@@ -206,6 +206,14 @@ dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 #grpMsg.ok{color:var(--muted)}
 .rider.mate i{background:var(--accent)}
 .rider.mate b{box-shadow:0 0 0 1px var(--accent)}
+.meet-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;margin:0 0 10px;padding:12px 14px;border:1px solid var(--accent);border-radius:14px;background:var(--panel);color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.meet-card b{font-size:16px;font-weight:600}
+.meet-card span{font-size:13px;color:var(--muted)}
+.meet-mk{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.meet-mk i{font-style:normal;font-size:22px;line-height:1}
+.meet-mk b{font-size:12px;font-weight:600;line-height:1.3;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 6px;white-space:nowrap}
+#meet .cta.ghost[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+#meetView>p{margin:12px 0 0}
 
 /* ---------- Aja baja ---------- */
 #ajabaja{text-align:center;overflow:hidden;position:relative;padding:28px 22px 22px}
@@ -394,6 +402,8 @@ h1{font-family:inherit}
     <div class="speed" id="speedBox" role="button" tabindex="0" data-i18n-aria="speedAria" aria-label="Ändra maxhastighet i inställningar">
       <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span data-i18n="kmhMax">km/h max</span></div>
     </div>
+
+    <button class="meet-card" id="meetCard" type="button" hidden><b id="meetCardT"></b><span id="meetCardS"></span></button>
 
     <div class="card fields">
       <div class="field">
@@ -584,7 +594,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 35</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 36</p>
   </form>
 </dialog>
 
@@ -596,6 +606,9 @@ h1{font-family:inherit}
   </div>
   <div id="grpView">
     <div id="grpMembers"></div>
+    <p style="font-size:14px;color:var(--muted);margin:16px 0 6px" data-i18n="meetHd">Träffar</p>
+    <div class="grps" id="grpMeets"></div>
+    <button type="button" class="cta ghost" id="grpMeetNew" style="margin-top:8px" data-i18n="meetNew">Ny träff</button>
     <div class="acct" id="grpInvite" style="margin:14px 0 0">
       <p data-i18n="grpInviteTx">Den som har länken eller koden kan gå med. Bara du ser den.</p>
       <p class="code" id="grpCode"></p>
@@ -607,6 +620,29 @@ h1{font-family:inherit}
   <div class="row">
     <button type="button" class="cta ghost" id="grpClose" data-i18n="close">Stäng</button>
     <button type="button" class="cta" id="grpOk"></button>
+  </div>
+</dialog>
+
+<dialog id="meet" aria-labelledby="meetTitle">
+  <h2 id="meetTitle" tabindex="-1" autofocus style="outline:none"></h2>
+  <div id="meetForm">
+    <input class="key" id="meetName" maxlength="40" autocomplete="off" data-i18n-ph="meetNamePh" placeholder="Vad gäller det? T.ex. Fika vid macken">
+    <label for="meetWhen" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="meetWhen">När</label>
+    <input class="key" id="meetWhen" type="datetime-local">
+    <p style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="meetWhere">Var</p>
+    <button type="button" class="cta ghost" id="meetPick" data-i18n="meetPick">Välj plats på kartan</button>
+  </div>
+  <div id="meetView">
+    <p id="meetSub" style="margin:0"></p>
+    <div class="row"><button type="button" class="cta ghost" id="meetYes" aria-pressed="false" data-i18n="meetComing">Kommer</button><button type="button" class="cta ghost" id="meetNo" aria-pressed="false" data-i18n="meetNotComing">Kommer inte</button></div>
+    <p id="meetWho"></p>
+    <div class="row"><button type="button" class="cta" id="meetDrive" data-i18n="meetDrive">Kör hit</button></div>
+    <p><button type="button" class="lnk danger" id="meetDel" data-i18n="meetDelete">Ta bort träffen</button></p>
+  </div>
+  <p class="msg" id="meetMsg" role="alert" style="margin:8px 0 0"></p>
+  <div class="row">
+    <button type="button" class="cta ghost" id="meetClose" data-i18n="close">Stäng</button>
+    <button type="button" class="cta" id="meetOk" data-i18n="meetCreate">Skapa träff</button>
   </div>
 </dialog>
 </div>
@@ -664,6 +700,14 @@ h1{font-family:inherit}
       grpShareText:'Gå med i {g} på Slowlane: {u} (kod {c})', grpReset:'Byt länk', grpResetAsk:'Byta länk? Den gamla länken och koden slutar fungera. Den som redan är med stannar kvar.', grpResetDone:'Ny länk och kod.',
       grpLeave:'Lämna gruppen', grpDelete:'Ta bort gruppen', grpLeaveAsk:'Lämna {g}?', grpDeleteAsk:'Ta bort {g} för alla medlemmar? Det går inte att ångra.',
       grpSignFirst:'Logga in med Google för att gå med i gruppen.', close:'Stäng',
+      meetHd:'Träffar', meetNone:'Inga träffar planerade.', meetNew:'Ny träff', meetNewTitle:'Ny träff', meetNamePh:'Vad gäller det? T.ex. Fika vid macken',
+      meetWhen:'När', meetWhere:'Var', meetPick:'Välj plats på kartan', meetPicked:'📍 Plats vald · Ändra', meetCreate:'Skapa träff',
+      meetNeedTitle:'Skriv vad träffen gäller, 2–40 tecken.', meetBadTime:'Välj en tid från nu och högst 30 dagar framåt.', meetNeedPlace:'Välj var ni ska ses.',
+      meetTooMany:'Gruppen har redan 10 kommande träffar.', meetGone:'Träffen finns inte längre.', meetComing:'Kommer', meetNotComing:'Kommer inte',
+      meetCount:'{n} kommer', meetOne:'1 kommer', meetNoOne:'Ingen har sagt att de kommer än.', meetWho:'Kommer: {names}', meetBy:'av {n}',
+      meetDrive:'Kör hit', meetDelete:'Ta bort träffen', meetDeleteAsk:'Ta bort {t}? Ingen i gruppen ser den längre.', meetMore:'+{n} till',
+      meetStarted:'började {t}', today:'idag', tomorrow:'imorgon',
+      pickHintMeet:'Tryck på kartan där ni ska ses. Dra nålen för att flytta den.', pickUseMeet:'Välj som träffplats',
       delDone:'Kontot är raderat.', privacy:'Så hanteras dina uppgifter',
       block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit',
       pickMap:'Välj på kartan', pickSub:'Sätt en kartnål dit du ska', pickAria:'Välj mål på kartan',
@@ -714,6 +758,14 @@ h1{font-family:inherit}
       grpShareText:'Join {g} on Slowlane: {u} (code {c})', grpReset:'New link', grpResetAsk:'Change the link? The old link and code stop working. Everyone already in stays.', grpResetDone:'New link and code.',
       grpLeave:'Leave group', grpDelete:'Delete group', grpLeaveAsk:'Leave {g}?', grpDeleteAsk:'Delete {g} for all members? This can’t be undone.',
       grpSignFirst:'Sign in with Google to join the group.', close:'Close',
+      meetHd:'Meetups', meetNone:'No meetups planned.', meetNew:'New meetup', meetNewTitle:'New meetup', meetNamePh:'What’s it about? E.g. Coffee at the petrol station',
+      meetWhen:'When', meetWhere:'Where', meetPick:'Choose place on map', meetPicked:'📍 Place chosen · Change', meetCreate:'Create meetup',
+      meetNeedTitle:'Say what the meetup is about, 2–40 characters.', meetBadTime:'Pick a time from now and at most 30 days ahead.', meetNeedPlace:'Choose where to meet.',
+      meetTooMany:'The group already has 10 upcoming meetups.', meetGone:'The meetup no longer exists.', meetComing:'Coming', meetNotComing:'Not coming',
+      meetCount:'{n} coming', meetOne:'1 coming', meetNoOne:'No one has said they’re coming yet.', meetWho:'Coming: {names}', meetBy:'by {n}',
+      meetDrive:'Navigate here', meetDelete:'Delete meetup', meetDeleteAsk:'Delete {t}? No one in the group will see it any more.', meetMore:'+{n} more',
+      meetStarted:'started {t}', today:'today', tomorrow:'tomorrow',
+      pickHintMeet:'Tap the map where you’ll meet. Drag the pin to move it.', pickUseMeet:'Set as meeting place',
       delDone:'Your account has been deleted.', privacy:'How your data is handled',
       block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here',
       pickMap:'Choose on map', pickSub:'Drop a pin where you’re going', pickAria:'Choose destination on map',
@@ -857,11 +909,11 @@ h1{font-family:inherit}
   // ---------- Origin: my position ----------
   const setMsg = t => { $('msg').textContent = t || ''; };
   $('useLoc').onclick = () => useMyLocation();
-  function useMyLocation() {
+  function useMyLocation(then) {
     if (!navigator.geolocation) { setMsg(T('noGeo')); return; }
     $('from').value = T('locating');
     navigator.geolocation.getCurrentPosition(
-      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; lastPos = origin.coords; store.set('lastPos', lastPos); loadNowWeather(); $('from').value = T('myPos'); setMsg(''); hideSugg(); },
+      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; lastPos = origin.coords; store.set('lastPos', lastPos); loadNowWeather(); $('from').value = T('myPos'); setMsg(''); hideSugg(); if (then) then(); },
       () => { origin = null; $('from').value = ''; setMsg(T('geoFail')); },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
@@ -2010,12 +2062,13 @@ h1{font-family:inherit}
       if (supa && !signedIn()) try { await supaAuth('token?grant_type=id_token', { ...body, link_identity: true }, await supaToken()); linked = true; } catch (e) { if (!e.status) throw e; }
       if (!linked) await supaAuth('token?grant_type=id_token', body);
     } catch (e) { $('acctMsg').textContent = isTimeout(e) ? T('slowNet') : T('signFail'); return; }
-    renderAccount();
+    renderAccount(); loadMeets();
     pendingJoin();   // kom från en inbjudningslänk innan inloggningen
   }
   function signedOut() {
     dropSession(); store.set('visible', false); $('visIn').checked = false;
     GROUPS = []; if ($('grp').open) $('grp').close();
+    MEETS = []; renderMeets(); if ($('meet').open) $('meet').close();
     try { google.accounts.id.disableAutoSelect(); } catch {}
     renderAccount();
   }
@@ -2084,6 +2137,7 @@ h1{font-family:inherit}
   async function openGroup(g) {
     grpShow('view', g);
     $('grpMembers').replaceChildren();
+    renderGroupMeets(); loadMeets();
     try { renderPeople(await supaRpc('group_people', { p_group: g.id }) || []); } catch (e) { grpMsg(grpErr(e)); }
   }
   function renderPeople(people) {
@@ -2120,7 +2174,7 @@ h1{font-family:inherit}
         openGroup((GROUPS || []).find(x => x.id === g.id) || { ...g, is_owner: true, members: 1 });
       } else {
         await supaRpc('group_join', { p_code: v, p_nick: nickNow() });
-        $('grp').close(); await loadGroups();
+        $('grp').close(); await loadGroups(); loadMeets();
       }
     } catch (e) { grpMsg(grpErr(e)); }
     finally { $('grpOk').disabled = false; }
@@ -2139,7 +2193,7 @@ h1{font-family:inherit}
     const g = grpCur;
     if (!confirm(T(g.is_owner ? 'grpDeleteAsk' : 'grpLeaveAsk', { g: g.name }))) return;
     try { await supaRpc('group_leave', { p_group: g.id }); } catch (e) { grpMsg(grpErr(e)); return; }
-    $('grp').close(); loadGroups();
+    $('grp').close(); loadGroups(); loadMeets();
   };
 
   // Inbjudningslänk (#g=KOD). Koden sparas tills man har valt fordon och loggat in.
@@ -2159,6 +2213,139 @@ h1{font-family:inherit}
     store.set('joinCode', '');
     grpShow('join', null, c);
   }
+
+  // ---------- Träffar ----------
+  // En träff hör till en grupp: plats, tid och vilka som kommer. Syns tills 3 timmar efter starten.
+  let MEETS = [], meetDraft = null, meetCur = null;
+  const meetMarks = new Map();
+  const meetErr = e => isTimeout(e) ? T('slowNet') : e.status === 404 ? T('meetGone') : e.status === 409 ? T('meetTooMany')
+    : e.msg === 'bad time' ? T('meetBadTime') : e.msg === 'bad title' ? T('meetNeedTitle') : e.msg === 'bad place' ? T('meetNeedPlace') : T('generic');
+  function meetMsg(text) { $('meetMsg').textContent = text; }
+  const comingText = n => n === 1 ? T('meetOne') : T('meetCount', { n });
+  // datetime-local vill ha lokal tid utan tidszon
+  const localInput = d => new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
+  function meetTime(iso) {
+    const d = new Date(iso), hm = d.toLocaleTimeString(LOC(), { hour: '2-digit', minute: '2-digit' });
+    if (d < Date.now()) return T('meetStarted', { t: hm });
+    const day = n => { const x = new Date(); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() + n); return x; };
+    const when = d < day(1) ? T('today') : d < day(2) ? T('tomorrow') : d.toLocaleDateString(LOC(), { weekday: 'short', day: 'numeric', month: 'short' });
+    return when + ' ' + hm;
+  }
+
+  async function loadMeets() {
+    if (!signedIn()) { MEETS = []; renderMeets(); return; }
+    try { MEETS = await supaRpc('meetup_list') || []; } catch { return; }   // vid nätfel ligger de gamla kvar
+    renderMeets();
+  }
+  function renderMeets() {
+    const next = MEETS[0];
+    $('meetCard').hidden = !next;
+    if (next) {
+      $('meetCardT').textContent = '🏁 ' + next.title;
+      $('meetCardS').textContent = [next.group_name, meetTime(next.starts_at), comingText(next.coming), MEETS.length > 1 && T('meetMore', { n: MEETS.length - 1 })].filter(Boolean).join(' · ');
+    }
+    if ($('grp').open && grpMode === 'view') renderGroupMeets();
+    if (nearMap) syncMeets();
+  }
+  function renderGroupMeets() {
+    const list = MEETS.filter(m => m.group_id === grpCur.id);
+    $('grpMeets').replaceChildren(...(list.length ? list.map(m => {
+      const b = el('button', { type: 'button', className: 'grp' });
+      b.append(el('span', { textContent: m.title }), el('small', { textContent: meetTime(m.starts_at) + ' · ' + comingText(m.coming) }));
+      b.onclick = () => openMeet(m);
+      return b;
+    }) : [el('p', { textContent: T('meetNone') })]));
+  }
+  function syncMeets() {
+    const ids = new Set(MEETS.map(m => m.id));
+    meetMarks.forEach((mk, id) => { if (!ids.has(id)) { mk.remove(); meetMarks.delete(id); } });
+    MEETS.forEach(m => {
+      if (meetMarks.has(m.id)) return;
+      const e = el('div', { className: 'meet-mk' });
+      e.append(el('i', { textContent: '🏁' }), el('b', { textContent: m.title }));
+      e.onclick = ev => { ev.stopPropagation(); openMeet(MEETS.find(x => x.id === m.id) || m); };
+      meetMarks.set(m.id, new maplibregl.Marker({ element: e, anchor: 'bottom' }).setLngLat([m.lng, m.lat]).addTo(nearMap));
+    });
+  }
+
+  // Ny träff. Platsen väljs med kartnålen, och då måste dialogerna stängas en stund.
+  function meetNew(g) {
+    const d = new Date(Date.now() + 30 * 6e4); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
+    meetDraft = { group: g, name: '', when: localInput(d), loc: null };
+    meetShowNew();
+  }
+  function meetShowNew() {
+    const d = meetDraft; if (!d) return;
+    $('meetTitle').textContent = T('meetNewTitle') + ' · ' + d.group.name;
+    $('meetForm').hidden = false; $('meetView').hidden = true; $('meetOk').hidden = false;
+    $('meetName').value = d.name; $('meetWhen').value = d.when; $('meetWhen').min = localInput(new Date());
+    $('meetPick').textContent = T(d.loc ? 'meetPicked' : 'meetPick');
+    meetMsg('');
+    if (!$('meet').open) $('meet').showModal();
+  }
+  $('meetName').addEventListener('input', () => { if (meetDraft) meetDraft.name = $('meetName').value; });
+  $('meetWhen').addEventListener('input', () => { if (meetDraft) meetDraft.when = $('meetWhen').value; });
+  $('meetPick').onclick = () => {
+    ['meet', 'grp', 'settings'].forEach(id => { if ($(id).open) $(id).close(); });
+    openPick('meet');
+  };
+  $('meetOk').onclick = async () => {
+    const d = meetDraft; d.name = $('meetName').value.trim(); d.when = $('meetWhen').value;
+    const t = new Date(d.when);
+    if ([...d.name].length < 2) { meetMsg(T('meetNeedTitle')); return; }
+    if (!d.when || isNaN(t) || t < Date.now() - 6e5 || t > Date.now() + 30 * 864e5) { meetMsg(T('meetBadTime')); return; }
+    if (!d.loc) { meetMsg(T('meetNeedPlace')); return; }
+    $('meetOk').disabled = true;
+    try { await supaRpc('meetup_create', { p_group: d.group.id, p_title: d.name, p_lat: d.loc.lat, p_lng: d.loc.lng, p_starts: t.toISOString() }); }
+    catch (e) { meetMsg(meetErr(e)); return; }
+    finally { $('meetOk').disabled = false; }
+    meetDraft = null; $('meet').close();
+    loadMeets();
+  };
+
+  // En träff: svara, se vilka som kommer, kör dit
+  async function openMeet(m) {
+    meetCur = m; meetDraft = null;
+    $('meetTitle').textContent = m.title;
+    $('meetForm').hidden = true; $('meetView').hidden = false; $('meetOk').hidden = true;
+    $('meetSub').textContent = [m.group_name, meetTime(m.starts_at), m.creator_nick && T('meetBy', { n: m.creator_nick })].filter(Boolean).join(' · ');
+    $('meetDel').hidden = !m.can_delete;
+    setAnswer(m.my_answer); $('meetWho').textContent = ''; meetMsg('');
+    if (!$('meet').open) $('meet').showModal();
+    try { renderWho(await supaRpc('meetup_people', { p_meetup: m.id }) || []); } catch (e) { meetMsg(meetErr(e)); }
+  }
+  function renderWho(people) {
+    const yes = people.filter(p => p.coming).map(p => p.nick || T('grpNoNick'));
+    $('meetWho').textContent = yes.length ? T('meetWho', { names: yes.join(', ') }) : T('meetNoOne');
+  }
+  function setAnswer(a) { $('meetYes').setAttribute('aria-pressed', String(a === true)); $('meetNo').setAttribute('aria-pressed', String(a === false)); }
+  async function answerMeet(coming) {
+    const m = meetCur; meetMsg('');
+    try { await supaRpc('meetup_answer', { p_meetup: m.id, p_coming: coming }); } catch (e) { meetMsg(meetErr(e)); return; }
+    m.my_answer = coming; setAnswer(coming);
+    try { renderWho(await supaRpc('meetup_people', { p_meetup: m.id }) || []); } catch {}
+    loadMeets();
+  }
+  $('meetYes').onclick = () => answerMeet(true);
+  $('meetNo').onclick = () => answerMeet(false);
+  $('meetDel').onclick = async () => {
+    if (!confirm(T('meetDeleteAsk', { t: meetCur.title }))) return;
+    try { await supaRpc('meetup_delete', { p_meetup: meetCur.id }); } catch (e) { meetMsg(meetErr(e)); return; }
+    $('meet').close(); loadMeets();
+  };
+  $('meetDrive').onclick = () => {
+    const m = meetCur;
+    ['meet', 'grp', 'settings'].forEach(id => { if ($(id).open) $(id).close(); });
+    ['v-near', 'v-res', 'v-pick'].forEach(id => $(id).classList.remove('on')); $('v-plan').classList.add('on');
+    if (FX.kind) fxStart(FX.kind);
+    dest = { loc: { lat: m.lat, lng: m.lng }, label: '🏁 ' + m.title, short: m.title, meet: true }; $('to').value = dest.label;
+    // alltid från där jag är nu
+    if (LIVE.pos) { origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng } }; $('from').value = T('myPos'); $('go').click(); }
+    else useMyLocation(() => $('go').click());
+  };
+  $('meetClose').onclick = () => { meetDraft = null; $('meet').close(); };
+  $('meetCard').onclick = () => { if (MEETS[0]) openMeet(MEETS[0]); };
+  $('grpMeetNew').onclick = () => meetNew(grpCur);
   async function supaRpc(fn, args, keepalive) {
     const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive, signal: timeout(15000),
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + await supaToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
@@ -2317,6 +2504,7 @@ h1{font-family:inherit}
       mates.forEach(r => b.extend([r.lng, r.lat]));
       nearMap.fitBounds(b, { padding: 60, maxZoom: 12, duration: 0 });
     }
+    syncMeets();
     renderRiders();
   }
   $('liveChip').onclick = openNear;
@@ -2335,12 +2523,12 @@ h1{font-family:inherit}
   }
   async function openPick(field) {
     pickField = field;
-    const from = field === 'from', place = from ? origin : dest;
-    $('pickHint').textContent = T(from ? 'pickHintFrom' : 'pickHint');
-    $('pickUse').textContent = T(from ? 'pickUseFrom' : 'pickUse');
+    const from = field === 'from', meet = field === 'meet', place = meet ? meetDraft : from ? origin : dest;
+    $('pickHint').textContent = T(meet ? 'pickHintMeet' : from ? 'pickHintFrom' : 'pickHint');
+    $('pickUse').textContent = T(meet ? 'pickUseMeet' : from ? 'pickUseFrom' : 'pickUse');
     $('v-plan').classList.remove('on'); $('v-pick').classList.add('on');
     try { await loadMapLibre(); } catch { $('pickHint').textContent = T('mapFail'); return; }
-    const had = place && place.pin ? place.loc : null;
+    const had = place && (place.pin || meet) ? place.loc : null;
     const c = had || LIVE.pos || (origin && (origin.coords || origin.loc)) || lastPos;
     if (!pickMap) {
       let styleOk = false, fellBack = false;
@@ -2362,11 +2550,13 @@ h1{font-family:inherit}
   function closePick() {
     $('v-pick').classList.remove('on'); $('v-plan').classList.add('on');
     if (FX.kind) fxStart(FX.kind);
+    if (pickField === 'meet') meetShowNew();   // tillbaka till träffen man höll på med
   }
   $('pickBack').onclick = closePick;
   $('pickUse').onclick = () => {
     if (!pickPin) return;
     const p = pickPin.getLngLat();
+    if (pickField === 'meet') { meetDraft.loc = { lat: p.lat, lng: p.lng }; closePick(); return; }
     const place = { loc: { lat: p.lat, lng: p.lng }, label: T('pinLabel'), short: T('pinLabel'), pin: true };
     if (pickField === 'from') origin = place; else dest = place;
     $(pickField).value = T('pinLabel');
@@ -2392,7 +2582,7 @@ h1{font-family:inherit}
       const chosen = store.get('safeMode', false) ? plan.safest : plan.fastest;   // senast valda alternativ
       lastRoute = { trip: chosen.trip, path: chosen.path, a, b, from, to, fastest: plan.fastest, safest: plan.safest, chosen, diag: plan.diag,
         fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
-      if (!to.rider && !to.pin) addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
+      if (!to.rider && !to.pin && !to.meet) addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
       selectRoute(chosen);
     } catch (e) {
@@ -2461,6 +2651,8 @@ h1{font-family:inherit}
   $('welcome').addEventListener('close', pendingJoin);
   readInvite();
   window.addEventListener('hashchange', readInvite);
+  loadMeets();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadMeets(); });
 
   // ---------- PWA ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
