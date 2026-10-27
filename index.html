@@ -197,6 +197,15 @@ dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 #gBtn:not(:empty){margin-top:12px;min-height:44px}
 .lnk{background:none;border:0;padding:4px 0;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer}
 .lnk.danger{color:var(--err)}
+.grps{display:flex;flex-direction:column;gap:8px}
+.grps p{margin:0;font-size:13px;color:var(--muted)}
+.grp{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:48px;padding:10px 14px;border:1px solid var(--line2);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:15px;text-align:left;cursor:pointer}
+.grp small,.mem small{color:var(--muted);font-size:13px;white-space:nowrap}
+.mem{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.acct .code{margin:6px 0;font:600 22px/1.2 ui-monospace,Menlo,Consolas,monospace;letter-spacing:3px;color:var(--text)}
+#grpMsg.ok{color:var(--muted)}
+.rider.mate i{background:var(--accent)}
+.rider.mate b{box-shadow:0 0 0 1px var(--accent)}
 
 /* ---------- Aja baja ---------- */
 #ajabaja{text-align:center;overflow:hidden;position:relative;padding:28px 22px 22px}
@@ -560,17 +569,45 @@ h1{font-family:inherit}
     <label for="nickIn" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="nickLbl">Smeknamn</label>
     <input class="key" id="nickIn" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="nickPh" placeholder="Syns för andra förare">
     <label class="toggle">
-      <span><span class="t1" data-i18n="visLbl">Visa min position</span><span class="t2" data-i18n="visSub">Förare inom 30 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.</span></span>
+      <span><span class="t1" data-i18n="visLbl">Visa min position</span><span class="t2" data-i18n="visSub">Andra förare ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.</span></span>
       <span class="switch"><input type="checkbox" id="visIn"><span></span></span>
     </label>
     <p class="msg" id="visMsg" role="alert" style="margin:6px 0 0"></p>
+    <label for="scopeIn" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="scopeLbl">Vem ser dig</label>
+    <select class="key" id="scopeIn"><option value="all" data-i18n="scopeAll">Alla inom 30 km</option><option value="groups" data-i18n="scopeGrp">Bara mina grupper</option></select>
+    <p style="margin:6px 0 0" data-i18n="scopeHelp">Dina grupper ser dig i hela Sverige, oavsett val.</p>
+    <p style="font-size:14px;color:var(--muted);margin:18px 0 6px" data-i18n="grpHd">Grupper</p>
+    <div class="grps" id="grpList"></div>
+    <div class="row"><button type="button" class="cta ghost" id="grpNewBtn" data-i18n="grpNew">Skapa grupp</button><button type="button" class="cta ghost" id="grpJoinBtn" data-i18n="grpJoin">Gå med</button></div>
     </div>
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 34</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 35</p>
   </form>
+</dialog>
+
+<dialog id="grp" aria-labelledby="grpTitle">
+  <h2 id="grpTitle" tabindex="-1" autofocus style="outline:none"></h2>
+  <div id="grpForm">
+    <input class="key" id="grpIn" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <p style="margin:6px 0 0" id="grpHelp"></p>
+  </div>
+  <div id="grpView">
+    <div id="grpMembers"></div>
+    <div class="acct" id="grpInvite" style="margin:14px 0 0">
+      <p data-i18n="grpInviteTx">Den som har länken eller koden kan gå med. Bara du ser den.</p>
+      <p class="code" id="grpCode"></p>
+      <p><button type="button" class="lnk" id="grpShare" data-i18n="grpShare">Dela inbjudan</button> · <button type="button" class="lnk" id="grpReset" data-i18n="grpReset">Byt länk</button></p>
+    </div>
+    <p style="margin:14px 0 0"><button type="button" class="lnk danger" id="grpLeave"></button></p>
+  </div>
+  <p class="msg" id="grpMsg" role="alert" style="margin:8px 0 0"></p>
+  <div class="row">
+    <button type="button" class="cta ghost" id="grpClose" data-i18n="close">Stäng</button>
+    <button type="button" class="cta" id="grpOk"></button>
+  </div>
 </dialog>
 </div>
 
@@ -607,7 +644,7 @@ h1{font-family:inherit}
       needFrom:'Ange var du startar, eller tryck på Min position.', generic:'Något gick fel. Kontrollera anslutningen och försök igen.',
       slowNet:'Inget svar från servern. Täckningen är kanske svag här, försök igen om en stund.',
       nickLbl:'Smeknamn', nickPh:'Syns för andra förare', visLbl:'Visa min position',
-      visSub:'Förare inom 30 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.',
+      visSub:'Andra förare ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.',
       nickNeed:'Skriv ett smeknamn på 3–16 tecken för att kunna synas.', nearAria:'Förare nära dig',
       liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
       liveNone:'inga andra inom 30 km', liveOne:'1 förare inom 30 km', liveCount:'{n} förare inom 30 km',
@@ -615,7 +652,18 @@ h1{font-family:inherit}
       signWhy:'Logga in med Google för att kunna synas för andra förare. De ser bara ditt smeknamn, aldrig din e-post.',
       signedAs:'Inloggad som {e}', signOut:'Logga ut', delAcct:'Radera mitt konto', signNeed:'Logga in med Google ovan för att kunna synas.',
       signFail:'Inloggningen misslyckades. Försök igen.', signOff:'Inloggning med Google är inte påslagen än.',
-      delAsk:'Radera ditt konto? Din position, dina blockeringar och kopplingen till ditt Google-konto tas bort direkt. Det går inte att ångra.',
+      delAsk:'Radera ditt konto? Din position, dina blockeringar, grupperna du skapat och kopplingen till ditt Google-konto tas bort direkt. Det går inte att ångra.',
+      scopeLbl:'Vem ser dig', scopeAll:'Alla inom 30 km', scopeGrp:'Bara mina grupper', scopeHelp:'Dina grupper ser dig i hela Sverige, oavsett val.',
+      liveOnGrp:'Du syns för dina grupper', liveNoGrp:'ingen från dina grupper syns', liveGrpOne:'1 från dina grupper', liveGrpN:'{n} från dina grupper',
+      grpHd:'Grupper', grpNone:'Du är inte med i någon grupp än.', grpNew:'Skapa grupp', grpJoin:'Gå med', grpOne:'1 medlem', grpMany:'{n} medlemmar',
+      grpNewTitle:'Ny grupp', grpNamePh:'Gruppens namn', grpNameHelp:'Alla i gruppen ser namnet. 2–24 tecken.', grpCreate:'Skapa',
+      grpJoinTitle:'Gå med i en grupp', grpCodePh:'Inbjudningskod', grpJoinHelp:'Skriv koden du har fått, eller öppna inbjudningslänken.', grpJoinAsk:'Gå med i {g}? {n} medlemmar just nu.',
+      grpNoCode:'Hittade ingen grupp med den koden.', grpFull:'Gruppen är full (50 medlemmar).', grpTooMany:'Du kan vara med i högst 20 grupper och skapa högst 5.', grpBadName:'Skriv ett namn på 2–24 tecken.',
+      grpOwner:'skapare', grpYou:'du', grpNoNick:'utan smeknamn', grpKick:'Ta bort', grpKickAsk:'Ta bort {n} från gruppen?',
+      grpInviteTx:'Den som har länken eller koden kan gå med. Bara du ser den.', grpShare:'Dela inbjudan', grpCopied:'Inbjudan är kopierad. Klistra in den i ett meddelande.',
+      grpShareText:'Gå med i {g} på Slowlane: {u} (kod {c})', grpReset:'Byt länk', grpResetAsk:'Byta länk? Den gamla länken och koden slutar fungera. Den som redan är med stannar kvar.', grpResetDone:'Ny länk och kod.',
+      grpLeave:'Lämna gruppen', grpDelete:'Ta bort gruppen', grpLeaveAsk:'Lämna {g}?', grpDeleteAsk:'Ta bort {g} för alla medlemmar? Det går inte att ångra.',
+      grpSignFirst:'Logga in med Google för att gå med i gruppen.', close:'Stäng',
       delDone:'Kontot är raderat.', privacy:'Så hanteras dina uppgifter',
       block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit',
       pickMap:'Välj på kartan', pickSub:'Sätt en kartnål dit du ska', pickAria:'Välj mål på kartan',
@@ -646,7 +694,7 @@ h1{font-family:inherit}
       needFrom:'Enter where you start, or tap My location.', generic:'Something went wrong. Check your connection and try again.',
       slowNet:'No answer from the server. Coverage may be weak here, try again in a moment.',
       nickLbl:'Nickname', nickPh:'Shown to other riders', visLbl:'Show my position',
-      visSub:'Riders within 30 km see your nickname and where you are while Slowlane is open. You only see them while you’re visible.',
+      visSub:'Other riders see your nickname and where you are while Slowlane is open. You only see them while you’re visible.',
       nickNeed:'Enter a nickname of 3–16 characters to be visible.', nearAria:'Riders near you',
       liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
       liveNone:'no one else within 30 km', liveOne:'1 rider within 30 km', liveCount:'{n} riders within 30 km',
@@ -654,7 +702,18 @@ h1{font-family:inherit}
       signWhy:'Sign in with Google to be visible to other riders. They only see your nickname, never your email.',
       signedAs:'Signed in as {e}', signOut:'Sign out', delAcct:'Delete my account', signNeed:'Sign in with Google above to be visible.',
       signFail:'Sign-in failed. Try again.', signOff:'Google sign-in isn’t switched on yet.',
-      delAsk:'Delete your account? Your position, your blocks and the link to your Google account are removed right away. This can’t be undone.',
+      delAsk:'Delete your account? Your position, your blocks, the groups you created and the link to your Google account are removed right away. This can’t be undone.',
+      scopeLbl:'Who sees you', scopeAll:'Everyone within 30 km', scopeGrp:'Only my groups', scopeHelp:'Your groups see you anywhere in Sweden either way.',
+      liveOnGrp:'Visible to your groups', liveNoGrp:'no one from your groups is visible', liveGrpOne:'1 from your groups', liveGrpN:'{n} from your groups',
+      grpHd:'Groups', grpNone:'You’re not in any group yet.', grpNew:'Create group', grpJoin:'Join', grpOne:'1 member', grpMany:'{n} members',
+      grpNewTitle:'New group', grpNamePh:'Group name', grpNameHelp:'Everyone in the group sees the name. 2–24 characters.', grpCreate:'Create',
+      grpJoinTitle:'Join a group', grpCodePh:'Invite code', grpJoinHelp:'Enter the code you got, or open the invite link.', grpJoinAsk:'Join {g}? {n} members right now.',
+      grpNoCode:'No group found with that code.', grpFull:'The group is full (50 members).', grpTooMany:'You can be in at most 20 groups and create at most 5.', grpBadName:'Enter a name of 2–24 characters.',
+      grpOwner:'creator', grpYou:'you', grpNoNick:'no nickname', grpKick:'Remove', grpKickAsk:'Remove {n} from the group?',
+      grpInviteTx:'Anyone with the link or code can join. Only you see it.', grpShare:'Share invite', grpCopied:'The invite is copied. Paste it into a message.',
+      grpShareText:'Join {g} on Slowlane: {u} (code {c})', grpReset:'New link', grpResetAsk:'Change the link? The old link and code stop working. Everyone already in stays.', grpResetDone:'New link and code.',
+      grpLeave:'Leave group', grpDelete:'Delete group', grpLeaveAsk:'Leave {g}?', grpDeleteAsk:'Delete {g} for all members? This can’t be undone.',
+      grpSignFirst:'Sign in with Google to join the group.', close:'Close',
       delDone:'Your account has been deleted.', privacy:'How your data is handled',
       block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here',
       pickMap:'Choose on map', pickSub:'Drop a pin where you’re going', pickAria:'Choose destination on map',
@@ -751,13 +810,13 @@ h1{font-family:inherit}
   }
   let ajaPrev = 30;
   const getStadia = () => ''; // Stadia använder domänbehörighet
-  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('visMsg').textContent = ''; $('acctMsg').textContent = ''; $('settings').showModal(); renderAccount(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
+  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('scopeIn').value = store.get('scope', 'all') === 'groups' ? 'groups' : 'all'; $('visMsg').textContent = ''; $('acctMsg').textContent = ''; $('settings').showModal(); renderAccount(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
       const nick = $('nickIn').value.trim().replace(/\s+/g, ' ');
       if ($('visIn').checked && !signedIn()) { e.preventDefault(); $('visIn').checked = false; $('visMsg').textContent = T('signNeed'); return; }
       if ($('visIn').checked && !validNick(nick)) { e.preventDefault(); $('visMsg').textContent = T('nickNeed'); $('nickIn').focus(); return; }
-      store.set('nick', nick); store.set('visible', $('visIn').checked);
+      store.set('nick', nick); store.set('visible', $('visIn').checked); store.set('scope', $('scopeIn').value === 'groups' ? 'groups' : 'all');
       speed = parseInt($('speedIn').value, 10) || 30; store.set('speed', speed);
       lang = $('langIn').value === 'en' ? 'en' : 'sv'; store.set('lang', lang);
       const nt = THEMES[$('themeIn').value] ? $('themeIn').value : 'epa';
@@ -1935,7 +1994,7 @@ h1{font-family:inherit}
     const on = signedIn();
     // smeknamn och Visa min position behövs bara för den som kan synas
     $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('visBox').hidden = !on; $('acctTx').hidden = on; $('gBtn').hidden = on;
-    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); return; }
+    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); loadGroups(); return; }
     if (!GOOGLE_ID) { $('acctMsg').textContent = T('signOff'); return; }
     gis().then(() => google.accounts.id.renderButton($('gBtn'), { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
       text: 'signin_with', locale: lang, width: Math.max(200, Math.min(400, $('gBtn').clientWidth || 280)) }))
@@ -1952,9 +2011,11 @@ h1{font-family:inherit}
       if (!linked) await supaAuth('token?grant_type=id_token', body);
     } catch (e) { $('acctMsg').textContent = isTimeout(e) ? T('slowNet') : T('signFail'); return; }
     renderAccount();
+    pendingJoin();   // kom från en inbjudningslänk innan inloggningen
   }
   function signedOut() {
     dropSession(); store.set('visible', false); $('visIn').checked = false;
+    GROUPS = []; if ($('grp').open) $('grp').close();
     try { google.accounts.id.disableAutoSelect(); } catch {}
     renderAccount();
   }
@@ -1973,10 +2034,135 @@ h1{font-family:inherit}
     signedOut();
     alert(T('delDone'));
   };
+
+  // ---------- Grupper ----------
+  // Gruppkamrater ser varandra i hela Sverige. Man går med via en länk eller kod som bara skaparen ser.
+  let GROUPS = [], grpMode = null, grpCur = null;
+  const nickNow = () => { const n = $('nickIn').value.trim().replace(/\s+/g, ' '); return validNick(n) ? n : store.get('nick', ''); };
+  const grpErr = e => isTimeout(e) ? T('slowNet') : e.status === 404 ? T('grpNoCode') : e.msg === 'group full' ? T('grpFull')
+    : e.status === 409 ? T('grpTooMany') : e.status === 400 ? T('grpBadName') : T('generic');
+  function grpMsg(text, ok) { $('grpMsg').textContent = text; $('grpMsg').classList.toggle('ok', !!ok); }
+  const el = (tag, props) => Object.assign(document.createElement(tag), props);
+
+  async function loadGroups() {
+    if (!signedIn()) { GROUPS = []; renderGroups(); return; }
+    try { GROUPS = await supaRpc('group_list', { p_nick: nickNow() }) || []; } catch { GROUPS = null; }
+    renderGroups();
+  }
+  function renderGroups() {
+    const box = $('grpList');
+    if (!GROUPS || !GROUPS.length) { box.replaceChildren(el('p', { textContent: T(GROUPS ? 'grpNone' : 'generic') })); return; }
+    box.replaceChildren(...GROUPS.map(g => {
+      const b = el('button', { type: 'button', className: 'grp' });
+      b.append(el('span', { textContent: g.name }),
+        el('small', { textContent: (g.members === 1 ? T('grpOne') : T('grpMany', { n: g.members })) + (g.is_owner ? ' · ' + T('grpOwner') : '') }));
+      b.onclick = () => openGroup(g);
+      return b;
+    }));
+  }
+  function grpShow(mode, g, code) {
+    grpMode = mode; grpCur = g || null;
+    const view = mode === 'view';
+    $('grpForm').hidden = view; $('grpView').hidden = !view; $('grpOk').hidden = view;
+    grpMsg('');
+    if (mode === 'new') {
+      $('grpTitle').textContent = T('grpNewTitle'); $('grpIn').value = ''; $('grpIn').maxLength = 24;
+      $('grpIn').placeholder = T('grpNamePh'); $('grpHelp').textContent = T('grpNameHelp'); $('grpOk').textContent = T('grpCreate');
+    } else if (mode === 'join') {
+      $('grpTitle').textContent = T('grpJoinTitle'); $('grpIn').value = code || ''; $('grpIn').maxLength = 24;
+      $('grpIn').placeholder = T('grpCodePh'); $('grpHelp').textContent = T('grpJoinHelp'); $('grpOk').textContent = T('grpJoin');
+      if (code) supaRpc('group_peek', { p_code: code }).then(rows => {
+        const p = rows && rows[0]; $('grpHelp').textContent = p ? T('grpJoinAsk', { g: p.name, n: p.members }) : T('grpNoCode');
+      }).catch(() => {});
+    } else {
+      $('grpTitle').textContent = g.name;
+      $('grpInvite').hidden = !g.is_owner; $('grpCode').textContent = g.code || '';
+      $('grpLeave').textContent = T(g.is_owner ? 'grpDelete' : 'grpLeave');
+    }
+    if (!$('grp').open) $('grp').showModal();
+  }
+  async function openGroup(g) {
+    grpShow('view', g);
+    $('grpMembers').replaceChildren();
+    try { renderPeople(await supaRpc('group_people', { p_group: g.id }) || []); } catch (e) { grpMsg(grpErr(e)); }
+  }
+  function renderPeople(people) {
+    $('grpMembers').replaceChildren(...people.map(m => {
+      const row = el('div', { className: 'mem' });
+      row.append(el('span', { textContent: m.nick || T('grpNoNick') }));
+      if (grpCur.is_owner && !m.is_owner) {
+        const kick = el('button', { type: 'button', className: 'lnk danger', textContent: T('grpKick') });
+        kick.onclick = () => kickMember(m);
+        row.append(kick);
+      } else if (m.is_owner || m.is_me) row.append(el('small', { textContent: T(m.is_owner ? 'grpOwner' : 'grpYou') }));
+      return row;
+    }));
+  }
+  async function kickMember(m) {
+    if (!confirm(T('grpKickAsk', { n: m.nick || T('grpNoNick') }))) return;
+    try { await supaRpc('group_kick', { p_group: grpCur.id, p_user: m.user_id }); } catch (e) { grpMsg(grpErr(e)); return; }
+    openGroup(grpCur); loadGroups();
+  }
+  $('grpNewBtn').onclick = () => grpShow('new');
+  $('grpJoinBtn').onclick = () => grpShow('join');
+  $('grpClose').onclick = () => $('grp').close();
+  $('grpIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('grpOk').click(); } });
+  $('grpOk').onclick = async () => {
+    const v = $('grpIn').value.trim(); grpMsg('');
+    if (!v) { $('grpIn').focus(); return; }
+    if (grpMode === 'new' && [...v].length < 2) { grpMsg(T('grpBadName')); return; }
+    $('grpOk').disabled = true;
+    try {
+      if (grpMode === 'new') {
+        const [g] = await supaRpc('group_create', { p_name: v, p_nick: nickNow() });
+        await loadGroups();
+        // visa inbjudan direkt, det är nästa steg
+        openGroup((GROUPS || []).find(x => x.id === g.id) || { ...g, is_owner: true, members: 1 });
+      } else {
+        await supaRpc('group_join', { p_code: v, p_nick: nickNow() });
+        $('grp').close(); await loadGroups();
+      }
+    } catch (e) { grpMsg(grpErr(e)); }
+    finally { $('grpOk').disabled = false; }
+  };
+  $('grpShare').onclick = async () => {
+    const g = grpCur, text = T('grpShareText', { g: g.name, u: location.origin + location.pathname + '#g=' + g.code, c: g.code });
+    if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e.name === 'AbortError') return; } }
+    try { await navigator.clipboard.writeText(text); grpMsg(T('grpCopied'), true); } catch { grpMsg(text, true); }
+  };
+  $('grpReset').onclick = async () => {
+    if (!confirm(T('grpResetAsk'))) return;
+    try { grpCur.code = await supaRpc('group_new_code', { p_group: grpCur.id }); } catch (e) { grpMsg(grpErr(e)); return; }
+    $('grpCode').textContent = grpCur.code; grpMsg(T('grpResetDone'), true); loadGroups();
+  };
+  $('grpLeave').onclick = async () => {
+    const g = grpCur;
+    if (!confirm(T(g.is_owner ? 'grpDeleteAsk' : 'grpLeaveAsk', { g: g.name }))) return;
+    try { await supaRpc('group_leave', { p_group: g.id }); } catch (e) { grpMsg(grpErr(e)); return; }
+    $('grp').close(); loadGroups();
+  };
+
+  // Inbjudningslänk (#g=KOD). Koden sparas tills man har valt fordon och loggat in.
+  // På iPhone öppnas länken i Safari, inte i hemskärmsappen. Medlemskapet sparas på kontot, så det gör inget.
+  function readInvite() {
+    const m = location.hash.match(/^#g=([A-Za-z0-9-]{4,24})$/);
+    if (!m) return;
+    store.set('joinCode', m[1]);
+    history.replaceState(history.state, '', location.pathname + location.search);
+    pendingJoin();
+  }
+  function pendingJoin() {
+    const c = store.get('joinCode', '');
+    if (!c || $('welcome').open) return;
+    if (!$('settings').open) $('openSettings').click();
+    if (!signedIn()) { $('acctMsg').textContent = T('grpSignFirst'); return; }
+    store.set('joinCode', '');
+    grpShow('join', null, c);
+  }
   async function supaRpc(fn, args, keepalive) {
     const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive, signal: timeout(15000),
       headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + await supaToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
-    if (!res.ok) throw Object.assign(new Error(fn + ' ' + res.status), { status: res.status });
+    if (!res.ok) throw Object.assign(new Error(fn + ' ' + res.status), { status: res.status, msg: (await res.json().catch(() => ({}))).message });
     const t = await res.text(); return t ? JSON.parse(t) : null;
   }
 
@@ -1999,7 +2185,7 @@ h1{font-family:inherit}
     if (!LIVE.on || !LIVE.pos || LIVE.busy || Date.now() - LIVE.sent < 11000) return;
     LIVE.busy = true; LIVE.sent = Date.now();
     try {
-      const rows = await supaRpc('ride_ping', { p_nick: store.get('nick', ''), p_vehicle: theme, p_lat: LIVE.pos.lat, p_lng: LIVE.pos.lng, p_heading: LIVE.pos.heading, p_speed: LIVE.pos.speed });
+      const rows = await supaRpc('ride_ping', { p_nick: store.get('nick', ''), p_vehicle: theme, p_lat: LIVE.pos.lat, p_lng: LIVE.pos.lng, p_heading: LIVE.pos.heading, p_speed: LIVE.pos.speed, p_scope: store.get('scope', 'all') });
       // appen hann döljas medan anropet pågick → ta bort positionen igen
       if (!LIVE.on) supaRpc('ride_stop', {}, true).catch(() => {});
       else { LIVE.riders = rows || []; LIVE.pinged = true; LIVE.err = null; }
@@ -2026,8 +2212,16 @@ h1{font-family:inherit}
   window.addEventListener('pagehide', liveStop);
   window.addEventListener('pageshow', liveSync);
 
-  const liveStatus = () => LIVE.err === 'geo' ? T('liveGeo') : LIVE.err === 'net' ? T('liveFail') : LIVE.err === 'signin' ? T('liveSign') : !LIVE.pinged ? T('liveWait')
-    : LIVE.riders.length === 0 ? T('liveNone') : LIVE.riders.length === 1 ? T('liveOne') : T('liveCount', { n: LIVE.riders.length });
+  const onlyGroups = () => store.get('scope', 'all') === 'groups';
+  function liveStatus() {
+    if (LIVE.err) return T({ geo: 'liveGeo', net: 'liveFail', signin: 'liveSign' }[LIVE.err]);
+    if (!LIVE.pinged) return T('liveWait');
+    // gruppkamrater kan vara var som helst, de andra är alltid inom 30 km
+    const grp = LIVE.riders.filter(r => r.in_group).length, near = LIVE.riders.length - grp, parts = [];
+    if (!onlyGroups() && (near || !grp)) parts.push(near === 0 ? T('liveNone') : near === 1 ? T('liveOne') : T('liveCount', { n: near }));
+    if (grp || onlyGroups()) parts.push(grp === 0 ? T('liveNoGrp') : grp === 1 ? T('liveGrpOne') : T('liveGrpN', { n: grp }));
+    return parts.join(' · ');
+  }
   const riderLabel = r => (RIDER_ICON[r.vehicle] || '') + ' ' + r.nick;
   const NICK_LOGO = { silas: 'https://cdn.jsdelivr.net/npm/simple-icons@16.36.0/icons/bmw.svg' };
   function fillLabel(b, r) {
@@ -2041,8 +2235,9 @@ h1{font-family:inherit}
   function renderRiders() {
     $('liveChip').hidden = !LIVE.on;
     $('liveChip').classList.toggle('err', !!LIVE.err);
-    $('liveTx').textContent = T('liveOn') + ' · ' + liveStatus();
-    $('nearInfo').textContent = LIVE.on ? T('liveOn') + ' · ' + liveStatus() : T('liveOffTx');
+    const on = T(onlyGroups() ? 'liveOnGrp' : 'liveOn');
+    $('liveTx').textContent = on + ' · ' + liveStatus();
+    $('nearInfo').textContent = LIVE.on ? on + ' · ' + liveStatus() : T('liveOffTx');
     if (!window.maplibregl) return;
     [rmap, nmap, nearMap].forEach(m => { if (m) syncRiders(m); });
     if (nearMap && LIVE.pos) {
@@ -2056,8 +2251,8 @@ h1{font-family:inherit}
     marks.forEach((mk, id) => { if (!ids.has(id)) { mk.remove(); marks.delete(id); } });
     LIVE.riders.forEach(r => {
       const mk = marks.get(r.id);
-      if (mk) { mk.setLngLat([r.lng, r.lat]); fillLabel(mk.getElement().querySelector('b'), r); return; }
-      const el = document.createElement('div'); el.className = 'rider';
+      if (mk) { mk.setLngLat([r.lng, r.lat]); mk.getElement().classList.toggle('mate', !!r.in_group); fillLabel(mk.getElement().querySelector('b'), r); return; }
+      const el = document.createElement('div'); el.className = 'rider' + (r.in_group ? ' mate' : '');
       const b = document.createElement('b'); fillLabel(b, r);
       el.append(document.createElement('i'), b);
       el.onclick = e => { e.stopPropagation(); riderPopup(m, r.id); };
@@ -2071,7 +2266,7 @@ h1{font-family:inherit}
     const btn = Object.assign(document.createElement('button'), { type: 'button', textContent: T('block') });
     btn.onclick = () => blockRider(r);
     box.append(Object.assign(document.createElement('b'), { textContent: r.nick }),
-      Object.assign(document.createElement('span'), { textContent: THEMES[r.vehicle] ? THEMES[r.vehicle].name() : '' }));
+      Object.assign(document.createElement('span'), { textContent: (THEMES[r.vehicle] ? THEMES[r.vehicle].name() : '') + (r.group_name ? ' · ' + r.group_name : '') }));
     // inte under navigering: ingen ny rutt medan man kör
     if (m !== nmap) {
       const go = Object.assign(document.createElement('button'), { type: 'button', className: 'go', textContent: T('driveTo') });
@@ -2114,6 +2309,13 @@ h1{font-family:inherit}
     } else {
       nearMap.resize();
       if (c) nearMap.jumpTo({ center: [c.lng, c.lat] });
+    }
+    // gruppkamrater långt bort: visa så att alla får plats
+    const mates = LIVE.riders.filter(r => r.in_group);
+    if (LIVE.pos && mates.length) {
+      const b = new maplibregl.LngLatBounds([LIVE.pos.lng, LIVE.pos.lat], [LIVE.pos.lng, LIVE.pos.lat]);
+      mates.forEach(r => b.extend([r.lng, r.lat]));
+      nearMap.fitBounds(b, { padding: 60, maxZoom: 12, duration: 0 });
     }
     renderRiders();
   }
@@ -2256,6 +2458,9 @@ h1{font-family:inherit}
   applyLang();
   loadNowWeather();
   if (store.get('theme', null) === null) showWelcome();
+  $('welcome').addEventListener('close', pendingJoin);
+  readInvite();
+  window.addEventListener('hashchange', readInvite);
 
   // ---------- PWA ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
