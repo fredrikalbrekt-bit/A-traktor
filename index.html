@@ -264,6 +264,16 @@ dialog .row{display:flex;gap:10px;margin-top:14px}
 dialog .row .cta{height:48px;font-size:16px}
 /* ---------- Välj fordon vid första start ---------- */
 .veh{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+/* Välkomstrutan i tre steg. Steg 2 och 3 har det valda fordonets bild överst, som startsidan. */
+.wel-hero{position:absolute;left:0;right:0;top:0;height:180px;background:center 30%/cover no-repeat;opacity:.5;pointer-events:none}
+.wel-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 30%,var(--dialog))}
+.wel-step,.wel-dots{position:relative}
+.wel-dots{display:flex;gap:6px;margin:0 0 16px}
+.wel-dots i{flex:1;height:3px;border-radius:2px;background:var(--line2)}
+.wel-dots i.on{background:var(--accent)}
+.wel-list{list-style:none;padding:0;margin:4px 0 20px;display:flex;flex-direction:column;gap:12px}
+.wel-list li{display:flex;gap:12px;align-items:center;font-size:15px}
+.wel-list svg{color:var(--accent);flex-shrink:0}
 .veh-t{position:relative;aspect-ratio:1/1.1;border:1px solid var(--line2);border-radius:14px;overflow:hidden;padding:0;background:var(--card);
   text-align:left;display:flex;flex-direction:column;justify-content:flex-end}
 .veh-t img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -577,10 +587,49 @@ h1{font-family:inherit}
   </div>
 </dialog>
 
+<!-- Välkommen: fordon, Google-konto, vad andra ser. Slowlane kräver ett konto, så rutan går inte att stänga utan att logga in. -->
 <dialog id="welcome" aria-labelledby="welTitle">
-  <h2 id="welTitle" tabindex="-1" autofocus style="outline:none" data-i18n="welTitle">Vad kör du?</h2>
-  <p data-i18n="welSub">Fordonet styr hastigheten och vilka vägar rutten får använda. Du kan ändra det i inställningarna.</p>
-  <div class="veh" id="welList"></div>
+  <div class="wel-hero" id="welHero" hidden></div>
+  <div class="wel-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="wel-step" data-step="1">
+    <div class="kicker" data-i18n="welHi">Välkommen till Slowlane</div>
+    <h2 id="welTitle" tabindex="-1" autofocus style="outline:none;margin-top:4px" data-i18n="welTitle">Vad kör du?</h2>
+    <p data-i18n="welSub">Fordonet styr hastigheten och vilka vägar rutten får använda. Du kan ändra det i inställningarna.</p>
+    <div class="veh" id="welList"></div>
+  </div>
+  <div class="wel-step" data-step="2" hidden>
+    <div class="kicker" id="welKicker2"></div>
+    <h2 id="welTitle2" tabindex="-1" style="outline:none;margin-top:4px" data-i18n="welAcct">Skapa ditt konto</h2>
+    <p data-i18n="welAcctSub">Slowlane används med ett Google-konto. Då kan du:</p>
+    <ul class="wel-list">
+      <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span data-i18n="welB1">Se kompisarna i dina grupper</span></li>
+      <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M12 14v6M9 17h6"></path></svg><span data-i18n="welB2">Skapa och svara på träffar</span></li>
+      <li><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg><span data-i18n="welB3">Få notis när någon skapar en träff</span></li>
+    </ul>
+    <div id="gBtn"></div>
+    <p class="msg" id="welMsg" role="alert" style="margin:8px 0 0;text-align:center"></p>
+    <p style="margin:10px 0 0;text-align:center"><button type="button" class="lnk" id="welRetry" hidden data-i18n="welRetry">Försök igen</button></p>
+    <p style="margin:6px 0 0;text-align:center" data-i18n="welPriv">Andra ser bara ditt smeknamn, aldrig din e-post.</p>
+    <p style="margin:0;text-align:center"><a class="lnk" href="integritet.html" target="_blank" rel="noopener" data-i18n="privacy">Så hanteras dina uppgifter</a></p>
+    <p style="margin:18px 0 0;text-align:center"><button type="button" class="lnk" id="welBack" data-i18n="welBack">‹ Byt fordon</button></p>
+  </div>
+  <div class="wel-step" data-step="3" hidden>
+    <div class="kicker" id="welKicker3"></div>
+    <h2 id="welTitle3" tabindex="-1" style="outline:none;margin-top:4px" data-i18n="welMe">Vad ska andra se?</h2>
+    <label for="welNick" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="nickLbl">Smeknamn</label>
+    <input class="key" id="welNick" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="nickPh" placeholder="Syns för andra förare">
+    <label class="toggle">
+      <span><span class="t1" data-i18n="visLbl">Visa min position</span><span class="t2" data-i18n="visSub">Andra förare ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.</span></span>
+      <span class="switch"><input type="checkbox" id="welVis"><span></span></span>
+    </label>
+    <label class="toggle">
+      <span><span class="t1" data-i18n="pushLbl">Notiser om nya träffar</span><span class="t2" id="welPushSub" data-i18n="pushSub">Du får en notis när någon i dina grupper skapar en träff.</span></span>
+      <span class="switch"><input type="checkbox" id="welPush"><span></span></span>
+    </label>
+    <p class="msg" id="welMsg3" role="alert" style="margin:8px 0 0"></p>
+    <p style="margin:12px 0 0" data-i18n="welLater">Allt går att ändra i inställningarna.</p>
+    <button type="button" class="cta" id="welGo" style="margin-top:16px" data-i18n="welGo">Kom igång</button>
+  </div>
 </dialog>
 
 <dialog id="settings">
@@ -596,8 +645,6 @@ h1{font-family:inherit}
     <p style="margin:6px 0 18px" id="speedHelp">Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.</p>
     <div class="acct">
       <p class="who" id="acctWho" hidden></p>
-      <p id="acctTx" data-i18n="signWhy">Logga in med Google för att kunna synas för andra förare. De ser bara ditt smeknamn, aldrig din e-post.</p>
-      <div id="gBtn"></div>
       <p class="msg" id="acctMsg" role="alert" style="margin-top:6px"></p>
       <p id="acctOut" hidden><button type="button" class="lnk" id="signOut" data-i18n="signOut">Logga ut</button> · <button type="button" class="lnk danger" id="delAcct" data-i18n="delAcct">Radera mitt konto</button></p>
     </div>
@@ -625,7 +672,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 38</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 39</p>
   </form>
 </dialog>
 
@@ -697,7 +744,7 @@ h1{font-family:inherit}
       suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', safetyHd:'Vägtyper längs rutten', whyHd:'Varför den här rutten?', wOk:'Rutten följer vägen en bil skulle ta och kontrollerades mot motorväg och motortrafikled i OpenStreetMap. Inga sådana vägar på rutten. Restiden är räknad med fordonets maxhastighet.', wOkSlower:'Bilvägen ({t}) var laglig men användes inte.', wRej:'Den snabbaste vägen med bilprofil ({t}, {d}) går {m} på väg som i OpenStreetMap är märkt som motorväg eller motortrafikled{n}, och avvisades. Den visas streckad på kartan, den förbjudna delen i rött.', wRejHint:'Har vägen inte gröna skyltar i verkligheten är den felmärkt i OpenStreetMap och kan rättas där.', wRerouted:'En laglig variant med bilprofil hittades ({t}).', wFailed:'Kontrollen mot OpenStreetMap kunde inte göras just nu, så mopedprofilen användes. Den undviker alla större vägar.', wNoRoute:'Ingen rutt med bilprofil hittades, så mopedprofilen användes.', wBike:'Moped klass II räknas med cykelprofil, där cykelbanor är tillåtna.', wChosenAuto:'Vald rutt: bilprofil, kontrollerad.', wChosenScooter:'Vald rutt: mopedprofil.', wSafe:'Säkrast är valt: rutten med minst sträcka på snabba vägar.', legendRej:'avvisad rutt', wTech:'Tekniskt', wSrc:'Källa för gröna vägar', legendForbid:'märkt motorväg/motortrafikled', ferryWarn:'Rutten innehåller {n} färja/färjor, kontrollera tider och att fordonet får åka med.', tooLong:'Rutten är för lång för analys av vägtyper.', segSafe:'Cykelbana och lugna vägar (≤50)', segCalm:'Lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Ingen säkrare väg hittades', lessHigh:'{d} mindre 80-väg', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
       calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
       dist:'Sträcka', arrival:'Ankomst', startNav:'Starta navigering', attr:'Rutt: Valhalla via Stadia Maps · Kartdata', navAria:'Navigering',
-      end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', pBil:'Mopedbil', hBil:'Tema: grafit och lila. Max 45 km/h, motorväg och motortrafikled undviks. Får inte köra på cykelbana.', bTitle:'Sakta i backarna!', bText:'Över 45 km/h? En mopedbil är begränsad till 45 km/h. Går den fortare räknas den inte längre som mopedbil.', bOk:'Okej, 45 km/h', bKeep:'Det är ingen mopedbil', speedHelpB:'Används för ruttval, restid och ankomsttid under navigeringen. Mopedbil: 45 km/h.', pMoped1:'Moped klass I', hMoped1:'Tema: neon och kolfiber. Max 45 km/h, motorväg och motortrafikled undviks. Får inte köra på cykelbana.', m1Title:'Full gas – men inte mer!', m1Text:'Över 45 km/h? Då är det ingen moped klass I längre utan en motorcykel, med krav på mc-körkort.', m1Ok:'Okej, 45 km/h', m1Keep:'Det är en lätt motorcykel', speedHelpM1:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass I: 45 km/h.', wxHd:'Väder längs vägen', wxNow:'just nu', wxIce:'Halkrisk', wxGust:'Kraftig byvind {v} m/s', wxFog:'Dimma, dålig sikt', wxThunder:'Åska', wxDark:'Mörkt vid ankomst', wxHeavy:'Kraftigt regn', wxSnow:'Snö', wxCalm:'Inga varningar längs vägen.', wxSoonRain:'Regn om ca {m} min', wxSoonSnow:'Snöfall om ca {m} min', wxSoonIce:'Halkrisk längre fram, sänk farten', wxSoonGust:'Kraftiga vindbyar längre fram', wxSoonFog:'Dimma längre fram, tänd belysningen', wxDusk:'Det börjar skymma, tänd belysningen', wxStart:'Avresa', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 25 km/h, kör på cykelbana där det är tillåtet.', ksTitle:'Hoppsan!', ksText:'Över 25 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 25 km/h.',
+      end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', pBil:'Mopedbil', hBil:'Tema: grafit och lila. Max 45 km/h, motorväg och motortrafikled undviks. Får inte köra på cykelbana.', bTitle:'Sakta i backarna!', bText:'Över 45 km/h? En mopedbil är begränsad till 45 km/h. Går den fortare räknas den inte längre som mopedbil.', bOk:'Okej, 45 km/h', bKeep:'Det är ingen mopedbil', speedHelpB:'Används för ruttval, restid och ankomsttid under navigeringen. Mopedbil: 45 km/h.', pMoped1:'Moped klass I', hMoped1:'Tema: neon och kolfiber. Max 45 km/h, motorväg och motortrafikled undviks. Får inte köra på cykelbana.', m1Title:'Full gas – men inte mer!', m1Text:'Över 45 km/h? Då är det ingen moped klass I längre utan en motorcykel, med krav på mc-körkort.', m1Ok:'Okej, 45 km/h', m1Keep:'Det är en lätt motorcykel', speedHelpM1:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass I: 45 km/h.', wxHd:'Väder längs vägen', wxNow:'just nu', wxIce:'Halkrisk', wxGust:'Kraftig byvind {v} m/s', wxFog:'Dimma, dålig sikt', wxThunder:'Åska', wxDark:'Mörkt vid ankomst', wxHeavy:'Kraftigt regn', wxSnow:'Snö', wxCalm:'Inga varningar längs vägen.', wxSoonRain:'Regn om ca {m} min', wxSoonSnow:'Snöfall om ca {m} min', wxSoonIce:'Halkrisk längre fram, sänk farten', wxSoonGust:'Kraftiga vindbyar längre fram', wxSoonFog:'Dimma längre fram, tänd belysningen', wxDusk:'Det börjar skymma, tänd belysningen', wxStart:'Avresa', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 30 km/h, kör på cykelbana där det är tillåtet.', ksTitle:'Hoppsan!', ksText:'Över 30 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 30 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 30 km/h.',
       speedLbl:'Fordonets maxhastighet', speedHelp:'Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.', cancel:'Avbryt', save:'Spara', langLbl:'Språk',
       atSpeed:'vid {v} km/h', etaSub:'Ankomst vid max {v} km/h', left:'{t} · {d} kvar', min:'min', h:'h',
       muteOn:'Slå på röst', muteOff:'Stäng av röst', waitGps:'Väntar på GPS…', arrived:'Du är framme.', offRoute:'Du har lämnat rutten. Beräknar ny rutt…',
@@ -719,7 +766,6 @@ h1{font-family:inherit}
       liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
       liveNone:'inga andra inom 30 km', liveOne:'1 förare inom 30 km', liveCount:'{n} förare inom 30 km',
       liveOffTx:'Du syns inte. Logga in med Google och slå på Visa min position i inställningarna.', liveSign:'logga in med Google igen',
-      signWhy:'Logga in med Google för att kunna synas för andra förare. De ser bara ditt smeknamn, aldrig din e-post.',
       signedAs:'Inloggad som {e}', signOut:'Logga ut', delAcct:'Radera mitt konto', signNeed:'Logga in med Google ovan för att kunna synas.',
       signFail:'Inloggningen misslyckades. Försök igen.', signOff:'Inloggning med Google är inte påslagen än.',
       delAsk:'Radera ditt konto? Din position, dina blockeringar, grupperna du skapat och kopplingen till ditt Google-konto tas bort direkt. Det går inte att ångra.',
@@ -752,6 +798,11 @@ h1{font-family:inherit}
       pickHint:'Tryck på kartan där du vill åka. Dra nålen för att flytta den.', pickUse:'Välj som mål', pinLabel:'📍 Kartnål',
       pickSubFrom:'Sätt en kartnål där du startar', pickHintFrom:'Tryck på kartan där du startar. Dra nålen för att flytta den.', pickUseFrom:'Välj som start',
       welTitle:'Vad kör du?', welSub:'Fordonet styr hastigheten och vilka vägar rutten får använda. Du kan ändra det i inställningarna.',
+      welHi:'Välkommen till Slowlane', welAcct:'Skapa ditt konto', welAcctSub:'Slowlane används med ett Google-konto. Då kan du:',
+      welB1:'Se kompisarna i dina grupper', welB2:'Skapa och svara på träffar', welB3:'Få notis när någon skapar en träff',
+      welPriv:'Andra ser bara ditt smeknamn, aldrig din e-post.', welBack:'‹ Byt fordon', welRetry:'Försök igen',
+      welGisFail:'Inloggningen gick inte att visa. Kontrollera att du är uppkopplad.',
+      welMe:'Vad ska andra se?', welLater:'Allt går att ändra i inställningarna.', welGo:'Kom igång', welNickNeed:'Välj ett smeknamn på 3–16 tecken.',
       welMax:'max {v} km/h', welBike:'cykelbana', endAsk:'Avsluta navigeringen?'
     },
     en: {
@@ -759,7 +810,7 @@ h1{font-family:inherit}
       suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', safetyHd:'Road types along the route', whyHd:'Why this route?', wOk:'The route follows the road a car would take and was checked against motorways and expressways in OpenStreetMap. No such roads on the route. Travel time is calculated at your vehicle’s max speed.', wOkSlower:'The car route ({t}) was legal but not used.', wRej:'The fastest car-profile road ({t}, {d}) runs {m} on a road tagged as motorway or expressway in OpenStreetMap{n}, and was rejected. It is shown dashed on the map, the forbidden part in red.', wRejHint:'If that road has no green signs in reality, it is mis-tagged in OpenStreetMap and can be fixed there.', wRerouted:'A legal car-profile variant was found ({t}).', wFailed:'The OpenStreetMap check could not be done right now, so the moped profile was used. It avoids all larger roads.', wNoRoute:'No car-profile route was found, so the moped profile was used.', wBike:'Class II mopeds are routed with a bicycle profile, where cycle paths are allowed.', wChosenAuto:'Chosen route: car profile, checked.', wChosenScooter:'Chosen route: moped profile.', wSafe:'Safest is selected: the route with the least distance on fast roads.', legendRej:'rejected route', wTech:'Technical', wSrc:'Source for green roads', legendForbid:'tagged motorway/expressway', ferryWarn:'The route includes {n} ferry crossing(s); check times and that your vehicle is allowed on board.', tooLong:'The route is too long for road type analysis.', segSafe:'Cycle paths and calm roads (≤50)', segCalm:'Calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'No safer route found', lessHigh:'{d} less on 80 roads', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
       calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
       dist:'Distance', arrival:'Arrival', startNav:'Start navigation', attr:'Route: Valhalla via Stadia Maps · Map data', navAria:'Navigation',
-      end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', pBil:'Moped car', hBil:'Theme: graphite and purple. Max 45 km/h, motorways and expressways avoided. Not allowed on cycle paths.', bTitle:'Easy, speedster!', bText:'Over 45 km/h? A moped car is limited to 45 km/h. Any faster and it no longer counts as a moped car.', bOk:'Okay, 45 km/h', bKeep:'It’s not a moped car', speedHelpB:'Used for route choice, travel time and arrival time during navigation. Moped car: 45 km/h.', pMoped1:'Class I moped', hMoped1:'Theme: neon and carbon. Max 45 km/h, motorways and expressways avoided. Not allowed on cycle paths.', m1Title:'Full throttle – but no more!', m1Text:'Over 45 km/h? Then it’s no longer a class I moped but a motorcycle, which needs a motorcycle licence.', m1Ok:'Okay, 45 km/h', m1Keep:'It’s a light motorcycle', speedHelpM1:'Used for route choice, travel time and arrival time during navigation. Class I moped: 45 km/h.', wxHd:'Weather along the way', wxNow:'right now', wxIce:'Risk of ice', wxGust:'Strong gusts {v} m/s', wxFog:'Fog, poor visibility', wxThunder:'Thunder', wxDark:'Dark on arrival', wxHeavy:'Heavy rain', wxSnow:'Snow', wxCalm:'No warnings along the way.', wxSoonRain:'Rain in about {m} min', wxSoonSnow:'Snow in about {m} min', wxSoonIce:'Risk of ice ahead, slow down', wxSoonGust:'Strong gusts ahead', wxSoonFog:'Fog ahead, switch on your lights', wxDusk:'It’s getting dark, switch on your lights', wxStart:'Depart', pEpa:'EPA/A-tractor', pMoped:'Class II moped', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 25 km/h, uses cycle paths where allowed.', ksTitle:'Whoa there!', ksText:'Over 25 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 25 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 25 km/h.',
+      end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', pBil:'Moped car', hBil:'Theme: graphite and purple. Max 45 km/h, motorways and expressways avoided. Not allowed on cycle paths.', bTitle:'Easy, speedster!', bText:'Over 45 km/h? A moped car is limited to 45 km/h. Any faster and it no longer counts as a moped car.', bOk:'Okay, 45 km/h', bKeep:'It’s not a moped car', speedHelpB:'Used for route choice, travel time and arrival time during navigation. Moped car: 45 km/h.', pMoped1:'Class I moped', hMoped1:'Theme: neon and carbon. Max 45 km/h, motorways and expressways avoided. Not allowed on cycle paths.', m1Title:'Full throttle – but no more!', m1Text:'Over 45 km/h? Then it’s no longer a class I moped but a motorcycle, which needs a motorcycle licence.', m1Ok:'Okay, 45 km/h', m1Keep:'It’s a light motorcycle', speedHelpM1:'Used for route choice, travel time and arrival time during navigation. Class I moped: 45 km/h.', wxHd:'Weather along the way', wxNow:'right now', wxIce:'Risk of ice', wxGust:'Strong gusts {v} m/s', wxFog:'Fog, poor visibility', wxThunder:'Thunder', wxDark:'Dark on arrival', wxHeavy:'Heavy rain', wxSnow:'Snow', wxCalm:'No warnings along the way.', wxSoonRain:'Rain in about {m} min', wxSoonSnow:'Snow in about {m} min', wxSoonIce:'Risk of ice ahead, slow down', wxSoonGust:'Strong gusts ahead', wxSoonFog:'Fog ahead, switch on your lights', wxDusk:'It’s getting dark, switch on your lights', wxStart:'Depart', pEpa:'EPA/A-tractor', pMoped:'Class II moped', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 30 km/h, uses cycle paths where allowed.', ksTitle:'Whoa there!', ksText:'Over 30 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 30 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 30 km/h.',
       speedLbl:'Vehicle max speed', speedHelp:'Used for route choice, travel time and arrival time during navigation. A-tractor: 30 km/h.', cancel:'Cancel', save:'Save', langLbl:'Language',
       atSpeed:'at {v} km/h', etaSub:'Arrival at max {v} km/h', left:'{t} · {d} left', min:'min', h:'h',
       muteOn:'Turn voice on', muteOff:'Turn voice off', waitGps:'Waiting for GPS…', arrived:'You have arrived.', offRoute:'You left the route. Calculating a new route…',
@@ -781,7 +832,6 @@ h1{font-family:inherit}
       liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
       liveNone:'no one else within 30 km', liveOne:'1 rider within 30 km', liveCount:'{n} riders within 30 km',
       liveOffTx:'You’re not visible. Sign in with Google and turn on Show my position in settings.', liveSign:'sign in with Google again',
-      signWhy:'Sign in with Google to be visible to other riders. They only see your nickname, never your email.',
       signedAs:'Signed in as {e}', signOut:'Sign out', delAcct:'Delete my account', signNeed:'Sign in with Google above to be visible.',
       signFail:'Sign-in failed. Try again.', signOff:'Google sign-in isn’t switched on yet.',
       delAsk:'Delete your account? Your position, your blocks, the groups you created and the link to your Google account are removed right away. This can’t be undone.',
@@ -814,6 +864,11 @@ h1{font-family:inherit}
       pickHint:'Tap the map where you want to go. Drag the pin to move it.', pickUse:'Set as destination', pinLabel:'📍 Map pin',
       pickSubFrom:'Drop a pin where you start', pickHintFrom:'Tap the map where you start. Drag the pin to move it.', pickUseFrom:'Set as start',
       welTitle:'What do you ride?', welSub:'Your vehicle sets the speed and which roads the route may use. You can change it in settings.',
+      welHi:'Welcome to Slowlane', welAcct:'Create your account', welAcctSub:'Slowlane is used with a Google account. Then you can:',
+      welB1:'See your friends in your groups', welB2:'Create and answer meetups', welB3:'Get notified when someone creates a meetup',
+      welPriv:'Others only see your nickname, never your email.', welBack:'‹ Change vehicle', welRetry:'Try again',
+      welGisFail:'Couldn’t show the sign-in. Check that you’re online.',
+      welMe:'What should others see?', welLater:'You can change all of this in settings.', welGo:'Get started', welNickNeed:'Choose a nickname of 3–16 characters.',
       welMax:'max {v} km/h', welBike:'cycle paths', endAsk:'End navigation?'
     }
   };
@@ -838,6 +893,9 @@ h1{font-family:inherit}
 
   // ---------- State ----------
   let speed = store.get('speed', 30);
+  // Moped klass II gick från 25 till 30 km/h i version 39. Den som hade det gamla standardvärdet får det nya, en gång.
+  if (store.get('theme', null) === 'moped2' && speed === 25 && !store.get('ks30', false)) { speed = 30; store.set('speed', 30); }
+  store.set('ks30', true);
   let origin = null;          // {coords:{lat,lng}} | {placeId,label}
   let dest = null;            // {placeId,label}
   let lastPos = store.get('lastPos', null);
@@ -855,7 +913,7 @@ h1{font-family:inherit}
   const THEMES = {
     epa:       { name: () => T('pEpa'),   about: () => T('hEpa'),   hero: 'epa-hero.webp',       fog: 'epa-fog.webp', def: 30, limit: 30, color: '#000000', emo: '☝️',
                  title: () => 'Aja baja!',    text: () => T('ajaText'), ok: () => T('ajaOk'), keep: () => T('ajaKeep'), help: () => T('speedHelp') },
-    moped2:    { name: () => T('pMoped'), about: () => T('hMoped'), hero: 'moped2-hero.webp',    fog: 'dust.webp',    def: 25, limit: 25, color: '#0c1430', emo: '🛵', bike: true,
+    moped2:    { name: () => T('pMoped'), about: () => T('hMoped'), hero: 'moped2-hero.webp',    fog: 'dust.webp',    def: 30, limit: 30, color: '#0c1430', emo: '🛵', bike: true,
                  wxHero: { sun: 'moped2-hero.webp', rain: 'moped2-rain.webp', cool: 'moped2-cool.webp', cold: 'moped2-cold.webp' },
                  title: () => T('ksTitle'),   text: () => T('ksText'),  ok: () => T('ksOk'),  keep: () => T('ksKeep'),  help: () => T('speedHelpKs') },
     mopedbil:  { name: () => T('pBil'),   about: () => T('hBil'),   hero: 'mopedbil-hero.webp',  fog: 'epa-fog.webp', def: 45, limit: 45, color: '#08060b', emo: '🚗',
@@ -2064,8 +2122,9 @@ h1{font-family:inherit}
     if (!supa || !supa.refresh) throw needSign();
     try { await supaAuth('token?grant_type=refresh_token', { refresh_token: supa.refresh }); }
     catch (e) {
-      // ogiltig refresh-token (utloggad eller raderad på en annan telefon): logga ut här också
-      if (e.status === 400 || e.status === 401 || e.status === 403) { dropSession(); throw needSign(); }
+      // ogiltig refresh-token (utloggad eller raderad på en annan telefon): logga ut här också.
+      // Notiserna stängs av på telefonen, så att de inte fortsätter komma till ett konto som inte är inloggat.
+      if (e.status === 400 || e.status === 401 || e.status === 403) { pushOff(); signedOut(); throw needSign(); }
       throw e;
     }
     return supa.token;
@@ -2084,18 +2143,24 @@ h1{font-family:inherit}
       gisNonce = raw;
     })().catch(e => { gisReady = null; throw e; }));
   }
+  // Kontot i inställningarna. Utan konto visas välkomstrutan i stället (se gate).
   function renderAccount() {
     const on = signedIn();
-    // smeknamn och Visa min position behövs bara för den som kan synas
-    $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('visBox').hidden = !on; $('acctTx').hidden = on; $('gBtn').hidden = on;
-    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); loadGroups(); renderPush(); return; }
-    if (!GOOGLE_ID) { $('acctMsg').textContent = T('signOff'); return; }
-    gis().then(() => google.accounts.id.renderButton($('gBtn'), { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
-      text: 'signin_with', locale: lang, width: Math.max(200, Math.min(400, $('gBtn').clientWidth || 280)) }))
-      .catch(() => { $('acctMsg').textContent = T('generic'); });
+    $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('visBox').hidden = !on;
+    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); loadGroups(); renderPush(); }
+  }
+  // Googles knapp i välkomstrutans andra steg
+  function renderSignIn() {
+    $('welMsg').textContent = ''; $('welRetry').hidden = true;
+    if (!GOOGLE_ID) { $('welMsg').textContent = T('signOff'); return; }
+    gis().then(() => {
+      $('gBtn').replaceChildren();
+      google.accounts.id.renderButton($('gBtn'), { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
+        text: 'signin_with', locale: lang, width: Math.max(200, Math.min(400, $('gBtn').clientWidth || 280)) });
+    }).catch(() => { $('welMsg').textContent = T('welGisFail'); $('welRetry').hidden = false; });
   }
   async function googleDone(res) {
-    $('acctMsg').textContent = '';
+    $('welMsg').textContent = '';
     const body = { provider: 'google', id_token: res.credential, nonce: gisNonce };
     try {
       // Ett anonymt konto från en äldre version uppgraderas, så att blockeringarna följer med.
@@ -2103,16 +2168,21 @@ h1{font-family:inherit}
       let linked = false;
       if (supa && !signedIn()) try { await supaAuth('token?grant_type=id_token', { ...body, link_identity: true }, await supaToken()); linked = true; } catch (e) { if (!e.status) throw e; }
       if (!linked) await supaAuth('token?grant_type=id_token', body);
-    } catch (e) { $('acctMsg').textContent = isTimeout(e) ? T('slowNet') : T('signFail'); return; }
-    renderAccount(); loadMeets();
-    pendingJoin();   // kom från en inbjudningslänk innan inloggningen
+    } catch (e) { $('welMsg').textContent = isTimeout(e) ? T('slowNet') : T('signFail'); return; }
+    renderAccount(); loadMeets(); pushSync();
+    // vidare till sista steget. En inbjudningslänk öppnas när välkomstrutan stängs (pendingJoin).
+    if ($('welcome').open) welStep(3); else pendingJoin();
   }
+  // Utloggad, raderad eller ogiltig session: tillbaka till inloggningen i välkomstrutan
   function signedOut() {
     dropSession(); store.set('visible', false); $('visIn').checked = false;
+    liveStop();
     GROUPS = []; renderMeetNew(); if ($('grp').open) $('grp').close();
     MEETS = []; renderMeets(); if ($('meet').open) $('meet').close();
     try { google.accounts.id.disableAutoSelect(); } catch {}
     renderAccount();
+    if ($('settings').open) $('settings').close();
+    gate();
   }
   $('signOut').onclick = () => {
     const t = supa && supa.token;
@@ -2464,24 +2534,28 @@ h1{font-family:inherit}
     const j = sub.toJSON();
     await supaRpc('push_save', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_lang: lang });
   }
+  // Samma reglage finns i inställningarna och i välkomstrutans sista steg: [reglage, text, meddelande]
+  const PUSH_UI = [['pushIn', 'pushSub', 'pushMsg'], ['welPush', 'welPushSub', 'welMsg3']];
   function renderPush() {
-    const box = $('pushIn'), able = pushAble(), denied = able && Notification.permission === 'denied';
-    box.disabled = !able || denied;
-    box.checked = able && Notification.permission === 'granted' && store.get('push', false);
-    // navigator.standalone finns bara i Safari på iPhone: false = i webbläsaren, inte från hemskärmen
-    $('pushSub').textContent = T(!able ? (navigator.standalone === false ? 'pushHome' : 'pushNo') : denied ? 'pushDenied' : 'pushSub');
+    const able = pushAble(), denied = able && Notification.permission === 'denied';
+    PUSH_UI.forEach(([b, s]) => {
+      $(b).disabled = !able || denied;
+      $(b).checked = able && Notification.permission === 'granted' && store.get('push', false);
+      // navigator.standalone finns bara i Safari på iPhone: false = i webbläsaren, inte från hemskärmen
+      $(s).textContent = T(!able ? (navigator.standalone === false ? 'pushHome' : 'pushNo') : denied ? 'pushDenied' : 'pushSub');
+    });
   }
-  $('pushIn').addEventListener('change', async () => {
-    const box = $('pushIn'); $('pushMsg').textContent = '';
+  PUSH_UI.forEach(([b, , m]) => $(b).addEventListener('change', async () => {
+    const box = $(b); $(m).textContent = '';
     if (!box.checked) { pushOff(); return; }
     // iPhone frågar bara om lov direkt efter ett tryck, så frågan måste komma först
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') { box.checked = false; renderPush(); return; }
     box.disabled = true;
     try { await pushSave(await pushSubscribe(await swReady())); store.set('push', true); }
-    catch (e) { box.checked = false; $('pushMsg').textContent = isTimeout(e) ? T('slowNet') : T('pushFail'); }
+    catch (e) { box.checked = false; $(m).textContent = isTimeout(e) ? T('slowNet') : T('pushFail'); }
     box.disabled = false; renderPush();
-  });
+  }));
   // Av: bort från kontot och från telefonen. Vid utloggning skickas sessionen med, eftersom den tas bort direkt.
   async function pushOff(jwt) {
     store.set('push', false);
@@ -2778,9 +2852,38 @@ h1{font-family:inherit}
   document.querySelectorAll('.view').forEach(v => backObs.observe(v, { attributes: true, attributeFilter: ['class'] }));
   backObs.observe(S, { attributes: true, attributeFilter: ['hidden'] });
 
-  // ---------- Välj fordon vid första start ----------
-  // Utan valt fordon räknas allt som EPA, även för den som kör moped klass II
-  function showWelcome() {
+  // ---------- Välkommen: fordon, konto, vad andra ser ----------
+  // Slowlane kräver ett Google-konto. Utan konto visas välkomstrutan, som inte går att stänga:
+  // fordonet först om inget är valt (annars räknas allt som EPA), annars direkt till inloggningen.
+  function gate() {
+    if ($('welcome').open || (signedIn() && store.get('theme', null) !== null)) return;
+    showWelcome(store.get('theme', null) === null ? 1 : 2);
+  }
+  function welStep(n) {
+    document.querySelectorAll('#welcome .wel-step').forEach(s => { s.hidden = +s.dataset.step !== n; });
+    document.querySelectorAll('#welcome .wel-dots i').forEach((d, i) => d.classList.toggle('on', i < n));
+    // steg 2 och 3 har det valda fordonets bild överst, som startsidan
+    $('welHero').hidden = n === 1; $('welHero').style.backgroundImage = `url(${TH().hero})`;
+    $('welcome').setAttribute('aria-labelledby', n === 1 ? 'welTitle' : 'welTitle' + n);
+    $('welcome').scrollTop = 0;
+    if (n === 2) { $('welKicker2').textContent = 'Slowlane · ' + TH().name(); renderSignIn(); }
+    if (n === 3) {
+      $('welKicker3').textContent = T('signedAs', { e: supa.email || 'Google' });
+      $('welNick').value = store.get('nick', ''); $('welVis').checked = store.get('visible', false); $('welMsg3').textContent = '';
+      renderPush();
+    }
+  }
+  $('welBack').onclick = () => welStep(1);
+  $('welRetry').onclick = renderSignIn;
+  $('welGo').onclick = () => {
+    const nick = $('welNick').value.trim().replace(/\s+/g, ' ');
+    if (!validNick(nick)) { $('welMsg3').textContent = T('welNickNeed'); $('welNick').focus(); return; }
+    store.set('nick', nick); store.set('visible', $('welVis').checked);
+    $('welcome').close();
+    loadGroups();   // smeknamnet följer med till grupperna
+    liveSync(); renderRiders();
+  };
+  function showWelcome(step) {
     $('welList').innerHTML = '';
     ['epa', 'moped2', 'moped1', 'mopedbil'].forEach(k => {
       const t = THEMES[k], b = document.createElement('button');
@@ -2793,18 +2896,19 @@ h1{font-family:inherit}
         theme = k; store.set('theme', k);
         speed = t.def; store.set('speed', speed);
         applyTheme(); renderSpeed(); loadNowWeather();
-        $('welcome').close();
+        if (signedIn()) $('welcome').close(); else welStep(2);
       };
       $('welList').appendChild(b);
     });
-    $('welcome').showModal();
+    if (!$('welcome').open) $('welcome').showModal();
+    welStep(step);
   }
   $('welcome').addEventListener('cancel', e => e.preventDefault());  // ett val krävs, det är ett tryck
 
   applyTheme();
   applyLang();
   loadNowWeather();
-  if (store.get('theme', null) === null) showWelcome();
+  gate();
   $('welcome').addEventListener('close', pendingJoin);
   readInvite(); readMeetLink();
   window.addEventListener('hashchange', () => { readInvite(); readMeetLink(); showWantedMeet(); });
