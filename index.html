@@ -53,6 +53,11 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .spacer{flex:1;min-height:150px}
 .speed{display:flex;align-items:center;justify-content:flex-end;gap:14px;cursor:pointer}
+.speed-row{display:flex;align-items:center;gap:12px}
+.speed-row .speed{margin-left:auto}
+.chip.meet-new{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--text);background:var(--glass);font-weight:500}
+.meet-new[hidden]{display:none}
+.meet-new svg{color:var(--accent);flex-shrink:0}
 .round{width:44px;height:44px;border-radius:999px;border:1px solid var(--line2);background:rgba(0,0,0,.6);font-size:20px}
 .speed-val{display:flex;flex-direction:column;align-items:center;min-width:64px}
 .speed-val b{font-family:var(--cond);font-size:52px;font-weight:600;line-height:1}
@@ -416,8 +421,14 @@ h1{font-family:inherit}
 
     <div class="spacer"></div>
 
-    <div class="speed" id="speedBox" role="button" tabindex="0" data-i18n-aria="speedAria" aria-label="Ändra maxhastighet i inställningar">
-      <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span data-i18n="kmhMax">km/h max</span></div>
+    <div class="speed-row">
+      <button class="chip meet-new" id="meetNewBtn" type="button" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M12 14v6M9 17h6"></path></svg>
+        <span data-i18n="meetNewBtn">Skapa träff</span>
+      </button>
+      <div class="speed" id="speedBox" role="button" tabindex="0" data-i18n-aria="speedAria" aria-label="Ändra maxhastighet i inställningar">
+        <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span data-i18n="kmhMax">km/h max</span></div>
+      </div>
     </div>
 
     <div class="card fields">
@@ -614,7 +625,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 37</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 38</p>
   </form>
 </dialog>
 
@@ -628,7 +639,6 @@ h1{font-family:inherit}
     <div id="grpMembers"></div>
     <p style="font-size:14px;color:var(--muted);margin:16px 0 6px" data-i18n="meetHd">Träffar</p>
     <div class="grps" id="grpMeets"></div>
-    <button type="button" class="cta ghost" id="grpMeetNew" style="margin-top:8px" data-i18n="meetNew">Ny träff</button>
     <div class="acct" id="grpInvite" style="margin:14px 0 0">
       <p data-i18n="grpInviteTx">Den som har länken eller koden kan gå med. Bara du ser den.</p>
       <p class="code" id="grpCode"></p>
@@ -646,6 +656,10 @@ h1{font-family:inherit}
 <dialog id="meet" aria-labelledby="meetTitle">
   <h2 id="meetTitle" tabindex="-1" autofocus style="outline:none"></h2>
   <div id="meetForm">
+    <div id="meetGrpBox" hidden>
+      <label for="meetGrp" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="meetGroup">Grupp</label>
+      <select class="key" id="meetGrp" style="margin-bottom:12px"></select>
+    </div>
     <input class="key" id="meetName" maxlength="40" autocomplete="off" data-i18n-ph="meetNamePh" placeholder="Vad gäller det? T.ex. Fika vid macken">
     <label for="meetWhen" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="meetWhen">När</label>
     <input class="key" id="meetWhen" type="datetime-local">
@@ -720,13 +734,13 @@ h1{font-family:inherit}
       grpShareText:'Gå med i {g} på Slowlane: {u} (kod {c})', grpReset:'Byt länk', grpResetAsk:'Byta länk? Den gamla länken och koden slutar fungera. Den som redan är med stannar kvar.', grpResetDone:'Ny länk och kod.',
       grpLeave:'Lämna gruppen', grpDelete:'Ta bort gruppen', grpLeaveAsk:'Lämna {g}?', grpDeleteAsk:'Ta bort {g} för alla medlemmar? Det går inte att ångra.',
       grpSignFirst:'Logga in med Google för att gå med i gruppen.', close:'Stäng',
-      meetHd:'Träffar', meetNone:'Inga träffar planerade.', meetNew:'Ny träff', meetNewTitle:'Ny träff', meetNamePh:'Vad gäller det? T.ex. Fika vid macken',
+      meetHd:'Träffar', meetNone:'Inga träffar planerade.', meetNewTitle:'Ny träff', meetNamePh:'Vad gäller det? T.ex. Fika vid macken',
       meetWhen:'När', meetWhere:'Var', meetPick:'Välj plats på kartan', meetPicked:'📍 Plats vald · Ändra', meetCreate:'Skapa träff',
       meetNeedTitle:'Skriv vad träffen gäller, 2–40 tecken.', meetBadTime:'Välj en tid från nu och högst 30 dagar framåt.', meetNeedPlace:'Välj var ni ska ses.',
       meetTooMany:'Gruppen har redan 10 kommande träffar.', meetGone:'Träffen finns inte längre.', meetComing:'Kommer', meetNotComing:'Kommer inte',
       meetCount:'{n} kommer', meetOne:'1 kommer', meetNoOne:'Ingen har sagt att de kommer än.', meetWho:'{n} kommer: {names}', meetBy:'av {n}',
       meetDrive:'Kör hit', meetGo:'Kör hit', meetDelete:'Ta bort träffen', meetDeleteAsk:'Ta bort {t}? Ingen i gruppen ser den längre.', meetMore:'+{n} till',
-      meetStarted:'började {t}', today:'idag', tomorrow:'imorgon',
+      meetStarted:'började {t}', today:'idag', tomorrow:'imorgon', meetNewBtn:'Skapa träff', meetGroup:'Grupp',
       pushLbl:'Notiser om nya träffar', pushSub:'Du får en notis när någon i dina grupper skapar en träff.',
       pushHome:'På iPhone kommer notiser bara till Slowlane på hemskärmen. Öppna appen därifrån och slå på dem där.',
       pushNo:'Den här webbläsaren kan inte ta emot notiser.', pushDenied:'Notiser är avstängda för Slowlane. Slå på dem i telefonens inställningar under Notiser.',
@@ -782,13 +796,13 @@ h1{font-family:inherit}
       grpShareText:'Join {g} on Slowlane: {u} (code {c})', grpReset:'New link', grpResetAsk:'Change the link? The old link and code stop working. Everyone already in stays.', grpResetDone:'New link and code.',
       grpLeave:'Leave group', grpDelete:'Delete group', grpLeaveAsk:'Leave {g}?', grpDeleteAsk:'Delete {g} for all members? This can’t be undone.',
       grpSignFirst:'Sign in with Google to join the group.', close:'Close',
-      meetHd:'Meetups', meetNone:'No meetups planned.', meetNew:'New meetup', meetNewTitle:'New meetup', meetNamePh:'What’s it about? E.g. Coffee at the petrol station',
+      meetHd:'Meetups', meetNone:'No meetups planned.', meetNewTitle:'New meetup', meetNamePh:'What’s it about? E.g. Coffee at the petrol station',
       meetWhen:'When', meetWhere:'Where', meetPick:'Choose place on map', meetPicked:'📍 Place chosen · Change', meetCreate:'Create meetup',
       meetNeedTitle:'Say what the meetup is about, 2–40 characters.', meetBadTime:'Pick a time from now and at most 30 days ahead.', meetNeedPlace:'Choose where to meet.',
       meetTooMany:'The group already has 10 upcoming meetups.', meetGone:'The meetup no longer exists.', meetComing:'Coming', meetNotComing:'Not coming',
       meetCount:'{n} coming', meetOne:'1 coming', meetNoOne:'No one has said they’re coming yet.', meetWho:'{n} coming: {names}', meetBy:'by {n}',
       meetDrive:'Navigate here', meetGo:'Go here', meetDelete:'Delete meetup', meetDeleteAsk:'Delete {t}? No one in the group will see it any more.', meetMore:'+{n} more',
-      meetStarted:'started {t}', today:'today', tomorrow:'tomorrow',
+      meetStarted:'started {t}', today:'today', tomorrow:'tomorrow', meetNewBtn:'Create meetup', meetGroup:'Group',
       pushLbl:'Notifications for new meetups', pushSub:'You get a notification when someone in your groups creates a meetup.',
       pushHome:'On iPhone, notifications only reach Slowlane on the Home Screen. Open the app from there and turn them on there.',
       pushNo:'This browser can’t receive notifications.', pushDenied:'Notifications are turned off for Slowlane. Turn them on under Notifications in your phone’s settings.',
@@ -2095,7 +2109,7 @@ h1{font-family:inherit}
   }
   function signedOut() {
     dropSession(); store.set('visible', false); $('visIn').checked = false;
-    GROUPS = []; if ($('grp').open) $('grp').close();
+    GROUPS = []; renderMeetNew(); if ($('grp').open) $('grp').close();
     MEETS = []; renderMeets(); if ($('meet').open) $('meet').close();
     try { google.accounts.id.disableAutoSelect(); } catch {}
     renderAccount();
@@ -2126,13 +2140,20 @@ h1{font-family:inherit}
   function grpMsg(text, ok) { $('grpMsg').textContent = text; $('grpMsg').classList.toggle('ok', !!ok); }
   const el = (tag, props) => Object.assign(document.createElement(tag), props);
 
+  // Hämtas vid start och när inställningarna öppnas. Bara det senaste svaret gäller, och vid
+  // nätfel ligger de grupper kvar som redan fanns (annars försvinner Skapa träff).
+  let grpSeq = 0;
   async function loadGroups() {
     if (!signedIn()) { GROUPS = []; renderGroups(); return; }
-    try { GROUPS = await supaRpc('group_list', { p_nick: nickNow() }) || []; } catch { GROUPS = null; }
-    renderGroups();
+    const n = ++grpSeq;
+    let rows;
+    try { rows = await supaRpc('group_list', { p_nick: nickNow() }) || []; } catch { rows = GROUPS && GROUPS.length ? GROUPS : null; }
+    if (n !== grpSeq) return;
+    GROUPS = rows; renderGroups();
   }
   function renderGroups() {
     const box = $('grpList');
+    renderMeetNew();
     if (!GROUPS || !GROUPS.length) { box.replaceChildren(el('p', { textContent: T(GROUPS ? 'grpNone' : 'generic') })); return; }
     box.replaceChildren(...GROUPS.map(g => {
       const b = el('button', { type: 'button', className: 'grp' });
@@ -2315,20 +2336,24 @@ h1{font-family:inherit}
   }
 
   // Ny träff. Platsen väljs med kartnålen, och då måste dialogerna stängas en stund.
+  // Skapas från startsidan. Är man med i flera grupper väljer man grupp i dialogen.
   function meetNew(g) {
     const d = new Date(Date.now() + 30 * 6e4); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
-    meetDraft = { group: g, name: '', when: localInput(d), loc: null };
+    meetDraft = { group: g, choose: !!(GROUPS && GROUPS.length > 1), name: '', when: localInput(d), loc: null };
     meetShowNew();
   }
   function meetShowNew() {
     const d = meetDraft; if (!d) return;
-    $('meetTitle').textContent = T('meetNewTitle') + ' · ' + d.group.name;
+    $('meetGrpBox').hidden = !d.choose;
+    if (d.choose) $('meetGrp').replaceChildren(...GROUPS.map(g => el('option', { value: g.id, textContent: g.name, selected: g.id === d.group.id })));
+    $('meetTitle').textContent = d.choose ? T('meetNewTitle') : T('meetNewTitle') + ' · ' + d.group.name;
     $('meetForm').hidden = false; $('meetView').hidden = true; $('meetOk').hidden = false;
     $('meetName').value = d.name; $('meetWhen').value = d.when; $('meetWhen').min = localInput(new Date());
     $('meetPick').textContent = T(d.loc ? 'meetPicked' : 'meetPick');
     meetMsg('');
     if (!$('meet').open) $('meet').showModal();
   }
+  $('meetGrp').addEventListener('change', () => { if (meetDraft) meetDraft.group = GROUPS.find(g => g.id === $('meetGrp').value) || meetDraft.group; });
   $('meetName').addEventListener('input', () => { if (meetDraft) meetDraft.name = $('meetName').value; });
   $('meetWhen').addEventListener('input', () => { if (meetDraft) meetDraft.when = $('meetWhen').value; });
   $('meetPick').onclick = () => {
@@ -2345,8 +2370,15 @@ h1{font-family:inherit}
     try { await supaRpc('meetup_create', { p_group: d.group.id, p_title: d.name, p_lat: d.loc.lat, p_lng: d.loc.lng, p_starts: t.toISOString() }); }
     catch (e) { meetMsg(meetErr(e)); return; }
     finally { $('meetOk').disabled = false; }
+    store.set('meetGroup', d.group.id);   // nästa träff från startsidan föreslår samma grupp
     meetDraft = null; $('meet').close();
     loadMeets();
+  };
+  // Skapa träff på startsidan: syns för den som är inloggad och med i minst en grupp
+  function renderMeetNew() { $('meetNewBtn').hidden = !(signedIn() && GROUPS && GROUPS.length); }
+  $('meetNewBtn').onclick = () => {
+    if (!GROUPS || !GROUPS.length) return;
+    meetNew(GROUPS.find(g => g.id === store.get('meetGroup', '')) || GROUPS[0]);
   };
 
   // En träff: svara, se vilka som kommer, kör dit
@@ -2397,7 +2429,6 @@ h1{font-family:inherit}
     else useMyLocation(() => $('go').click());
   }
   $('meetClose').onclick = () => { meetDraft = null; $('meet').close(); };
-  $('grpMeetNew').onclick = () => meetNew(grpCur);
 
   // Från en notis: #m=<id> när appen startas, eller ett meddelande från service workern när den redan är öppen
   let meetWanted = null;
@@ -2778,6 +2809,7 @@ h1{font-family:inherit}
   readInvite(); readMeetLink();
   window.addEventListener('hashchange', () => { readInvite(); readMeetLink(); showWantedMeet(); });
   loadMeets(); pushSync();
+  if (signedIn()) loadGroups();   // för Skapa träff på startsidan
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadMeets(); });
   // En ny träff i gruppen ska dyka upp även om appen redan är öppen
   setInterval(() => { if (document.visibilityState === 'visible') loadMeets(); }, 60000);
