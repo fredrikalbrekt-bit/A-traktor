@@ -1,4 +1,4 @@
--- Slowlane: förare som syns för andra inom 50 km medan appen är öppen.
+-- Slowlane: förare som syns för andra inom 30 km medan appen är öppen.
 -- Körs en gång i Supabase → SQL Editor. Går att köra om.
 
 create extension if not exists postgis with schema extensions;
@@ -27,7 +27,7 @@ alter table public.riders enable row level security;
 alter table public.blocks enable row level security;
 revoke all on public.riders, public.blocks from anon, authenticated;
 
--- Spara min position och få tillbaka alla andra inom 50 km från den
+-- Spara min position och få tillbaka alla andra inom 30 km från den
 create or replace function public.ride_ping(
   p_nick text, p_vehicle text, p_lat double precision, p_lng double precision,
   p_heading real default null, p_speed real default null)
@@ -60,7 +60,7 @@ begin
     from public.riders r
     where r.id <> me
       and r.updated_at > now() - interval '60 seconds'
-      and st_dwithin(r.pos, here, 50000)
+      and st_dwithin(r.pos, here, 30000)
       and not exists (select 1 from public.blocks b
                       where (b.blocker = me and b.blocked = r.id)
                          or (b.blocker = r.id and b.blocked = me))

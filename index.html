@@ -498,8 +498,8 @@ h1{font-family:inherit}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
   </button>
   <div class="near-info pick-bar">
-    <div id="pickHint" data-i18n="pickHint">Tryck på kartan där du vill åka. Dra nålen för att flytta den.</div>
-    <button class="cta" id="pickUse" type="button" data-i18n="pickUse" disabled>Välj som mål</button>
+    <div id="pickHint">Tryck på kartan där du vill åka. Dra nålen för att flytta den.</div>
+    <button class="cta" id="pickUse" type="button" disabled>Välj som mål</button>
   </div>
 </section>
 
@@ -528,7 +528,7 @@ h1{font-family:inherit}
     <label for="nickIn" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="nickLbl">Smeknamn</label>
     <input class="key" id="nickIn" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" data-i18n-ph="nickPh" placeholder="Syns för andra förare">
     <label class="toggle">
-      <span><span class="t1" data-i18n="visLbl">Visa min position</span><span class="t2" data-i18n="visSub">Förare inom 50 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.</span></span>
+      <span><span class="t1" data-i18n="visLbl">Visa min position</span><span class="t2" data-i18n="visSub">Förare inom 30 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.</span></span>
       <span class="switch"><input type="checkbox" id="visIn"><span></span></span>
     </label>
     <p class="msg" id="visMsg" role="alert" style="margin:6px 0 0"></p>
@@ -536,7 +536,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 27</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 28</p>
   </form>
 </dialog>
 </div>
@@ -573,14 +573,15 @@ h1{font-family:inherit}
       offline:'Ingen internetanslutning. Rutten kräver nät, försök igen när du har täckning.', needTo:'Skriv in vart du ska.',
       needFrom:'Ange var du startar, eller tryck på Min position.', generic:'Något gick fel. Kontrollera anslutningen och försök igen.',
       nickLbl:'Smeknamn', nickPh:'Syns för andra förare', visLbl:'Visa min position',
-      visSub:'Förare inom 50 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.',
+      visSub:'Förare inom 30 km ser ditt smeknamn och var du är medan Slowlane är öppen. Du ser dem bara när du själv syns.',
       nickNeed:'Skriv ett smeknamn på 3–16 tecken för att kunna synas.', nearAria:'Förare nära dig',
       liveOn:'Du syns', liveWait:'väntar på position…', liveGeo:'appen får inte använda din position', liveFail:'ingen kontakt med servern',
-      liveNone:'inga andra inom 50 km', liveOne:'1 förare inom 50 km', liveCount:'{n} förare inom 50 km',
+      liveNone:'inga andra inom 30 km', liveOne:'1 förare inom 30 km', liveCount:'{n} förare inom 30 km',
       liveOffTx:'Du syns inte. Slå på Visa min position i inställningarna.',
       block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit',
       pickMap:'Välj på kartan', pickSub:'Sätt en kartnål dit du ska', pickAria:'Välj mål på kartan',
-      pickHint:'Tryck på kartan där du vill åka. Dra nålen för att flytta den.', pickUse:'Välj som mål', pinLabel:'📍 Kartnål'
+      pickHint:'Tryck på kartan där du vill åka. Dra nålen för att flytta den.', pickUse:'Välj som mål', pinLabel:'📍 Kartnål',
+      pickSubFrom:'Sätt en kartnål där du startar', pickHintFrom:'Tryck på kartan där du startar. Dra nålen för att flytta den.', pickUseFrom:'Välj som start'
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
@@ -603,14 +604,15 @@ h1{font-family:inherit}
       offline:'No internet connection. Routing needs a connection, try again when you have coverage.', needTo:'Enter where you’re going.',
       needFrom:'Enter where you start, or tap My location.', generic:'Something went wrong. Check your connection and try again.',
       nickLbl:'Nickname', nickPh:'Shown to other riders', visLbl:'Show my position',
-      visSub:'Riders within 50 km see your nickname and where you are while Slowlane is open. You only see them while you’re visible.',
+      visSub:'Riders within 30 km see your nickname and where you are while Slowlane is open. You only see them while you’re visible.',
       nickNeed:'Enter a nickname of 3–16 characters to be visible.', nearAria:'Riders near you',
       liveOn:'You’re visible', liveWait:'waiting for location…', liveGeo:'the app isn’t allowed to use your location', liveFail:'no connection to the server',
-      liveNone:'no one else within 50 km', liveOne:'1 rider within 50 km', liveCount:'{n} riders within 50 km',
+      liveNone:'no one else within 30 km', liveOne:'1 rider within 30 km', liveCount:'{n} riders within 30 km',
       liveOffTx:'You’re not visible. Turn on Show my position in settings.',
       block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here',
       pickMap:'Choose on map', pickSub:'Drop a pin where you’re going', pickAria:'Choose destination on map',
-      pickHint:'Tap the map where you want to go. Drag the pin to move it.', pickUse:'Set as destination', pinLabel:'📍 Map pin'
+      pickHint:'Tap the map where you want to go. Drag the pin to move it.', pickUse:'Set as destination', pinLabel:'📍 Map pin',
+      pickSubFrom:'Drop a pin where you start', pickHintFrom:'Tap the map where you start. Drag the pin to move it.', pickUseFrom:'Set as start'
     }
   };
   let lang = store.get('lang', (navigator.language || 'sv').toLowerCase().startsWith('sv') ? 'sv' : 'en');
@@ -618,6 +620,7 @@ h1{font-family:inherit}
   const LOC = () => lang === 'sv' ? 'sv-SE' : 'en-GB';     // datum, tal
   const VOICE = () => lang === 'sv' ? 'sv-SE' : 'en-US';   // vägbeskrivning och röst
   const isMyPos = v => v === STR.sv.myPos || v === STR.en.myPos;
+  const isPin = v => v === STR.sv.pinLabel || v === STR.en.pinLabel;
   function applyLang() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); });
@@ -839,7 +842,8 @@ h1{font-family:inherit}
     SLIST.innerHTML = '';
     const text = SIN.value.trim();
     if (searchField === 'from') SLIST.appendChild(row(LOCATE, T('myPos'), '', () => { closeSearch(false); useMyLocation(); }, 'loc'));
-    if (searchField === 'to') SLIST.appendChild(row(PIN, T('pickMap'), T('pickSub'), () => { closeSearch(false); openPick(); }, 'loc'));
+    const f = searchField;
+    SLIST.appendChild(row(PIN, T('pickMap'), T(f === 'from' ? 'pickSubFrom' : 'pickSub'), () => { closeSearch(false); openPick(f); }, 'loc'));
     if (text.length < 3) {
       const rec = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x);
       if (rec.length) {
@@ -874,7 +878,7 @@ h1{font-family:inherit}
     searchField = field;
     $('sLbl').textContent = T(field);
     const cur = $(field).value;
-    SIN.value = (cur && !isMyPos(cur) && cur !== T('locating')) ? cur : '';
+    SIN.value = (cur && !isMyPos(cur) && !isPin(cur) && cur !== T('locating')) ? cur : '';
     SIN.enterKeyHint = 'search';
     $('sClear').hidden = !SIN.value;
     S.hidden = false;
@@ -1985,17 +1989,21 @@ h1{font-family:inherit}
   };
 
   // ---------- Mål med kartnål ----------
-  let pickMap = null, pickPin = null;
+  let pickMap = null, pickPin = null, pickField = 'to';
   function placePin(ll) {
     if (!pickPin) pickPin = new maplibregl.Marker({ color: cssVar('--accent'), draggable: true }).setLngLat(ll).addTo(pickMap);
     else pickPin.setLngLat(ll);
     $('pickUse').disabled = false;
   }
-  async function openPick() {
+  async function openPick(field) {
+    pickField = field;
+    const from = field === 'from', place = from ? origin : dest;
+    $('pickHint').textContent = T(from ? 'pickHintFrom' : 'pickHint');
+    $('pickUse').textContent = T(from ? 'pickUseFrom' : 'pickUse');
     $('v-plan').classList.remove('on'); $('v-pick').classList.add('on');
     try { await loadMapLibre(); } catch { $('pickHint').textContent = T('mapFail'); return; }
-    const had = dest && dest.pin ? dest.loc : null;
-    const c = had || LIVE.pos || (origin && origin.coords) || lastPos;
+    const had = place && place.pin ? place.loc : null;
+    const c = had || LIVE.pos || (origin && (origin.coords || origin.loc)) || lastPos;
     if (!pickMap) {
       let styleOk = false, fellBack = false;
       pickMap = new maplibregl.Map({ container: 'pickMap', style: 'https://tiles.stadiamaps.com/styles/alidade_smooth_dark.json',
@@ -2007,7 +2015,7 @@ h1{font-family:inherit}
       pickMap.on('click', e => placePin(e.lngLat));
     } else {
       pickMap.resize();
-      if (c) pickMap.jumpTo({ center: [c.lng, c.lat] });
+      if (c) pickMap.jumpTo({ center: [c.lng, c.lat], zoom: Math.max(pickMap.getZoom(), 12) });
     }
     if (had) placePin([had.lng, had.lat]);
     else if (pickPin) { pickPin.remove(); pickPin = null; }
@@ -2021,8 +2029,11 @@ h1{font-family:inherit}
   $('pickUse').onclick = () => {
     if (!pickPin) return;
     const p = pickPin.getLngLat();
-    dest = { loc: { lat: p.lat, lng: p.lng }, label: T('pinLabel'), short: T('pinLabel'), pin: true }; $('to').value = T('pinLabel');
+    const place = { loc: { lat: p.lat, lng: p.lng }, label: T('pinLabel'), short: T('pinLabel'), pin: true };
+    if (pickField === 'from') origin = place; else dest = place;
+    $(pickField).value = T('pinLabel');
     closePick();
+    if (pickField === 'from' && !$('to').value) setTimeout(() => openSearch('to'), 50);
   };
   liveSync();
 
