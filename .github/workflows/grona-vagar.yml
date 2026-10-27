@@ -20,7 +20,7 @@ jobs:
       - name: Hämta från OpenStreetMap
         run: |
           python3 - <<'PY'
-          import json, math, time, urllib.parse, urllib.request
+          import json, math, sys, time, urllib.parse, urllib.request
           Q = """[out:json][timeout:300];
           area["ISO3166-1"="SE"][admin_level=2]->.se;
           (way(area.se)["motorroad"="yes"];
@@ -30,6 +30,8 @@ jobs:
                      "https://overpass.private.coffee/api/interpreter",
                      "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
                      "https://overpass.kumi.systems/api/interpreter"]
+          # Ett svar med "runtime error" i remark är avbrutet (t.ex. tidsgräns) och kan sakna vägar
+          def complete(d): return bool(d and d.get("elements") and "error" not in (d.get("remark") or "").lower())
           data = None
           for attempt in range(3):
               for url in servers:
@@ -38,11 +40,14 @@ jobs:
                                                    headers={"User-Agent": "Slowlane-gron-vag/1.0"})
                       with urllib.request.urlopen(req, timeout=400) as r:
                           data = json.load(r)
-                      if data.get("elements"): break
+                      if complete(data): break
+                      print("ofullständigt svar från", url, (data or {}).get("remark", ""))
                   except Exception as e:
                       print("fel", url, e)
-              if data and data.get("elements"): break
+              if complete(data): break
               time.sleep(60)
+          if not complete(data):
+              sys.exit("Inget fullständigt svar från någon Overpass-server. Filen lämnas orörd.")
           els = data["elements"]
           # förenkla: ta bort punkter som ligger närmare än ~5 m från en rak linje
           def simplify(pts, tol=5.0):
@@ -69,9 +74,15 @@ jobs:
               flat = []
               for la, lo in pts: flat += [round(la*1e5), round(lo*1e5)]
               ways.append(flat)
+          # Skydd: färre vägar än förra gången betyder nästan alltid ett trasigt svar, inte att
+          # motorvägar har försvunnit. Då skulle appens kontroll mot gröna vägar bli svagare.
+          try: prev = json.load(open("grona-vagar.json")).get("count", 0)
+          except Exception: prev = 0
+          print("vägar:", len(ways), "förra gången:", prev)
+          if len(ways) < prev * 0.9:
+              sys.exit(f"Bara {len(ways)} vägar mot {prev} förra gången (mer än 10 % färre). Filen lämnas orörd.")
           out = {"generated": time.strftime("%Y-%m-%d"), "scale": 1e5, "count": len(ways), "ways": ways}
           json.dump(out, open("grona-vagar.json", "w"), separators=(",", ":"))
-          print("vägar:", len(ways))
           PY
 
       - name: Spara i repot

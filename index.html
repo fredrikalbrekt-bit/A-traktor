@@ -554,7 +554,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 30</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center">Slowlane · version 31</p>
   </form>
 </dialog>
 </div>
@@ -602,7 +602,7 @@ h1{font-family:inherit}
       pickHint:'Tryck på kartan där du vill åka. Dra nålen för att flytta den.', pickUse:'Välj som mål', pinLabel:'📍 Kartnål',
       pickSubFrom:'Sätt en kartnål där du startar', pickHintFrom:'Tryck på kartan där du startar. Dra nålen för att flytta den.', pickUseFrom:'Välj som start',
       welTitle:'Vad kör du?', welSub:'Fordonet styr hastigheten och vilka vägar rutten får använda. Du kan ändra det i inställningarna.',
-      welMax:'max {v} km/h', welBike:'cykelbana'
+      welMax:'max {v} km/h', welBike:'cykelbana', endAsk:'Avsluta navigeringen?'
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
@@ -636,7 +636,7 @@ h1{font-family:inherit}
       pickHint:'Tap the map where you want to go. Drag the pin to move it.', pickUse:'Set as destination', pinLabel:'📍 Map pin',
       pickSubFrom:'Drop a pin where you start', pickHintFrom:'Tap the map where you start. Drag the pin to move it.', pickUseFrom:'Set as start',
       welTitle:'What do you ride?', welSub:'Your vehicle sets the speed and which roads the route may use. You can change it in settings.',
-      welMax:'max {v} km/h', welBike:'cycle paths'
+      welMax:'max {v} km/h', welBike:'cycle paths', endAsk:'End navigation?'
     }
   };
   let lang = store.get('lang', (navigator.language || 'sv').toLowerCase().startsWith('sv') ? 'sv' : 'en');
@@ -2096,6 +2096,34 @@ h1{font-family:inherit}
     }
   };
   $('back').onclick = () => { $('v-res').classList.remove('on'); $('v-plan').classList.add('on'); if (FX.kind) fxStart(FX.kind); };
+
+  // ---------- Tillbaka-knappen (Android) ----------
+  // Utanför startsidan finns en extra historikpost, så att Tillbaka backar ett steg i appen
+  // i stället för att stänga den. Tillbaka till startsidan via appens egna knappar tar bort posten.
+  let guard = false, skipPop = false;
+  const screen = () => !S.hidden ? 'search' : ['v-nav', 'v-res', 'v-near', 'v-pick'].find(id => $(id).classList.contains('on')) || 'plan';
+  function syncBack() {
+    const deep = screen() !== 'plan';
+    if (deep && !guard) { history.pushState({ slowlane: 1 }, ''); guard = true; }
+    else if (!deep && guard) { guard = false; skipPop = true; history.back(); }
+  }
+  function stepBack() {
+    const s = screen();
+    if (s === 'search') closeSearch(true);
+    else if (s === 'v-pick') closePick();
+    else if (s === 'v-near') $('nearBack').click();
+    else if (s === 'v-res') $('back').click();
+    else if (s === 'v-nav' && confirm(T('endAsk'))) endNav();   // ett råkat tryck ska inte avbryta resan
+  }
+  window.addEventListener('popstate', () => {
+    if (skipPop) { skipPop = false; return; }
+    guard = false;
+    stepBack();
+    syncBack();
+  });
+  const backObs = new MutationObserver(syncBack);
+  document.querySelectorAll('.view').forEach(v => backObs.observe(v, { attributes: true, attributeFilter: ['class'] }));
+  backObs.observe(S, { attributes: true, attributeFilter: ['hidden'] });
 
   // ---------- Välj fordon vid första start ----------
   // Utan valt fordon räknas allt som EPA, även för den som kör moped klass II
