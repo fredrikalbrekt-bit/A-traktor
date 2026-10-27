@@ -115,6 +115,12 @@ async function sendPush(r: Row, payload: string, ttl: number, key: CryptoKey): P
   return res.status;
 }
 
+// Felet syns i svaret (net._http_response i databasen) och i funktionens loggar
+function fail(error: string): Response {
+  console.error('meetup-push:', error);
+  return Response.json({ error }, { status: 500 });
+}
+
 async function handle(req: Request): Promise<Response> {
   const secret = req.headers.get('x-slowlane-hook');
   if (req.method !== 'POST' || !secret) return new Response('not allowed', { status: 403 });
@@ -123,13 +129,19 @@ async function handle(req: Request): Promise<Response> {
   const meetup = typeof body.meetup === 'string' ? body.meetup : '';
   if (!meetup) return new Response('bad request', { status: 400 });
 
+  // Nyckeln först: push_job markerar träffen, så med en trasig nyckel skulle notiserna gå förlorade.
+  // Mellanslag, radbrytningar och citattecken från inklistringen tas bort.
+  const privateD = (Deno.env.get('VAPID_PRIVATE_KEY') || '').replace(/[\s"']/g, '');
+  if (!/^[\w-]{43}$/.test(privateD)) return fail('VAPID_PRIVATE_KEY saknas eller är inte 43 tecken (är ' + privateD.length + ')');
+  let key: CryptoKey;
+  try { key = await vapidKey(privateD); } catch (e) { return fail('VAPID_PRIVATE_KEY går inte att läsa: ' + String(e)); }
+
   const job = await rpc('push_job', { p_meetup: meetup, p_secret: secret });
   if (!job.ok) return new Response('push_job ' + job.status, { status: job.status === 403 ? 403 : 502 });
   const rows: Row[] = await job.json();
   const region = Deno.env.get('SB_REGION');   // ska vara eu-west-1, se meetup_push_hook
   if (!rows.length) return Response.json({ sent: 0, region });
 
-  const key = await vapidKey(Deno.env.get('VAPID_PRIVATE_KEY') || '');
   // Notisen får vänta på en avstängd telefon tills träffen börjar, högst 4 veckor
   const ttl = Math.max(600, Math.min(2419200, Math.round((Date.parse(rows[0].starts_at) - Date.now()) / 1000)));
   const gone: string[] = [];
@@ -148,4 +160,10 @@ async function handle(req: Request): Promise<Response> {
 }
 
 // I Supabase. Utan Deno (testerna i Node) laddas bara funktionerna ovan.
-if (typeof Deno !== 'undefined') Deno.serve(handle);
+// x-slowlane-fn visar vilken version av koden som är inlagd. Öka den när koden ändras.
+const FN_VERSION = '3';
+if (typeof Deno !== 'undefined') Deno.serve(async req => {
+  const res = await handle(req).catch(e => fail(String(e && e.stack || e)));
+  res.headers.set('x-slowlane-fn', FN_VERSION);
+  return res;
+});
