@@ -1,5 +1,5 @@
 -- Slowlane: förare som syns för andra inom 30 km, och för sina grupper i hela Sverige, medan appen
--- är öppen. Kräver inloggning med Google.
+-- är öppen, grupper med träffar och notiser om nya träffar. Kräver inloggning med Google.
 -- Körs i Supabase → SQL Editor. Går att köra om.
 
 create extension if not exists postgis with schema extensions;
@@ -71,6 +71,21 @@ create table if not exists public.meetup_answers (
   answered_at timestamptz not null default now(),
   primary key (meetup_id, user_id)
 );
+-- Varje träff ger notiser en gång
+alter table public.meetups add column if not exists notified_at timestamptz;
+
+-- Telefoner som vill ha notiser om nya träffar. Adressen kommer från telefonens notistjänst
+-- (Apple, Google, Mozilla, Microsoft) och nycklarna krypterar innehållet så att bara telefonen kan läsa det.
+-- Sparas om varje gång appen startas, och tas bort om appen inte har öppnats på 90 dagar.
+create table if not exists public.push_subs (
+  endpoint text primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  p256dh text not null,
+  auth text not null,
+  lang text not null default 'sv' check (lang in ('sv', 'en')),
+  saved_at timestamptz not null default now()
+);
+create index if not exists push_subs_user_idx on public.push_subs (user_id);
 
 -- Tabellerna nås bara via funktionerna nedan, aldrig direkt från appen
 alter table public.riders enable row level security;
@@ -80,8 +95,9 @@ alter table public.groups enable row level security;
 alter table public.group_members enable row level security;
 alter table public.meetups enable row level security;
 alter table public.meetup_answers enable row level security;
+alter table public.push_subs enable row level security;
 revoke all on public.riders, public.blocks, public.ride_last, public.groups, public.group_members,
-              public.meetups, public.meetup_answers from anon, authenticated;
+              public.meetups, public.meetup_answers, public.push_subs from anon, authenticated;
 
 -- ---------- Hjälpfunktioner (bara för funktionerna nedan) ----------
 
@@ -546,12 +562,167 @@ begin
 end;
 $$;
 
+-- ---------- Notiser om nya träffar ----------
+-- Appen sparar telefonens notisadress. När en träff skapas anropar databasen notisfunktionen
+-- (supabase/functions/meetup-push) med en hemlighet som bara databasen och Vault känner till.
+-- Funktionen hämtar mottagarna med push_job och skickar notiserna.
+
+-- Bara kända notistjänster, så att funktionen aldrig skickar något till en adress som någon hittat på
+create or replace function public.push_host_ok(p_endpoint text)
+returns boolean
+language sql
+immutable
+as $$
+  select coalesce(char_length(p_endpoint) <= 1000 and p_endpoint ~
+    '^https://(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9-]+\.notify\.windows\.com)/', false);
+$$;
+
+-- Högst 10 telefoner per konto: den som inte har öppnat appen på längst tid får ge plats.
+-- Byter telefonen konto flyttas adressen till det nya kontot.
+create or replace function public.push_save(p_endpoint text, p_p256dh text, p_auth text, p_lang text default 'sv')
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  me uuid := public.google_me();
+begin
+  if not public.push_host_ok(p_endpoint) then
+    raise sqlstate 'PT400' using message = 'bad endpoint';
+  end if;
+  if coalesce(char_length(p_p256dh), 0) not between 80 and 100 or coalesce(char_length(p_auth), 0) not between 16 and 30 then
+    raise sqlstate 'PT400' using message = 'bad keys';
+  end if;
+  insert into public.push_subs (endpoint, user_id, p256dh, auth, lang)
+  values (p_endpoint, me, p_p256dh, p_auth, case when p_lang = 'en' then 'en' else 'sv' end)
+  on conflict (endpoint) do update
+    set user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth, lang = excluded.lang, saved_at = now();
+  delete from public.push_subs s
+  where s.user_id = me
+    and s.endpoint not in (select x.endpoint from public.push_subs x where x.user_id = me order by x.saved_at desc limit 10);
+end;
+$$;
+
+create or replace function public.push_delete(p_endpoint text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.push_subs where endpoint = p_endpoint and user_id = auth.uid();
+$$;
+
+-- Hemligheten mellan databasen och notisfunktionen. Skapas första gången och ligger krypterad i Vault.
+do $$
+begin
+  if not exists (select 1 from vault.secrets where name = 'slowlane_push_hook') then
+    perform vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'slowlane_push_hook', 'Slowlane: databasen till notisfunktionen');
+  end if;
+end
+$$;
+
+-- Jämför hashar, så att svarstiden inte avslöjar hur mycket av hemligheten som stämmer
+create or replace function public.push_hook_ok(p_secret text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $$
+  select p_secret is not null and exists (
+    select 1 from vault.decrypted_secrets s
+    where s.name = 'slowlane_push_hook' and digest(s.decrypted_secret, 'sha256') = digest(p_secret, 'sha256'));
+$$;
+
+-- Mottagarna för en ny träff: alla i gruppen med notiser påslagna, utom den som skapade träffen och
+-- den som har blockerat hen. Träffen markeras, så ett nytt anrop ger inga mottagare.
+create or replace function public.push_job(p_meetup uuid, p_secret text)
+returns table (endpoint text, p256dh text, auth text, lang text, title text, group_name text, creator_nick text, starts_at timestamptz)
+language plpgsql
+security definer
+set search_path = public
+as $$
+#variable_conflict use_column
+declare
+  v public.meetups;
+begin
+  if not public.push_hook_ok(p_secret) then
+    raise sqlstate 'PT403' using message = 'bad secret';
+  end if;
+  update public.meetups u set notified_at = now()
+  where u.id = p_meetup and u.notified_at is null and u.created_at > now() - interval '1 hour'
+  returning u.* into v;
+  if not found then
+    return;
+  end if;
+  return query
+    select s.endpoint, s.p256dh, s.auth, s.lang, v.title, g.name, cm.nick, v.starts_at
+    from public.group_members gm
+    join public.push_subs s on s.user_id = gm.user_id
+    join public.groups g on g.id = v.group_id
+    left join public.group_members cm on cm.group_id = v.group_id and cm.user_id = v.creator
+    where gm.group_id = v.group_id and gm.user_id <> v.creator
+      and not exists (select 1 from public.blocks b where b.blocker = gm.user_id and b.blocked = v.creator);
+end;
+$$;
+
+-- Adresser som notistjänsten säger inte finns längre (appen avinstallerad, notiser avstängda)
+create or replace function public.push_gone(p_endpoints text[], p_secret text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.push_hook_ok(p_secret) then
+    raise sqlstate 'PT403' using message = 'bad secret';
+  end if;
+  delete from public.push_subs where endpoint = any(p_endpoints);
+end;
+$$;
+
+-- När en träff skapas: be notisfunktionen skicka, om någon i gruppen vill ha notiser.
+-- pg_net skickar anropet först när träffen är sparad. Går något fel här skapas träffen ändå.
+-- x-region: funktionen körs i Irland, där resten av uppgifterna finns. Svaren hamnar i net._http_response.
+create extension if not exists pg_net;
+create or replace function public.meetup_push_hook()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_secret text;
+begin
+  if not exists (select 1 from public.group_members gm join public.push_subs s on s.user_id = gm.user_id
+                 where gm.group_id = new.group_id and gm.user_id <> new.creator) then
+    return null;
+  end if;
+  select s.decrypted_secret into v_secret from vault.decrypted_secrets s where s.name = 'slowlane_push_hook';
+  perform net.http_post(
+    url := 'https://whpfdexdxwumaiiriqkt.supabase.co/functions/v1/meetup-push',
+    body := jsonb_build_object('meetup', new.id),
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-region', 'eu-west-1', 'x-slowlane-hook', v_secret),
+    timeout_milliseconds := 10000);
+  return null;
+exception when others then
+  raise warning 'slowlane push: %', sqlerrm;
+  return null;
+end;
+$$;
+drop trigger if exists meetups_push on public.meetups;
+create trigger meetups_push after insert on public.meetups for each row execute function public.meetup_push_hook();
+
 -- ---------- Rättigheter ----------
 revoke execute on function public.google_me() from public, anon, authenticated;
 revoke execute on function public.clean_nick(text) from public, anon, authenticated;
 revoke execute on function public.clean_code(text) from public, anon, authenticated;
 revoke execute on function public.new_group_code() from public, anon, authenticated;
 revoke execute on function public.meetup_group(uuid, uuid) from public, anon, authenticated;
+revoke execute on function public.push_host_ok(text) from public, anon, authenticated;
+revoke execute on function public.push_hook_ok(text) from public, anon, authenticated;
+revoke execute on function public.meetup_push_hook() from public, anon, authenticated;
 
 revoke execute on function public.ride_ping(text, text, double precision, double precision, real, real, text) from public, anon;
 revoke execute on function public.ride_stop() from public, anon;
@@ -587,10 +758,20 @@ grant execute on function public.meetup_list() to authenticated;
 grant execute on function public.meetup_people(uuid) to authenticated;
 grant execute on function public.meetup_answer(uuid, boolean) to authenticated;
 grant execute on function public.meetup_delete(uuid) to authenticated;
+revoke execute on function public.push_save(text, text, text, text) from public, anon;
+revoke execute on function public.push_delete(text) from public, anon;
+grant execute on function public.push_save(text, text, text, text) to authenticated;
+grant execute on function public.push_delete(text) to authenticated;
+-- Notisfunktionen anropar med den publika nyckeln. Det är hemligheten som ger tillgång.
+revoke execute on function public.push_job(uuid, text) from public, authenticated;
+revoke execute on function public.push_gone(text[], text) from public, authenticated;
+grant execute on function public.push_job(uuid, text) to anon;
+grant execute on function public.push_gone(text[], text) to anon;
 
 -- ---------- Städning ----------
 -- Varje natt. Senast godkända position sparas bara ett dygn: efter det släpper
--- hoppkontrollen ändå igenom hela Sverige. Träffar raderas ett dygn efter starttiden.
+-- hoppkontrollen ändå igenom hela Sverige. Träffar raderas ett dygn efter starttiden, och
+-- notisadresser till telefoner som inte har öppnat appen på 90 dagar.
 -- Anonyma konton från äldre versioner kan inte synas längre och tas bort när de är
 -- 30 dagar gamla, med blockeringar och allt.
 create or replace function public.cleanup_riders()
@@ -603,6 +784,8 @@ as $$
     delete from public.ride_last where pinged_at < now() - interval '1 day'),
   old_meets as (
     delete from public.meetups where starts_at < now() - interval '1 day'),
+  old_push as (
+    delete from public.push_subs where saved_at < now() - interval '90 days'),
   gone as (
     delete from auth.users u
     where u.is_anonymous and u.created_at < now() - interval '30 days'

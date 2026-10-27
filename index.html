@@ -206,9 +206,22 @@ dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 #grpMsg.ok{color:var(--muted)}
 .rider.mate i{background:var(--accent)}
 .rider.mate b{box-shadow:0 0 0 1px var(--accent)}
-.meet-card{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;margin:0 0 10px;padding:12px 14px;border:1px solid var(--accent);border-radius:14px;background:var(--panel);color:var(--text);font:inherit;text-align:left;cursor:pointer}
-.meet-card b{font-size:16px;font-weight:600}
-.meet-card span{font-size:13px;color:var(--muted)}
+/* Träffar på startsidan. Fler än en: svep i sidled, nästa kort sticker fram i kanten. */
+.meet-cards{display:flex;gap:10px;margin:-4px -20px 0;padding:0 20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 20px;scrollbar-width:none}
+.meet-cards::-webkit-scrollbar{display:none}
+.meet-cards[hidden]{display:none}
+.meet-card{flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border:1px solid var(--accent);border-radius:14px;background:var(--panel)}
+.meet-cards.many .meet-card{flex-basis:calc(100% - 28px)}
+.meet-card .hd{display:flex;align-items:flex-start;gap:10px;width:100%;padding:0;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.meet-card .hd span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.meet-card .hd b{font-size:16px;font-weight:600;overflow-wrap:anywhere}
+.meet-card .hd small{font-size:13px;color:var(--muted)}
+.meet-card .hd em{flex-shrink:0;font-style:normal;font-size:13px;font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.meet-card .acts{display:flex;flex-wrap:wrap;gap:8px}
+/* id:t så att fordonstemanas bredare bokstavsavstånd inte gäller här: tre knappar ska få plats på en rad */
+#meetCards .cta{flex:1 1 auto;width:auto;height:42px;padding:0 4px;font-size:14px;letter-spacing:.5px;white-space:nowrap}
+@media (max-width:350px){#meetCards .cta{font-size:12px}}
+.meet-card .cta.ghost[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
 .meet-mk{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
 .meet-mk i{font-style:normal;font-size:22px;line-height:1}
 .meet-mk b{font-size:12px;font-weight:600;line-height:1.3;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 6px;white-space:nowrap}
@@ -235,6 +248,8 @@ dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 /* ---------- Settings ---------- */
 dialog{border:1px solid var(--line);border-radius:18px;background:var(--dialog);color:var(--text);padding:20px;width:min(92vw,420px)}
 dialog::backdrop{background:rgba(0,0,0,.7)}
+/* När en dialog ovanpå stängs får rutan under fokus tillbaka. Den ska inte få en ram. */
+dialog:focus,dialog:focus-visible{outline:none}
 dialog h2{margin:0 0 8px;font-size:22px;font-weight:600}
 dialog p{margin:0 0 14px;font-size:14px;line-height:1.45;color:var(--muted)}
 dialog .key{width:100%;height:48px;border-radius:10px;border:1px solid var(--line2);background:var(--bg);padding:0 12px;font-size:16px}
@@ -397,13 +412,13 @@ h1{font-family:inherit}
       </button>
     </div>
 
+    <div class="meet-cards" id="meetCards" hidden></div>
+
     <div class="spacer"></div>
 
     <div class="speed" id="speedBox" role="button" tabindex="0" data-i18n-aria="speedAria" aria-label="Ändra maxhastighet i inställningar">
       <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span data-i18n="kmhMax">km/h max</span></div>
     </div>
-
-    <button class="meet-card" id="meetCard" type="button" hidden><b id="meetCardT"></b><span id="meetCardS"></span></button>
 
     <div class="card fields">
       <div class="field">
@@ -589,12 +604,17 @@ h1{font-family:inherit}
     <p style="font-size:14px;color:var(--muted);margin:18px 0 6px" data-i18n="grpHd">Grupper</p>
     <div class="grps" id="grpList"></div>
     <div class="row"><button type="button" class="cta ghost" id="grpNewBtn" data-i18n="grpNew">Skapa grupp</button><button type="button" class="cta ghost" id="grpJoinBtn" data-i18n="grpJoin">Gå med</button></div>
+    <label class="toggle">
+      <span><span class="t1" data-i18n="pushLbl">Notiser om nya träffar</span><span class="t2" id="pushSub" data-i18n="pushSub">Du får en notis när någon i dina grupper skapar en träff.</span></span>
+      <span class="switch"><input type="checkbox" id="pushIn"><span></span></span>
+    </label>
+    <p class="msg" id="pushMsg" role="alert" style="margin:6px 0 0"></p>
     </div>
     <div class="row">
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 36</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 37</p>
   </form>
 </dialog>
 
@@ -704,9 +724,13 @@ h1{font-family:inherit}
       meetWhen:'När', meetWhere:'Var', meetPick:'Välj plats på kartan', meetPicked:'📍 Plats vald · Ändra', meetCreate:'Skapa träff',
       meetNeedTitle:'Skriv vad träffen gäller, 2–40 tecken.', meetBadTime:'Välj en tid från nu och högst 30 dagar framåt.', meetNeedPlace:'Välj var ni ska ses.',
       meetTooMany:'Gruppen har redan 10 kommande träffar.', meetGone:'Träffen finns inte längre.', meetComing:'Kommer', meetNotComing:'Kommer inte',
-      meetCount:'{n} kommer', meetOne:'1 kommer', meetNoOne:'Ingen har sagt att de kommer än.', meetWho:'Kommer: {names}', meetBy:'av {n}',
-      meetDrive:'Kör hit', meetDelete:'Ta bort träffen', meetDeleteAsk:'Ta bort {t}? Ingen i gruppen ser den längre.', meetMore:'+{n} till',
+      meetCount:'{n} kommer', meetOne:'1 kommer', meetNoOne:'Ingen har sagt att de kommer än.', meetWho:'{n} kommer: {names}', meetBy:'av {n}',
+      meetDrive:'Kör hit', meetGo:'Kör hit', meetDelete:'Ta bort träffen', meetDeleteAsk:'Ta bort {t}? Ingen i gruppen ser den längre.', meetMore:'+{n} till',
       meetStarted:'började {t}', today:'idag', tomorrow:'imorgon',
+      pushLbl:'Notiser om nya träffar', pushSub:'Du får en notis när någon i dina grupper skapar en träff.',
+      pushHome:'På iPhone kommer notiser bara till Slowlane på hemskärmen. Öppna appen därifrån och slå på dem där.',
+      pushNo:'Den här webbläsaren kan inte ta emot notiser.', pushDenied:'Notiser är avstängda för Slowlane. Slå på dem i telefonens inställningar under Notiser.',
+      pushFail:'Det gick inte att slå på notiser. Försök igen.',
       pickHintMeet:'Tryck på kartan där ni ska ses. Dra nålen för att flytta den.', pickUseMeet:'Välj som träffplats',
       delDone:'Kontot är raderat.', privacy:'Så hanteras dina uppgifter',
       block:'Blockera', blockAsk:'Blockera {n}? Ni ser inte varandra längre.', driveTo:'Kör hit',
@@ -762,9 +786,13 @@ h1{font-family:inherit}
       meetWhen:'When', meetWhere:'Where', meetPick:'Choose place on map', meetPicked:'📍 Place chosen · Change', meetCreate:'Create meetup',
       meetNeedTitle:'Say what the meetup is about, 2–40 characters.', meetBadTime:'Pick a time from now and at most 30 days ahead.', meetNeedPlace:'Choose where to meet.',
       meetTooMany:'The group already has 10 upcoming meetups.', meetGone:'The meetup no longer exists.', meetComing:'Coming', meetNotComing:'Not coming',
-      meetCount:'{n} coming', meetOne:'1 coming', meetNoOne:'No one has said they’re coming yet.', meetWho:'Coming: {names}', meetBy:'by {n}',
-      meetDrive:'Navigate here', meetDelete:'Delete meetup', meetDeleteAsk:'Delete {t}? No one in the group will see it any more.', meetMore:'+{n} more',
+      meetCount:'{n} coming', meetOne:'1 coming', meetNoOne:'No one has said they’re coming yet.', meetWho:'{n} coming: {names}', meetBy:'by {n}',
+      meetDrive:'Navigate here', meetGo:'Go here', meetDelete:'Delete meetup', meetDeleteAsk:'Delete {t}? No one in the group will see it any more.', meetMore:'+{n} more',
       meetStarted:'started {t}', today:'today', tomorrow:'tomorrow',
+      pushLbl:'Notifications for new meetups', pushSub:'You get a notification when someone in your groups creates a meetup.',
+      pushHome:'On iPhone, notifications only reach Slowlane on the Home Screen. Open the app from there and turn them on there.',
+      pushNo:'This browser can’t receive notifications.', pushDenied:'Notifications are turned off for Slowlane. Turn them on under Notifications in your phone’s settings.',
+      pushFail:'Couldn’t turn on notifications. Try again.',
       pickHintMeet:'Tap the map where you’ll meet. Drag the pin to move it.', pickUseMeet:'Set as meeting place',
       delDone:'Your account has been deleted.', privacy:'How your data is handled',
       block:'Block', blockAsk:'Block {n}? You’ll no longer see each other.', driveTo:'Navigate here',
@@ -862,7 +890,7 @@ h1{font-family:inherit}
   }
   let ajaPrev = 30;
   const getStadia = () => ''; // Stadia använder domänbehörighet
-  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('scopeIn').value = store.get('scope', 'all') === 'groups' ? 'groups' : 'all'; $('visMsg').textContent = ''; $('acctMsg').textContent = ''; $('settings').showModal(); renderAccount(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
+  $('openSettings').onclick = () => { $('speedIn').value = String(speed); $('langIn').value = lang; $('themeIn').value = theme; $('profHelp').textContent = TH().about(); ajaPrev = speed; $('nickIn').value = store.get('nick', ''); $('visIn').checked = store.get('visible', false); $('scopeIn').value = store.get('scope', 'all') === 'groups' ? 'groups' : 'all'; $('visMsg').textContent = ''; $('acctMsg').textContent = ''; $('pushMsg').textContent = ''; $('settings').showModal(); renderAccount(); if (document.activeElement && document.activeElement.tagName === 'SELECT') document.activeElement.blur(); };
   $('setForm').addEventListener('submit', e => {
     if (e.submitter && e.submitter.value === 'save') {
       const nick = $('nickIn').value.trim().replace(/\s+/g, ' ');
@@ -874,7 +902,7 @@ h1{font-family:inherit}
       const nt = THEMES[$('themeIn').value] ? $('themeIn').value : 'epa';
       if (nt !== theme) { theme = nt; store.set('theme', theme); applyTheme(); loadNowWeather(); }
       applyLang();
-      liveSync(); renderRiders();
+      liveSync(); renderRiders(); renderMeets(); pushSync();
     }
   });
   $('visIn').addEventListener('change', () => {
@@ -2046,7 +2074,7 @@ h1{font-family:inherit}
     const on = signedIn();
     // smeknamn och Visa min position behövs bara för den som kan synas
     $('acctWho').hidden = !on; $('acctOut').hidden = !on; $('visBox').hidden = !on; $('acctTx').hidden = on; $('gBtn').hidden = on;
-    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); loadGroups(); return; }
+    if (on) { $('acctWho').textContent = T('signedAs', { e: supa.email || 'Google' }); loadGroups(); renderPush(); return; }
     if (!GOOGLE_ID) { $('acctMsg').textContent = T('signOff'); return; }
     gis().then(() => google.accounts.id.renderButton($('gBtn'), { type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
       text: 'signin_with', locale: lang, width: Math.max(200, Math.min(400, $('gBtn').clientWidth || 280)) }))
@@ -2074,15 +2102,16 @@ h1{font-family:inherit}
   }
   $('signOut').onclick = () => {
     const t = supa && supa.token;
-    // först bort från kartan, sedan utloggning (som gör sessionen ogiltig)
-    Promise.resolve(liveStop()).then(() => t && fetch(SUPA_URL + '/auth/v1/logout?scope=local', { method: 'POST', keepalive: true, headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + t } })).catch(() => {});
+    // först bort från kartan och notiserna, sedan utloggning (som gör sessionen ogiltig)
+    Promise.all([liveStop(), pushOff(t)]).then(() => t && fetch(SUPA_URL + '/auth/v1/logout?scope=local', { method: 'POST', keepalive: true, headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + t } })).catch(() => {});
     signedOut();
   };
   $('delAcct').onclick = async () => {
     if (!confirm(T('delAsk'))) return;
     $('acctMsg').textContent = '';
     try { await supaRpc('delete_me'); } catch (e) { $('acctMsg').textContent = isTimeout(e) ? T('slowNet') : T('generic'); return; }
-    LIVE.pinged = false; liveStop();   // positionen försvann med kontot
+    LIVE.pinged = false; liveStop();   // positionen och notisadresserna försvann med kontot
+    pushOff();
     store.set('nick', ''); $('nickIn').value = '';
     signedOut();
     alert(T('delDone'));
@@ -2235,17 +2264,34 @@ h1{font-family:inherit}
   async function loadMeets() {
     if (!signedIn()) { MEETS = []; renderMeets(); return; }
     try { MEETS = await supaRpc('meetup_list') || []; } catch { return; }   // vid nätfel ligger de gamla kvar
-    renderMeets();
+    renderMeets(); showWantedMeet();
   }
   function renderMeets() {
-    const next = MEETS[0];
-    $('meetCard').hidden = !next;
-    if (next) {
-      $('meetCardT').textContent = '🏁 ' + next.title;
-      $('meetCardS').textContent = [next.group_name, meetTime(next.starts_at), comingText(next.coming), MEETS.length > 1 && T('meetMore', { n: MEETS.length - 1 })].filter(Boolean).join(' · ');
-    }
+    const box = $('meetCards'), x = box.scrollLeft;
+    box.hidden = !MEETS.length;
+    box.classList.toggle('many', MEETS.length > 1);
+    box.replaceChildren(...MEETS.map(meetCard));
+    box.scrollLeft = x;   // uppdateras varje minut, då ska man inte hoppa tillbaka till första kortet
     if ($('grp').open && grpMode === 'view') renderGroupMeets();
     if (nearMap) syncMeets();
+  }
+  // Kort på startsidan: svara och kör dit direkt. Tryck på rubriken för att se vilka som kommer.
+  function meetCard(m) {
+    const c = el('div', { className: 'meet-card' }), hd = el('button', { type: 'button', className: 'hd' }), tx = el('span');
+    tx.append(el('b', { textContent: '🏁 ' + m.title }), el('small', { textContent: m.group_name + ' · ' + meetTime(m.starts_at) }));
+    hd.append(tx, el('em', { textContent: comingText(m.coming) }));
+    hd.onclick = () => openMeet(m);
+    const btn = (key, ghost) => el('button', { type: 'button', className: ghost ? 'cta ghost' : 'cta', textContent: T(key) });
+    const yes = btn('meetComing', true), no = btn('meetNotComing', true), go = btn('meetGo');
+    yes.setAttribute('aria-pressed', String(m.my_answer === true)); no.setAttribute('aria-pressed', String(m.my_answer === false));
+    const answer = async coming => {
+      yes.disabled = no.disabled = true; setMsg('');
+      try { await answerMeet(m, coming); } catch (e) { yes.disabled = no.disabled = false; setMsg(meetErr(e)); if (e.status === 404) loadMeets(); }
+    };
+    yes.onclick = () => answer(true); no.onclick = () => answer(false); go.onclick = () => driveMeet(m);
+    const acts = el('div', { className: 'acts' }); acts.append(yes, no, go);
+    c.append(hd, acts);
+    return c;
   }
   function renderGroupMeets() {
     const list = MEETS.filter(m => m.group_id === grpCur.id);
@@ -2316,25 +2362,32 @@ h1{font-family:inherit}
   }
   function renderWho(people) {
     const yes = people.filter(p => p.coming).map(p => p.nick || T('grpNoNick'));
-    $('meetWho').textContent = yes.length ? T('meetWho', { names: yes.join(', ') }) : T('meetNoOne');
+    $('meetWho').textContent = yes.length ? T('meetWho', { n: yes.length, names: yes.join(', ') }) : T('meetNoOne');
   }
   function setAnswer(a) { $('meetYes').setAttribute('aria-pressed', String(a === true)); $('meetNo').setAttribute('aria-pressed', String(a === false)); }
-  async function answerMeet(coming) {
-    const m = meetCur; meetMsg('');
-    try { await supaRpc('meetup_answer', { p_meetup: m.id, p_coming: coming }); } catch (e) { meetMsg(meetErr(e)); return; }
-    m.my_answer = coming; setAnswer(coming);
-    try { renderWho(await supaRpc('meetup_people', { p_meetup: m.id }) || []); } catch {}
-    loadMeets();
+  // Räknar om direkt så att kortet visar rätt antal, och hämtar sedan det riktiga från servern
+  async function answerMeet(m, coming) {
+    await supaRpc('meetup_answer', { p_meetup: m.id, p_coming: coming });
+    const cur = MEETS.find(x => x.id === m.id) || m;   // listan kan ha hämtats om sedan dialogen öppnades
+    cur.coming += (coming ? 1 : 0) - (cur.my_answer === true ? 1 : 0);
+    cur.my_answer = m.my_answer = coming;
+    renderMeets(); loadMeets();
   }
-  $('meetYes').onclick = () => answerMeet(true);
-  $('meetNo').onclick = () => answerMeet(false);
+  async function answerInDialog(coming) {
+    const m = meetCur; meetMsg('');
+    try { await answerMeet(m, coming); } catch (e) { meetMsg(meetErr(e)); return; }
+    setAnswer(coming);
+    try { renderWho(await supaRpc('meetup_people', { p_meetup: m.id }) || []); } catch {}
+  }
+  $('meetYes').onclick = () => answerInDialog(true);
+  $('meetNo').onclick = () => answerInDialog(false);
   $('meetDel').onclick = async () => {
     if (!confirm(T('meetDeleteAsk', { t: meetCur.title }))) return;
     try { await supaRpc('meetup_delete', { p_meetup: meetCur.id }); } catch (e) { meetMsg(meetErr(e)); return; }
     $('meet').close(); loadMeets();
   };
-  $('meetDrive').onclick = () => {
-    const m = meetCur;
+  $('meetDrive').onclick = () => driveMeet(meetCur);
+  function driveMeet(m) {
     ['meet', 'grp', 'settings'].forEach(id => { if ($(id).open) $(id).close(); });
     ['v-near', 'v-res', 'v-pick'].forEach(id => $(id).classList.remove('on')); $('v-plan').classList.add('on');
     if (FX.kind) fxStart(FX.kind);
@@ -2342,13 +2395,86 @@ h1{font-family:inherit}
     // alltid från där jag är nu
     if (LIVE.pos) { origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng } }; $('from').value = T('myPos'); $('go').click(); }
     else useMyLocation(() => $('go').click());
-  };
+  }
   $('meetClose').onclick = () => { meetDraft = null; $('meet').close(); };
-  $('meetCard').onclick = () => { if (MEETS[0]) openMeet(MEETS[0]); };
   $('grpMeetNew').onclick = () => meetNew(grpCur);
-  async function supaRpc(fn, args, keepalive) {
+
+  // Från en notis: #m=<id> när appen startas, eller ett meddelande från service workern när den redan är öppen
+  let meetWanted = null;
+  function readMeetLink() {
+    const m = location.hash.match(/^#m=([0-9a-f-]{36})$/);
+    if (!m) return;
+    meetWanted = m[1];
+    history.replaceState(history.state, '', location.pathname + location.search);
+  }
+  function showWantedMeet() {
+    if (!meetWanted || $('welcome').open) return;
+    const m = MEETS.find(x => x.id === meetWanted);
+    meetWanted = null;
+    if (m) openMeet(m);
+  }
+
+  // ---------- Notiser om nya träffar ----------
+  // Telefonens notistjänst ger en adress som sparas på kontot. Servern skickar dit när någon i gruppen
+  // skapar en träff (supabase/functions/meetup-push). Den publika nyckeln visar att notiserna kommer från oss.
+  const PUSH_KEY = 'BLgTk7XQhDGM2MTTXfhxbvDjz718ZHj14wWwiyLeROOWEUba2IQseDGsrCq9qPqcvAD4WbKSsK1KqYaf9X42vAo';
+  const pushAble = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const swReady = () => Promise.race([navigator.serviceWorker.ready, new Promise((_, no) => setTimeout(() => no(new Error('no sw')), 10000))]);
+  const b64Bytes = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+  // Finns det redan en prenumeration med en annan nyckel måste den bytas, annars når notiserna inte fram
+  async function pushSubscribe(reg) {
+    const key = b64Bytes(PUSH_KEY);
+    let sub = await reg.pushManager.getSubscription();
+    const had = sub && sub.options && sub.options.applicationServerKey;
+    if (had && new Uint8Array(had).join() !== key.join()) { await sub.unsubscribe(); sub = null; }
+    return sub || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+  }
+  async function pushSave(sub) {
+    const j = sub.toJSON();
+    await supaRpc('push_save', { p_endpoint: j.endpoint, p_p256dh: j.keys.p256dh, p_auth: j.keys.auth, p_lang: lang });
+  }
+  function renderPush() {
+    const box = $('pushIn'), able = pushAble(), denied = able && Notification.permission === 'denied';
+    box.disabled = !able || denied;
+    box.checked = able && Notification.permission === 'granted' && store.get('push', false);
+    // navigator.standalone finns bara i Safari på iPhone: false = i webbläsaren, inte från hemskärmen
+    $('pushSub').textContent = T(!able ? (navigator.standalone === false ? 'pushHome' : 'pushNo') : denied ? 'pushDenied' : 'pushSub');
+  }
+  $('pushIn').addEventListener('change', async () => {
+    const box = $('pushIn'); $('pushMsg').textContent = '';
+    if (!box.checked) { pushOff(); return; }
+    // iPhone frågar bara om lov direkt efter ett tryck, så frågan måste komma först
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { box.checked = false; renderPush(); return; }
+    box.disabled = true;
+    try { await pushSave(await pushSubscribe(await swReady())); store.set('push', true); }
+    catch (e) { box.checked = false; $('pushMsg').textContent = isTimeout(e) ? T('slowNet') : T('pushFail'); }
+    box.disabled = false; renderPush();
+  });
+  // Av: bort från kontot och från telefonen. Vid utloggning skickas sessionen med, eftersom den tas bort direkt.
+  async function pushOff(jwt) {
+    store.set('push', false);
+    if (!pushAble()) return;
+    try {
+      const sub = await (await swReady()).pushManager.getSubscription();
+      if (!sub) return;
+      if (jwt || signedIn()) await supaRpc('push_delete', { p_endpoint: sub.endpoint }, true, jwt).catch(() => {});
+      await sub.unsubscribe();
+    } catch {}
+  }
+  // Vid start och språkbyte: spara adressen igen. Den kan ha bytts, och servern glömmer den efter 90 dagar.
+  async function pushSync() {
+    if (!signedIn() || !store.get('push', false) || !pushAble()) return;
+    if (Notification.permission !== 'granted') { store.set('push', false); return; }
+    try { await pushSave(await pushSubscribe(await swReady())); } catch {}
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data && e.data.meet) { meetWanted = String(e.data.meet); loadMeets(); }
+  });
+
+  async function supaRpc(fn, args, keepalive, jwt) {
     const res = await fetch(SUPA_URL + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive, signal: timeout(15000),
-      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + await supaToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
+      headers: { apikey: SUPA_KEY, Authorization: 'Bearer ' + (jwt || await supaToken()), 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
     if (!res.ok) throw Object.assign(new Error(fn + ' ' + res.status), { status: res.status, msg: (await res.json().catch(() => ({}))).message });
     const t = await res.text(); return t ? JSON.parse(t) : null;
   }
@@ -2649,10 +2775,12 @@ h1{font-family:inherit}
   loadNowWeather();
   if (store.get('theme', null) === null) showWelcome();
   $('welcome').addEventListener('close', pendingJoin);
-  readInvite();
-  window.addEventListener('hashchange', readInvite);
-  loadMeets();
+  readInvite(); readMeetLink();
+  window.addEventListener('hashchange', () => { readInvite(); readMeetLink(); showWantedMeet(); });
+  loadMeets(); pushSync();
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadMeets(); });
+  // En ny träff i gruppen ska dyka upp även om appen redan är öppen
+  setInterval(() => { if (document.visibilityState === 'visible') loadMeets(); }, 60000);
 
   // ---------- PWA ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {

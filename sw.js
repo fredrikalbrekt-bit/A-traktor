@@ -1,5 +1,5 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v36';
+const VERSION = 'slowlane-v37';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './epa-hero.webp', './epa-fog.webp', './moped2-hero.webp', './moped2-rain.webp', './moped2-cool.webp', './moped2-cold.webp', './dust.webp', './mopedbil-hero.webp', './moped1-hero.webp'];
 const LIBS = ['cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
@@ -51,4 +51,24 @@ self.addEventListener('fetch', e => {
     }));
   }
   // Allt annat (Google, Stadia, kartbrickor) går direkt mot nätet
+});
+
+// ---------- Notiser om nya träffar ----------
+// Skickas av supabase/functions/meetup-push. Varje push måste visa en notis, annars kan iOS stänga av notiserna.
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch {}
+  e.waitUntil(self.registration.showNotification(d.title || 'Slowlane', {
+    body: d.body || '', tag: d.tag, icon: './icon-192.png', data: { meet: d.meet || null } }));
+});
+
+// Tryck på notisen: visa träffen i appen om den redan är öppen, annars öppna appen på träffen
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const meet = e.notification.data && e.notification.data.meet;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    const c = list.find(x => 'focus' in x);
+    if (c) { if (meet) c.postMessage({ meet }); return c.focus(); }
+    return self.clients.openWindow(new URL(meet ? './#m=' + meet : './', self.registration.scope).href);
+  }));
 });
