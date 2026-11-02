@@ -193,6 +193,12 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .r-pop button{margin-top:6px;border:1px solid var(--err);background:transparent;color:var(--err);border-radius:8px;min-height:36px;font-size:14px}
 .r-pop .go{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600}
 dialog .toggle{border:1px solid var(--line2);border-radius:10px;background:var(--bg);margin-top:12px}
+.toggle[hidden]{display:none}
+/* God mode: träffar där alla kör som vanlig bil */
+.god-tag{display:inline-block;align-self:flex-start;margin:4px 0 2px;padding:1px 9px;border:1px solid #f5c542;border-radius:999px;color:#f5c542;font-size:12px;font-style:normal;font-weight:600;letter-spacing:.5px}
+.god-tag[hidden]{display:none}
+.car-toggle{border:1px solid var(--line2);border-radius:12px;margin-top:12px}
+#rCarMsg{margin:6px 0 0}
 dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 .acct{border:1px solid var(--line2);border-radius:10px;background:var(--bg);padding:14px 16px;margin:0 0 12px}
 .acct p{margin:0;font-size:13px;line-height:1.4;color:var(--muted)}
@@ -480,6 +486,7 @@ h1{font-family:inherit}
     <div class="head">
       <div>
         <div class="route-name" id="rName"></div>
+        <span class="god-tag" id="rGod" hidden data-i18n="godTag">God mode</span>
         <div class="big" id="rTime">–</div>
         <div class="sub" id="rSub">vid 30 km/h</div>
       </div>
@@ -488,6 +495,12 @@ h1{font-family:inherit}
       <div class="stat"><span data-i18n="dist">Sträcka</span><b id="rDist">–</b></div>
       <div class="stat"><span data-i18n="arrival">Ankomst</span><b id="rCar">–</b><small id="rArrWx"></small></div>
     </div>
+    <!-- Träff i God mode: den inbjudna väljer själv om resan räknas som vanlig bil eller med det egna fordonet -->
+    <label class="toggle car-toggle" id="rCarBox" hidden>
+      <span><span class="t1" data-i18n="carLbl">Med bil</span><span class="t2" data-i18n="carSub">Vanlig bil med vägarnas hastighetsgränser. Av: ditt eget fordon och dess maxhastighet.</span></span>
+      <span class="switch"><input type="checkbox" id="rCarIn"><span></span></span>
+    </label>
+    <p class="msg" id="rCarMsg" role="alert" hidden></p>
     <div class="opts" id="rOpts" hidden></div>
     <div class="safety" id="rSafety" hidden>
       <div class="hd"><b data-i18n="safetyHd">Vägtyper längs rutten</b><span class="badge" id="rBadge"></span></div>
@@ -672,7 +685,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 41</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 42</p>
   </form>
 </dialog>
 
@@ -712,6 +725,10 @@ h1{font-family:inherit}
     <input class="key" id="meetWhen" type="datetime-local">
     <p style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="meetWhere">Var</p>
     <button type="button" class="cta ghost" id="meetPick" data-i18n="meetPick">Välj plats på kartan</button>
+    <label class="toggle" id="meetGodBox" hidden>
+      <span><span class="t1" data-i18n="godLbl">God mode</span><span class="t2" data-i18n="godSub">Alla som kör hit navigerar som med vanlig bil: ingen maxhastighet och ingen avståndsgräns. Målet är låst till träffen.</span></span>
+      <span class="switch"><input type="checkbox" id="meetGod"><span></span></span>
+    </label>
   </div>
   <div id="meetView">
     <p id="meetSub" style="margin:0"></p>
@@ -787,6 +804,11 @@ h1{font-family:inherit}
       meetCount:'{n} kommer', meetOne:'1 kommer', meetNoOne:'Ingen har sagt att de kommer än.', meetWho:'{n} kommer: {names}', meetBy:'av {n}',
       meetDrive:'Kör hit', meetGo:'Kör hit', meetDelete:'Ta bort träffen', meetDeleteAsk:'Ta bort {t}? Ingen i gruppen ser den längre.', meetMore:'+{n} till',
       meetStarted:'började {t}', today:'idag', tomorrow:'imorgon', meetNewBtn:'Skapa träff', meetGroup:'Grupp',
+      godLbl:'God mode', godSub:'Alla som kör hit navigerar som med vanlig bil: ingen maxhastighet och ingen avståndsgräns. Målet är låst till träffen.',
+      godTag:'God mode', godRes:'God mode · vanlig bil', godEta:'God mode · följ hastighetsgränserna',
+      godWarn:'Bilväg utan fordonets maxhastighet. Följ hastighetsgränserna och skyltarna.',
+      carLbl:'Med bil', carSub:'Vanlig bil med vägarnas hastighetsgränser. Av: ditt eget fordon och dess maxhastighet.',
+      tooFar:'Resan är för lång för ditt fordon. Rutter räknas för högst 50 mil.',
       pushLbl:'Notiser om nya träffar', pushSub:'Du får en notis när någon i dina grupper skapar en träff.',
       pushHome:'På iPhone kommer notiser bara till Slowlane på hemskärmen. Öppna appen därifrån och slå på dem där.',
       pushNo:'Den här webbläsaren kan inte ta emot notiser.', pushDenied:'Notiser är avstängda för Slowlane. Slå på dem i telefonens inställningar under Notiser.',
@@ -853,6 +875,11 @@ h1{font-family:inherit}
       meetCount:'{n} coming', meetOne:'1 coming', meetNoOne:'No one has said they’re coming yet.', meetWho:'{n} coming: {names}', meetBy:'by {n}',
       meetDrive:'Navigate here', meetGo:'Go here', meetDelete:'Delete meetup', meetDeleteAsk:'Delete {t}? No one in the group will see it any more.', meetMore:'+{n} more',
       meetStarted:'started {t}', today:'today', tomorrow:'tomorrow', meetNewBtn:'Create meetup', meetGroup:'Group',
+      godLbl:'God mode', godSub:'Everyone driving here navigates as a regular car: no top speed and no distance limit. The destination is locked to the meetup.',
+      godTag:'God mode', godRes:'God mode · regular car', godEta:'God mode · follow the speed limits',
+      godWarn:'Car route without the vehicle’s top speed. Follow the speed limits and signs.',
+      carLbl:'By car', carSub:'Regular car with the roads’ speed limits. Off: your own vehicle and its top speed.',
+      tooFar:'The trip is too long for your vehicle. Routes are calculated for at most 500 km.',
       pushLbl:'Notifications for new meetups', pushSub:'You get a notification when someone in your groups creates a meetup.',
       pushHome:'On iPhone, notifications only reach Slowlane on the Home Screen. Open the app from there and turn them on there.',
       pushNo:'This browser can’t receive notifications.', pushDenied:'Notifications are turned off for Slowlane. Turn them on under Notifications in your phone’s settings.',
@@ -1234,6 +1261,7 @@ h1{font-family:inherit}
     if (!res.ok || !data.trip) {
       const m = data.error || data.status_message || '';
       if (/no path|No suitable edges/i.test(m)) throw new Error(T('noPath'));
+      if (/max distance/i.test(m)) throw new Error(T('tooFar'));   // moped- och cykelprofilen räcker högst 50 mil
       throw new Error(T('routeFail') + m);
     }
     return [data.trip, ...((data.alternates || []).map(x => x.trip).filter(Boolean))];
@@ -1435,8 +1463,22 @@ h1{font-family:inherit}
     lastDiag = diag;
     return [...legal, ...scooter];
   }
+  // God mode: vanlig bil. Ingen maxhastighet för fordonet, ingen kontroll mot motorvägar och ingen
+  // analys av vägtyper. Mopedprofilen och analysen räcker inte för långa resor, det gör bilprofilen.
+  async function godTrip(a, b) {
+    const body = { ...routeBody(a, b, false, 0), costing: 'auto', costing_options: { auto: { use_ferry: 0.5, use_tracks: 0 } } };
+    const { res, data } = await stadiaPost('route/v1', body);
+    if (!res.ok || !data.trip) {
+      const m = data.error || data.status_message || '';
+      if (/no path|No suitable edges/i.test(m)) throw new Error(T('noPath'));
+      throw new Error(T('routeFail') + m);
+    }
+    data.trip.__god = true;
+    return data.trip;
+  }
   // Används vid omräkning under navigering
   async function computeRoute(a, b, safe) {
+    if (lastRoute && lastRoute.god) return godTrip(a, b);
     if (safe) return (await fetchTrips(a, b, true, 0))[0];
     const trips = await fastTrips(a, b, 0);
     const autos = trips.filter(t => t.__profile === 'auto');
@@ -1543,7 +1585,14 @@ h1{font-family:inherit}
     }
     return { fastest, safest, diag: lastDiag };
   }
-  const tripTime = t => { let x = (t.summary && t.summary.time) || 0; if (speed < 20 && !useBikePaths()) x = x * 20 / speed; return x; };
+  // God mode: en enda bilväg, inga alternativ att jämföra
+  async function planGod(a, b) {
+    const trip = await godTrip(a, b);
+    const c = { trip, path: (trip.legs || []).flatMap(l => decode(l.shape || '')), ferries: ferries(trip),
+                an: { safe: 0, mid: 0, high: 0, unk: 0, cycle: 0, ferry: 0, segs: null, ok: false } };
+    return { fastest: c, safest: c, diag: null };
+  }
+  const tripTime = t => { let x = (t.summary && t.summary.time) || 0; if (t.__god) return x; if (speed < 20 && !useBikePaths()) x = x * 20 / speed; return x; };
 
   function renderSafety(c) {
     const an = c.an;
@@ -1567,8 +1616,9 @@ h1{font-family:inherit}
     b.textContent = hiShare > 0.25 ? T('bHigh') : hiShare > 0.05 || midShare > 0.4 ? T('bMid') : T('bSafe');
   }
   function renderOptions(r) {
-    // Båda alternativen visas alltid. Finns ingen säkrare väg är Säkrast utgråat.
-    const box = $('rOpts'); box.innerHTML = ''; box.hidden = false;
+    // Båda alternativen visas alltid. Finns ingen säkrare väg är Säkrast utgråat. I God mode finns bara bilvägen.
+    const box = $('rOpts'); box.innerHTML = ''; box.hidden = !!r.god;
+    if (r.god) return;
     const same = r.fastest === r.safest;
     const mk = (c, title, extra, safe) => {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'opt';
@@ -1585,6 +1635,22 @@ h1{font-family:inherit}
       mk(r.safest, T('optSafe'), same ? T('optSame') : dHigh > 0.05 ? T('lessHigh', { d: fmtDist(dHigh * 1000) }) : fmtDist(r.safest.trip.summary.length * 1000), true)
     );
   }
+  // Med bil på/av för en träff i God mode: samma resa räknas om, som bil eller med det egna fordonet.
+  // Valet sparas på målet, så att det gäller om man räknar om resan senare.
+  $('rCarIn').addEventListener('change', async () => {
+    const r = lastRoute, box = $('rCarIn'), car = box.checked;
+    if (!r || !r.godMeet) return;
+    $('rCarMsg').hidden = true; box.disabled = true;
+    try {
+      const plan = car ? await planGod(r.a, r.b) : await planRoutes(r.a, r.b);
+      r.to.car = car; r.god = car;
+      Object.assign(r, { fastest: plan.fastest, safest: plan.safest, diag: plan.diag });
+      selectRoute(!car && store.get('safeMode', false) ? plan.safest : plan.fastest);
+    } catch (e) {
+      box.checked = !car;
+      $('rCarMsg').textContent = isTimeout(e) ? T('slowNet') : e.message || T('generic'); $('rCarMsg').hidden = false;
+    } finally { box.disabled = false; }
+  });
   function selectRoute(c) {
     lastRoute.trip = c.trip; lastRoute.path = c.path; lastRoute.chosen = c;
     showResult(lastRoute); renderOptions(lastRoute); renderSafety(c); renderWhy(lastRoute);
@@ -1617,13 +1683,16 @@ h1{font-family:inherit}
     const t = r.trip, sum = t.summary || {};
     const time = tripTime(t);
     $('rName').textContent = `${r.fromLabel} → ${r.toLabel}`;
+    $('rGod').hidden = !r.godMeet;
+    $('rCarBox').hidden = !r.godMeet; $('rCarIn').checked = !!r.god; $('rCarMsg').hidden = true;
+    $('rSub').textContent = r.god ? T('godRes') : T('atSpeed', { v: speed });
     $('rTime').textContent = fmtTime(time);
     $('rDist').textContent = fmtDist((sum.length || 0) * 1000);
     $('rCar').textContent = new Date(Date.now() + time * 1000).toLocaleTimeString(LOC(), { hour: '2-digit', minute: '2-digit' });
     const nf = ferries(t);
-    let w = useBikePaths() ? T('warnBike') : T('warn');
+    let w = r.god ? T('godWarn') : useBikePaths() ? T('warnBike') : T('warn');
     if (nf) w = T('ferryWarn', { n: nf }) + ' ' + w;
-    if (r.chosen && !r.chosen.an.ok && (sum.length || 0) > CHUNK_M * MAX_CHUNKS / 1000) w = T('tooLong') + ' ' + w;
+    if (!r.god && r.chosen && !r.chosen.an.ok && (sum.length || 0) > CHUNK_M * MAX_CHUNKS / 1000) w = T('tooLong') + ' ' + w;
     $('rWarnText').textContent = w;
   }
 
@@ -1868,7 +1937,7 @@ h1{font-family:inherit}
   function buildNav(trip, path) {
     const n = path.length, cum = new Float64Array(n);
     for (let i = 1; i < n; i++) cum[i] = cum[i-1] + hav(path[i-1], path[i]);
-    const vmax = speed / 3.6;
+    const vmax = trip.__god ? 250 / 3.6 : speed / 3.6;   // God mode: vägens egen hastighet, inget tak från fordonet
     const mans = (trip.legs || []).flatMap(l => l.maneuvers || []);
     const segV = new Float64Array(Math.max(1, n - 1)).fill(vmax);
     mans.forEach((m, i) => {
@@ -1879,7 +1948,7 @@ h1{font-family:inherit}
     });
     const suffix = new Float64Array(n);
     for (let k = n - 2; k >= 0; k--) suffix[k] = suffix[k+1] + (cum[k+1] - cum[k]) / segV[k];
-    return { path, cum, segV, suffix, mans, idx: 0, along: 0, off: 0, said: {} };
+    return { path, cum, segV, suffix, mans, idx: 0, along: 0, off: 0, said: {}, god: !!trip.__god };
   }
 
   function snap(p) {
@@ -2044,7 +2113,7 @@ h1{font-family:inherit}
     N.lastFix = { p, t: pos.timestamp };
     const kmh = v != null && v >= 0 ? Math.round(v * 3.6) : null;
     $('nSpd').querySelector('b').textContent = kmh == null ? '–' : kmh;
-    $('nSpd').classList.toggle('over', kmh != null && kmh > speed + 2);
+    $('nSpd').classList.toggle('over', !N.god && kmh != null && kmh > speed + 2);   // i God mode gäller vägens hastighetsgräns
     // fäst mot rutten
     const s = snap(p);
     if (s.d > Math.max(40, acc * 1.5)) { N.off++; if (N.off >= 3) reroute(p); }
@@ -2061,7 +2130,7 @@ h1{font-family:inherit}
     if (!lastRoute) return;
     if (!navigator.geolocation) { alert(T('noGeoNav')); return; }
     N = buildNav(lastRoute.trip, lastRoute.path);
-    $('nEtaSub').textContent = T('etaSub', { v: speed }); $('nText').textContent = T('waitGps');
+    $('nEtaSub').textContent = N.god ? T('godEta') : T('etaSub', { v: speed }); $('nText').textContent = T('waitGps');
     $('nMute').innerHTML = muted ? SPK_OFF : SPK_ON; $('nMute').setAttribute('aria-pressed', String(muted)); $('nMute').setAttribute('aria-label', muted ? T('muteOn') : T('muteOff'));
     $('v-res').classList.remove('on'); $('v-nav').classList.add('on');
     // lås upp tal på iOS (måste ske i ett tryck)
@@ -2169,14 +2238,14 @@ h1{font-family:inherit}
       if (supa && !signedIn()) try { await supaAuth('token?grant_type=id_token', { ...body, link_identity: true }, await supaToken()); linked = true; } catch (e) { if (!e.status) throw e; }
       if (!linked) await supaAuth('token?grant_type=id_token', body);
     } catch (e) { $('welMsg').textContent = isTimeout(e) ? T('slowNet') : T('signFail'); return; }
-    renderAccount(); loadMeets(); pushSync();
+    renderAccount(); loadMeets(); pushSync(); loadGod();
     // vidare till sista steget. En inbjudningslänk öppnas när välkomstrutan stängs (pendingJoin).
     if ($('welcome').open) welStep(3); else pendingJoin();
   }
   // Utloggad, raderad eller ogiltig session: tillbaka till inloggningen i välkomstrutan
   function signedOut() {
     dropSession(); store.set('visible', false); $('visIn').checked = false;
-    liveStop();
+    liveStop(); GOD = false;
     GROUPS = []; renderMeetNew(); if ($('grp').open) $('grp').close();
     MEETS = []; renderMeets(); if ($('meet').open) $('meet').close();
     try { google.accounts.id.disableAutoSelect(); } catch {}
@@ -2371,6 +2440,7 @@ h1{font-family:inherit}
   function meetCard(m) {
     const c = el('div', { className: 'meet-card' }), hd = el('button', { type: 'button', className: 'hd' }), tx = el('span');
     tx.append(el('b', { textContent: '🏁 ' + m.title }), el('small', { textContent: m.group_name + ' · ' + meetTime(m.starts_at) }));
+    if (m.god) tx.append(el('i', { className: 'god-tag', textContent: T('godTag') }));
     hd.append(tx, el('em', { textContent: comingText(m.coming) }));
     hd.onclick = () => openMeet(m);
     const btn = (key, ghost) => el('button', { type: 'button', className: ghost ? 'cta ghost' : 'cta', textContent: T(key) });
@@ -2410,12 +2480,19 @@ h1{font-family:inherit}
   // Skapas från startsidan. Är man med i flera grupper väljer man grupp i dialogen.
   function meetNew(g) {
     const d = new Date(Date.now() + 30 * 6e4); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 1);
-    meetDraft = { group: g, choose: !!(GROUPS && GROUPS.length > 1), name: '', when: localInput(d), loc: null };
+    meetDraft = { group: g, choose: !!(GROUPS && GROUPS.length > 1), name: '', when: localInput(d), loc: null, god: false };
     meetShowNew();
+  }
+  // God mode får bara skapas av konton som servern har godkänt (god_users). Servern kontrollerar också.
+  let GOD = false;
+  async function loadGod() {
+    if (!signedIn()) { GOD = false; return; }
+    try { GOD = !!(await supaRpc('god_me')); } catch {}
   }
   function meetShowNew() {
     const d = meetDraft; if (!d) return;
     $('meetGrpBox').hidden = !d.choose;
+    $('meetGodBox').hidden = !GOD; $('meetGod').checked = !!d.god;
     if (d.choose) $('meetGrp').replaceChildren(...GROUPS.map(g => el('option', { value: g.id, textContent: g.name, selected: g.id === d.group.id })));
     $('meetTitle').textContent = d.choose ? T('meetNewTitle') : T('meetNewTitle') + ' · ' + d.group.name;
     $('meetForm').hidden = false; $('meetView').hidden = true; $('meetOk').hidden = false;
@@ -2425,6 +2502,7 @@ h1{font-family:inherit}
     if (!$('meet').open) $('meet').showModal();
   }
   $('meetGrp').addEventListener('change', () => { if (meetDraft) meetDraft.group = GROUPS.find(g => g.id === $('meetGrp').value) || meetDraft.group; });
+  $('meetGod').addEventListener('change', () => { if (meetDraft) meetDraft.god = $('meetGod').checked; });
   $('meetName').addEventListener('input', () => { if (meetDraft) meetDraft.name = $('meetName').value; });
   $('meetWhen').addEventListener('input', () => { if (meetDraft) meetDraft.when = $('meetWhen').value; });
   $('meetPick').onclick = () => {
@@ -2438,7 +2516,7 @@ h1{font-family:inherit}
     if (!d.when || isNaN(t) || t < Date.now() - 6e5 || t > Date.now() + 30 * 864e5) { meetMsg(T('meetBadTime')); return; }
     if (!d.loc) { meetMsg(T('meetNeedPlace')); return; }
     $('meetOk').disabled = true;
-    try { await supaRpc('meetup_create', { p_group: d.group.id, p_title: d.name, p_lat: d.loc.lat, p_lng: d.loc.lng, p_starts: t.toISOString() }); }
+    try { await supaRpc('meetup_create', { p_group: d.group.id, p_title: d.name, p_lat: d.loc.lat, p_lng: d.loc.lng, p_starts: t.toISOString(), p_god: GOD && !!d.god }); }
     catch (e) { meetMsg(meetErr(e)); return; }
     finally { $('meetOk').disabled = false; }
     store.set('meetGroup', d.group.id);   // nästa träff från startsidan föreslår samma grupp
@@ -2450,6 +2528,8 @@ h1{font-family:inherit}
   $('meetNewBtn').onclick = () => {
     if (!GROUPS || !GROUPS.length) return;
     meetNew(GROUPS.find(g => g.id === store.get('meetGroup', '')) || GROUPS[0]);
+    // frågar servern igen, så att ett nyss tillagt God mode-konto inte behöver starta om appen
+    loadGod().then(() => { if (meetDraft && $('meet').open && !$('meetForm').hidden) $('meetGodBox').hidden = !GOD; });
   };
 
   // En träff: svara, se vilka som kommer, kör dit
@@ -2457,7 +2537,7 @@ h1{font-family:inherit}
     meetCur = m; meetDraft = null;
     $('meetTitle').textContent = m.title;
     $('meetForm').hidden = true; $('meetView').hidden = false; $('meetOk').hidden = true;
-    $('meetSub').textContent = [m.group_name, meetTime(m.starts_at), m.creator_nick && T('meetBy', { n: m.creator_nick })].filter(Boolean).join(' · ');
+    $('meetSub').textContent = [m.god && T('godTag'), m.group_name, meetTime(m.starts_at), m.creator_nick && T('meetBy', { n: m.creator_nick })].filter(Boolean).join(' · ');
     $('meetDel').hidden = !m.can_delete;
     setAnswer(m.my_answer); $('meetWho').textContent = ''; meetMsg('');
     if (!$('meet').open) $('meet').showModal();
@@ -2494,7 +2574,8 @@ h1{font-family:inherit}
     ['meet', 'grp', 'settings'].forEach(id => { if ($(id).open) $(id).close(); });
     ['v-near', 'v-res', 'v-pick'].forEach(id => $(id).classList.remove('on')); $('v-plan').classList.add('on');
     if (FX.kind) fxStart(FX.kind);
-    dest = { loc: { lat: m.lat, lng: m.lng }, label: '🏁 ' + m.title, short: m.title, meet: true }; $('to').value = dest.label;
+    // God mode följer med målet: väljer man ett annat mål gäller fordonets vanliga inställningar igen
+    dest = { loc: { lat: m.lat, lng: m.lng }, label: '🏁 ' + m.title, short: m.title, meet: true, god: !!m.god }; $('to').value = dest.label;
     // alltid från där jag är nu
     if (LIVE.pos) { origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng } }; $('from').value = T('myPos'); $('go').click(); }
     else useMyLocation(() => $('go').click());
@@ -2810,9 +2891,11 @@ h1{font-family:inherit}
     const btn = $('go'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>' + T('calcing');
     try {
       const [a, b] = await Promise.all([placeLocation(from), placeLocation(to)]);
-      const plan = await planRoutes(a, b);
+      // En träff i God mode låser målet och kör som vanlig bil, om man inte har slagit av Med bil
+      const godMeet = !!(to.meet && to.god), god = godMeet && to.car !== false;
+      const plan = god ? await planGod(a, b) : await planRoutes(a, b);
       const chosen = store.get('safeMode', false) ? plan.safest : plan.fastest;   // senast valda alternativ
-      lastRoute = { trip: chosen.trip, path: chosen.path, a, b, from, to, fastest: plan.fastest, safest: plan.safest, chosen, diag: plan.diag,
+      lastRoute = { trip: chosen.trip, path: chosen.path, a, b, from, to, fastest: plan.fastest, safest: plan.safest, chosen, diag: plan.diag, god, godMeet,
         fromLabel: from.coords ? T('myPos') : (from.short || fromTxt), toLabel: to.short || toTxt };
       if (!to.rider && !to.pin && !to.meet) addRecent({ placeId: to.placeId, loc: to.loc, label: to.label || toTxt, short: to.short || to.label || toTxt });
       $('v-plan').classList.remove('on'); $('v-res').classList.add('on'); window.scrollTo(0, 0);
@@ -2914,7 +2997,7 @@ h1{font-family:inherit}
   readInvite(); readMeetLink();
   window.addEventListener('hashchange', () => { readInvite(); readMeetLink(); showWantedMeet(); });
   loadMeets(); pushSync();
-  if (signedIn()) loadGroups();   // för Skapa träff på startsidan
+  if (signedIn()) { loadGroups(); loadGod(); }   // för Skapa träff på startsidan
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') loadMeets(); });
   // En ny träff i gruppen ska dyka upp även om appen redan är öppen
   setInterval(() => { if (document.visibilityState === 'visible') loadMeets(); }, 60000);

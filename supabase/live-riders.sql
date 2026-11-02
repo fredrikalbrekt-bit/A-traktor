@@ -74,6 +74,14 @@ create table if not exists public.meetup_answers (
 -- Varje träff ger notiser en gång
 alter table public.meetups add column if not exists notified_at timestamptz;
 
+-- God mode: alla som kör till träffen navigerar som med vanlig bil, utan fordonets maxhastighet och
+-- utan avståndsgräns, och målet är låst till träffens plats. Bara konton i god_users får skapa sådana.
+-- Konton läggs till för hand i SQL Editor, så att ingen e-postadress behöver stå i repot.
+alter table public.meetups add column if not exists god boolean not null default false;
+create table if not exists public.god_users (
+  user_id uuid primary key references auth.users (id) on delete cascade
+);
+
 -- Telefoner som vill ha notiser om nya träffar. Adressen kommer från telefonens notistjänst
 -- (Apple, Google, Mozilla, Microsoft) och nycklarna krypterar innehållet så att bara telefonen kan läsa det.
 -- Sparas om varje gång appen startas, och tas bort om appen inte har öppnats på 90 dagar.
@@ -96,8 +104,9 @@ alter table public.group_members enable row level security;
 alter table public.meetups enable row level security;
 alter table public.meetup_answers enable row level security;
 alter table public.push_subs enable row level security;
+alter table public.god_users enable row level security;
 revoke all on public.riders, public.blocks, public.ride_last, public.groups, public.group_members,
-              public.meetups, public.meetup_answers, public.push_subs from anon, authenticated;
+              public.meetups, public.meetup_answers, public.push_subs, public.god_users from anon, authenticated;
 
 -- ---------- Hjälpfunktioner (bara för funktionerna nedan) ----------
 
@@ -421,8 +430,21 @@ $$;
 -- ---------- Träffar ----------
 -- Alla i gruppen kan skapa träffar, högst 10 kommande per grupp. Skaparen och gruppens skapare kan ta bort dem.
 
+-- Får jag skapa träffar i God mode?
+create or replace function public.god_me()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.god_users g where g.user_id = auth.uid());
+$$;
+
+-- Äldre version utan God mode. Appen anropar med namngivna parametrar, så p_god är frivillig.
+drop function if exists public.meetup_create(uuid, text, double precision, double precision, timestamptz);
 create or replace function public.meetup_create(
-  p_group uuid, p_title text, p_lat double precision, p_lng double precision, p_starts timestamptz)
+  p_group uuid, p_title text, p_lat double precision, p_lng double precision, p_starts timestamptz, p_god boolean default false)
 returns uuid
 language plpgsql
 security definer
@@ -434,6 +456,9 @@ declare
 begin
   if not exists (select 1 from public.group_members m where m.group_id = p_group and m.user_id = me) then
     raise sqlstate 'PT403' using message = 'not a member';
+  end if;
+  if coalesce(p_god, false) and not exists (select 1 from public.god_users g where g.user_id = me) then
+    raise sqlstate 'PT403' using message = 'no god mode';
   end if;
   if char_length(btrim(coalesce(p_title, ''))) not between 2 and 40 then
     raise sqlstate 'PT400' using message = 'bad title';
@@ -447,8 +472,8 @@ begin
   if (select count(*) from public.meetups x where x.group_id = p_group and x.starts_at > now() - interval '3 hours') >= 10 then
     raise sqlstate 'PT409' using message = 'too many meetups';
   end if;
-  insert into public.meetups (group_id, creator, title, pos, starts_at)
-  values (p_group, me, btrim(p_title), st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography, p_starts)
+  insert into public.meetups (group_id, creator, title, pos, starts_at, god)
+  values (p_group, me, btrim(p_title), st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography, p_starts, coalesce(p_god, false))
   returning id into v_id;
   insert into public.meetup_answers (meetup_id, user_id, coming) values (v_id, me, true);
   return v_id;
@@ -456,9 +481,11 @@ end;
 $$;
 
 -- Kommande träffar i alla mina grupper. Svar från den som lämnat gruppen räknas inte.
+-- Svaret fick kolumnen god, och då måste funktionen tas bort först.
+drop function if exists public.meetup_list();
 create or replace function public.meetup_list()
 returns table (id uuid, group_id uuid, group_name text, title text, lat double precision, lng double precision,
-               starts_at timestamptz, creator_nick text, can_delete boolean, coming integer, my_answer boolean)
+               starts_at timestamptz, creator_nick text, can_delete boolean, coming integer, my_answer boolean, god boolean)
 language plpgsql
 security definer
 set search_path = public, extensions
@@ -473,7 +500,8 @@ begin
            (select count(*)::integer from public.meetup_answers a
             join public.group_members gm on gm.group_id = u.group_id and gm.user_id = a.user_id
             where a.meetup_id = u.id and a.coming),
-           (select a.coming from public.meetup_answers a where a.meetup_id = u.id and a.user_id = me)
+           (select a.coming from public.meetup_answers a where a.meetup_id = u.id and a.user_id = me),
+           u.god
     from public.meetups u
     join public.groups g on g.id = u.group_id
     join public.group_members mine on mine.group_id = u.group_id and mine.user_id = me
@@ -736,7 +764,8 @@ revoke execute on function public.group_people(uuid) from public, anon;
 revoke execute on function public.group_kick(uuid, uuid) from public, anon;
 revoke execute on function public.group_new_code(uuid) from public, anon;
 revoke execute on function public.group_leave(uuid) from public, anon;
-revoke execute on function public.meetup_create(uuid, text, double precision, double precision, timestamptz) from public, anon;
+revoke execute on function public.meetup_create(uuid, text, double precision, double precision, timestamptz, boolean) from public, anon;
+revoke execute on function public.god_me() from public, anon;
 revoke execute on function public.meetup_list() from public, anon;
 revoke execute on function public.meetup_people(uuid) from public, anon;
 revoke execute on function public.meetup_answer(uuid, boolean) from public, anon;
@@ -753,7 +782,8 @@ grant execute on function public.group_people(uuid) to authenticated;
 grant execute on function public.group_kick(uuid, uuid) to authenticated;
 grant execute on function public.group_new_code(uuid) to authenticated;
 grant execute on function public.group_leave(uuid) to authenticated;
-grant execute on function public.meetup_create(uuid, text, double precision, double precision, timestamptz) to authenticated;
+grant execute on function public.meetup_create(uuid, text, double precision, double precision, timestamptz, boolean) to authenticated;
+grant execute on function public.god_me() to authenticated;
 grant execute on function public.meetup_list() to authenticated;
 grant execute on function public.meetup_people(uuid) to authenticated;
 grant execute on function public.meetup_answer(uuid, boolean) to authenticated;
