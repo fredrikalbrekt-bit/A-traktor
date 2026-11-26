@@ -146,13 +146,14 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .maplibregl-ctrl-attrib{background:rgba(0,0,0,.55)!important;color:#9a9ea6!important;font-size:10px}
 .maplibregl-ctrl-attrib a{color:#9a9ea6!important}
 .maplibregl-ctrl-attrib-button{filter:invert(1)}
-.nav-top{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);
-  display:flex;gap:14px;align-items:center;padding:14px 16px;background:var(--panel2);border:1px solid var(--line);border-radius:16px}
+/* Instruktionen överst och varningarna under den, i en kolumn så att de aldrig täcker varandra */
+.nav-head{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.nav-head>*{pointer-events:auto}
+.nav-top{display:flex;gap:14px;align-items:center;padding:14px 16px;background:var(--panel2);border:1px solid var(--line);border-radius:16px}
 .man-ico{width:52px;height:52px;flex-shrink:0;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent)}
 .man-dist{font-family:var(--cond);font-size:34px;font-weight:600;line-height:1}
 .man-text{font-size:16px;line-height:1.3;margin-top:4px;color:var(--text2)}
-.nav-banner{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 118px);
-  background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px}
+.nav-banner{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px}
 .nav-bottom{position:absolute;z-index:2;left:0;right:0;bottom:0;background:linear-gradient(transparent,var(--bg) 28%);
   padding:40px 16px calc(env(safe-area-inset-bottom) + 14px)}
 .nav-panel{background:var(--panel2);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:12px}
@@ -314,8 +315,7 @@ h1{font-family:inherit}
 .nwx{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;margin-left:auto;margin-right:10px}
 .nwx .ic{font-size:24px;line-height:1}
 .nwx .tp{font-size:14px;font-weight:600;margin-top:2px}
-.nav-wx{position:absolute;z-index:2;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 118px);
-  background:var(--panel2);border:1px solid color-mix(in srgb,var(--mid) 55%,transparent);border-radius:12px;padding:10px 14px;font-size:15px;display:flex;gap:10px;align-items:center}
+.nav-wx{background:var(--panel2);border:1px solid color-mix(in srgb,var(--mid) 55%,transparent);border-radius:12px;padding:10px 14px;font-size:15px;display:flex;gap:10px;align-items:center}
 .nav-wx[hidden]{display:none}
 .nav-wx .ic{font-size:22px}
 .plan-wx{font-size:14px;color:var(--text2);margin-top:8px;display:flex;align-items:center;gap:6px}
@@ -545,12 +545,15 @@ h1{font-family:inherit}
 
 <section class="view" id="v-nav" data-i18n-aria="navAria" aria-label="Navigering">
   <div class="nav-map" id="navMap"></div>
-  <div class="nav-top" aria-live="polite">
-    <div class="man-ico" id="nIco"></div>
-    <div><div class="man-dist" id="nDist">–</div><div class="man-text" id="nText">–</div></div>
+  <div class="nav-head">
+    <div class="nav-top" aria-live="polite">
+      <div class="man-ico" id="nIco"></div>
+      <div><div class="man-dist" id="nDist">–</div><div class="man-text" id="nText">–</div></div>
+    </div>
+    <div class="nav-banner" id="nBanner" hidden></div>
+    <div class="nav-banner" id="nWake" hidden data-i18n="wakeWarn"></div>
+    <div class="nav-wx" id="nWxBan" hidden role="status"><span class="ic" id="nWxBanIc"></span><span id="nWxBanTx"></span></div>
   </div>
-  <div class="nav-banner" id="nBanner" hidden></div>
-  <div class="nav-wx" id="nWxBan" hidden role="status"><span class="ic" id="nWxBanIc"></span><span id="nWxBanTx"></span></div>
   <div class="nav-bottom">
     <div class="nav-panel">
       <div class="eta-row">
@@ -685,7 +688,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 42</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 43</p>
   </form>
 </dialog>
 
@@ -758,13 +761,13 @@ h1{font-family:inherit}
   const STR = {
     sv: {
       planAria:'Planera resa', where:'Vart ska du?', settings:'Inställningar', speedAria:'Ändra maxhastighet i inställningar', kmhMax:'km/h max',
-      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', safetyHd:'Vägtyper längs rutten', whyHd:'Varför den här rutten?', wOk:'Rutten följer vägen en bil skulle ta och kontrollerades mot motorväg och motortrafikled i OpenStreetMap. Inga sådana vägar på rutten. Restiden är räknad med fordonets maxhastighet.', wOkSlower:'Bilvägen ({t}) var laglig men användes inte.', wRej:'Den snabbaste vägen med bilprofil ({t}, {d}) går {m} på väg som i OpenStreetMap är märkt som motorväg eller motortrafikled{n}, och avvisades. Den visas streckad på kartan, den förbjudna delen i rött.', wRejHint:'Har vägen inte gröna skyltar i verkligheten är den felmärkt i OpenStreetMap och kan rättas där.', wRerouted:'En laglig variant med bilprofil hittades ({t}).', wFailed:'Kontrollen mot OpenStreetMap kunde inte göras just nu, så mopedprofilen användes. Den undviker alla större vägar.', wNoRoute:'Ingen rutt med bilprofil hittades, så mopedprofilen användes.', wBike:'Moped klass II räknas med cykelprofil, där cykelbanor är tillåtna.', wChosenAuto:'Vald rutt: bilprofil, kontrollerad.', wChosenScooter:'Vald rutt: mopedprofil.', wSafe:'Säkrast är valt: rutten med minst sträcka på snabba vägar.', legendRej:'avvisad rutt', wTech:'Tekniskt', wSrc:'Källa för gröna vägar', legendForbid:'märkt motorväg/motortrafikled', ferryWarn:'Rutten innehåller {n} färja/färjor, kontrollera tider och att fordonet får åka med.', tooLong:'Rutten är för lång för analys av vägtyper.', segSafe:'Cykelbana och lugna vägar (≤50)', segCalm:'Lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Ingen säkrare väg hittades', lessHigh:'{d} mindre 80-väg', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
+      suggAria:'Sökförslag', clear:'Rensa', recentHd:'Senaste', resultsHd:'Förslag', noHits:'Inga träffar. Prova en gatuadress eller ett ortnamn.', searching:'Söker…', typeMore:'Skriv minst tre tecken för att söka.', from:'Från', to:'Till', addrPh:'Adress eller plats', myPos:'Min position', safetyHd:'Vägtyper längs rutten', whyHd:'Varför den här rutten?', wOk:'Rutten följer vägen en bil skulle ta och kontrollerades mot motorväg och motortrafikled i OpenStreetMap. Inga sådana vägar på rutten. Restiden är räknad med fordonets maxhastighet.', wOkMoped:'Rutten följer vägen en bil skulle ta och kontrollerades mot motorväg, motortrafikled och vägar där moped är förbjuden i OpenStreetMap. Inga sådana vägar på rutten. Restiden är räknad med fordonets maxhastighet.', wRejMoped:'Den snabbaste vägen med bilprofil ({t}, {d}) går {m} på väg där moped är förbjuden enligt OpenStreetMap{n}, och avvisades. Den visas streckad på kartan, den förbjudna delen i rött.', wRejHintMoped:'Får moped köra där i verkligheten är vägen felmärkt i OpenStreetMap och kan rättas där.', wOkSlower:'Bilvägen ({t}) var laglig men användes inte.', wRej:'Den snabbaste vägen med bilprofil ({t}, {d}) går {m} på väg som i OpenStreetMap är märkt som motorväg eller motortrafikled{n}, och avvisades. Den visas streckad på kartan, den förbjudna delen i rött.', wRejHint:'Har vägen inte gröna skyltar i verkligheten är den felmärkt i OpenStreetMap och kan rättas där.', wRerouted:'En laglig variant med bilprofil hittades ({t}).', wFailed:'Kontrollen mot OpenStreetMap kunde inte göras just nu, så mopedprofilen användes. Den undviker alla större vägar.', wNoRoute:'Ingen rutt med bilprofil hittades, så mopedprofilen användes.', wBike:'Moped klass II räknas med cykelprofil, där cykelbanor är tillåtna.', wChosenAuto:'Vald rutt: bilprofil, kontrollerad.', wChosenScooter:'Vald rutt: mopedprofil.', wSafe:'Säkrast är valt: rutten med minst sträcka på snabba vägar.', legendRej:'avvisad rutt', wTech:'Tekniskt', wSrc:'Källa för gröna vägar', legendForbid:'märkt motorväg/motortrafikled', legendForbidMoped:'förbjuden för moped', ferryWarn:'Rutten innehåller {n} färja/färjor, kontrollera tider och att fordonet får åka med.', tooLong:'Rutten är för lång för analys av vägtyper.', segSafe:'Cykelbana och lugna vägar (≤50)', segCalm:'Lugna vägar (≤50)', segMid:'60–70-vägar', segHigh:'80-vägar och snabbare', segUnk:'Okänd hastighet', bSafe:'Lugn', bMid:'Blandad', bHigh:'Mycket snabba vägar', optSafe:'Säkrast', optFast:'Snabbast', optSame:'Ingen säkrare väg hittades', lessHigh:'{d} mindre 80-väg', cycleKm:'varav {d} cykelbana', warnBike:'Rutten använder cykelbanor där moped klass II får köra. Skylten ”ej moped” gäller alltid, och kartdata kan vara ofullständig.',
       calc:'Beräkna rutt', calcing:'Beräknar', resAria:'Rutt och restid', back:'Tillbaka',
       dist:'Sträcka', arrival:'Ankomst', startNav:'Starta navigering', attr:'Rutt: Valhalla via Stadia Maps · Kartdata', navAria:'Navigering',
       end:'Avsluta', ajaText:'Inte tillåtet. Kan bli tråkiga påföljder samt registreringsbesiktning.', ajaOk:'Okej, 30 km/h', ajaKeep:'Det är inte en A-traktor', themeLbl:'Fordon och tema', pBil:'Mopedbil', hBil:'Tema: grafit och lila. Max 45 km/h, motorväg och motortrafikled undviks. Får inte köra på cykelbana.', bTitle:'Sakta i backarna!', bText:'Över 45 km/h? En mopedbil är begränsad till 45 km/h. Går den fortare räknas den inte längre som mopedbil.', bOk:'Okej, 45 km/h', bKeep:'Det är ingen mopedbil', speedHelpB:'Används för ruttval, restid och ankomsttid under navigeringen. Mopedbil: 45 km/h.', pMoped1:'Moped klass I', hMoped1:'Tema: neon och kolfiber. Max 45 km/h, motorväg och motortrafikled undviks. Får inte köra på cykelbana.', m1Title:'Full gas – men inte mer!', m1Text:'Över 45 km/h? Då är det ingen moped klass I längre utan en motorcykel, med krav på mc-körkort.', m1Ok:'Okej, 45 km/h', m1Keep:'Det är en lätt motorcykel', speedHelpM1:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass I: 45 km/h.', wxHd:'Väder längs vägen', wxNow:'just nu', wxIce:'Halkrisk', wxGust:'Kraftig byvind {v} m/s', wxFog:'Dimma, dålig sikt', wxThunder:'Åska', wxDark:'Mörkt vid ankomst', wxHeavy:'Kraftigt regn', wxSnow:'Snö', wxCalm:'Inga varningar längs vägen.', wxSoonRain:'Regn om ca {m} min', wxSoonSnow:'Snöfall om ca {m} min', wxSoonIce:'Halkrisk längre fram, sänk farten', wxSoonGust:'Kraftiga vindbyar längre fram', wxSoonFog:'Dimma längre fram, tänd belysningen', wxDusk:'Det börjar skymma, tänd belysningen', wxStart:'Avresa', pEpa:'EPA/A-traktor', pMoped:'Moped klass II', hEpa:'Tema: midnattssvart. Max 30 km/h, motorväg och motortrafikled undviks.', hMoped:'Tema: retrosolnedgång. Max 30 km/h, kör på cykelbana där det är tillåtet.', ksTitle:'Hoppsan!', ksText:'Över 30 km/h? Är det en moped eller en motorcykel?', ksOk:'Moped, 30 km/h', ksKeep:'Motorcykel', speedHelpKs:'Används för ruttval, restid och ankomsttid under navigeringen. Moped klass II: 30 km/h.',
       speedLbl:'Fordonets maxhastighet', speedHelp:'Används för ruttval, restid och ankomsttid under navigeringen. A-traktor: 30 km/h.', cancel:'Avbryt', save:'Spara', langLbl:'Språk',
       atSpeed:'vid {v} km/h', etaSub:'Ankomst vid max {v} km/h', left:'{t} · {d} kvar', min:'min', h:'h',
-      muteOn:'Slå på röst', muteOff:'Stäng av röst', waitGps:'Väntar på GPS…', arrived:'Du är framme.', offRoute:'Du har lämnat rutten. Beräknar ny rutt…',
+      muteOn:'Slå på röst', muteOff:'Stäng av röst', waitGps:'Väntar på GPS…', wakeWarn:'Telefonen kan släcka skärmen under resan, och då stannar vägledningen. Stäng av automatisk skärmlåsning medan du kör.', arrived:'Du är framme.', offRoute:'Du har lämnat rutten. Beräknar ny rutt…',
       newRoute:'Ny rutt beräknad.', rerouteFail:'Ny rutt kunde inte beräknas. Försöker igen strax.', mapFail:'Kartan kunde inte laddas (ingen kontakt med kartbiblioteket). Navigeringen fungerar ändå.',
       noGeoNav:'Den här webbläsaren kan inte dela position.', geoDenied:'Appen får inte använda din position. Tillåt plats för Safari i Inställningar.', gpsWait:'Väntar på GPS-signal…',
       noGeo:'Telefonen kan inte dela position här. Skriv in en adress i stället.', locating:'Hämtar position…',
@@ -829,13 +832,13 @@ h1{font-family:inherit}
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
-      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', safetyHd:'Road types along the route', whyHd:'Why this route?', wOk:'The route follows the road a car would take and was checked against motorways and expressways in OpenStreetMap. No such roads on the route. Travel time is calculated at your vehicle’s max speed.', wOkSlower:'The car route ({t}) was legal but not used.', wRej:'The fastest car-profile road ({t}, {d}) runs {m} on a road tagged as motorway or expressway in OpenStreetMap{n}, and was rejected. It is shown dashed on the map, the forbidden part in red.', wRejHint:'If that road has no green signs in reality, it is mis-tagged in OpenStreetMap and can be fixed there.', wRerouted:'A legal car-profile variant was found ({t}).', wFailed:'The OpenStreetMap check could not be done right now, so the moped profile was used. It avoids all larger roads.', wNoRoute:'No car-profile route was found, so the moped profile was used.', wBike:'Class II mopeds are routed with a bicycle profile, where cycle paths are allowed.', wChosenAuto:'Chosen route: car profile, checked.', wChosenScooter:'Chosen route: moped profile.', wSafe:'Safest is selected: the route with the least distance on fast roads.', legendRej:'rejected route', wTech:'Technical', wSrc:'Source for green roads', legendForbid:'tagged motorway/expressway', ferryWarn:'The route includes {n} ferry crossing(s); check times and that your vehicle is allowed on board.', tooLong:'The route is too long for road type analysis.', segSafe:'Cycle paths and calm roads (≤50)', segCalm:'Calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'No safer route found', lessHigh:'{d} less on 80 roads', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
+      suggAria:'Suggestions', clear:'Clear', recentHd:'Recent', resultsHd:'Suggestions', noHits:'No matches. Try a street address or a town name.', searching:'Searching…', typeMore:'Type at least three characters to search.', from:'From', to:'To', addrPh:'Address or place', myPos:'My location', safetyHd:'Road types along the route', whyHd:'Why this route?', wOk:'The route follows the road a car would take and was checked against motorways and expressways in OpenStreetMap. No such roads on the route. Travel time is calculated at your vehicle’s max speed.', wOkMoped:'The route follows the road a car would take and was checked against motorways, expressways and roads closed to mopeds in OpenStreetMap. No such roads on the route. Travel time is calculated at your vehicle’s max speed.', wRejMoped:'The fastest car-profile road ({t}, {d}) runs {m} on a road closed to mopeds in OpenStreetMap{n}, and was rejected. It is shown dashed on the map, the forbidden part in red.', wRejHintMoped:'If mopeds are allowed there in reality, the road is mis-tagged in OpenStreetMap and can be fixed there.', wOkSlower:'The car route ({t}) was legal but not used.', wRej:'The fastest car-profile road ({t}, {d}) runs {m} on a road tagged as motorway or expressway in OpenStreetMap{n}, and was rejected. It is shown dashed on the map, the forbidden part in red.', wRejHint:'If that road has no green signs in reality, it is mis-tagged in OpenStreetMap and can be fixed there.', wRerouted:'A legal car-profile variant was found ({t}).', wFailed:'The OpenStreetMap check could not be done right now, so the moped profile was used. It avoids all larger roads.', wNoRoute:'No car-profile route was found, so the moped profile was used.', wBike:'Class II mopeds are routed with a bicycle profile, where cycle paths are allowed.', wChosenAuto:'Chosen route: car profile, checked.', wChosenScooter:'Chosen route: moped profile.', wSafe:'Safest is selected: the route with the least distance on fast roads.', legendRej:'rejected route', wTech:'Technical', wSrc:'Source for green roads', legendForbid:'tagged motorway/expressway', legendForbidMoped:'closed to mopeds', ferryWarn:'The route includes {n} ferry crossing(s); check times and that your vehicle is allowed on board.', tooLong:'The route is too long for road type analysis.', segSafe:'Cycle paths and calm roads (≤50)', segCalm:'Calm roads (≤50)', segMid:'60–70 roads', segHigh:'80 roads and faster', segUnk:'Unknown speed', bSafe:'Calm', bMid:'Mixed', bHigh:'Very fast roads', optSafe:'Safest', optFast:'Fastest', optSame:'No safer route found', lessHigh:'{d} less on 80 roads', cycleKm:'of which {d} cycle path', warnBike:'The route uses cycle paths where class II mopeds are allowed. A “no mopeds” sign always applies, and map data can be incomplete.',
       calc:'Calculate route', calcing:'Calculating', resAria:'Route and travel time', back:'Back',
       dist:'Distance', arrival:'Arrival', startNav:'Start navigation', attr:'Route: Valhalla via Stadia Maps · Map data', navAria:'Navigation',
       end:'End', ajaText:'Not allowed. Could mean nasty penalties and a re-registration inspection.', ajaOk:'Okay, 30 km/h', ajaKeep:'It’s not an A-tractor', themeLbl:'Vehicle and theme', pBil:'Moped car', hBil:'Theme: graphite and purple. Max 45 km/h, motorways and expressways avoided. Not allowed on cycle paths.', bTitle:'Easy, speedster!', bText:'Over 45 km/h? A moped car is limited to 45 km/h. Any faster and it no longer counts as a moped car.', bOk:'Okay, 45 km/h', bKeep:'It’s not a moped car', speedHelpB:'Used for route choice, travel time and arrival time during navigation. Moped car: 45 km/h.', pMoped1:'Class I moped', hMoped1:'Theme: neon and carbon. Max 45 km/h, motorways and expressways avoided. Not allowed on cycle paths.', m1Title:'Full throttle – but no more!', m1Text:'Over 45 km/h? Then it’s no longer a class I moped but a motorcycle, which needs a motorcycle licence.', m1Ok:'Okay, 45 km/h', m1Keep:'It’s a light motorcycle', speedHelpM1:'Used for route choice, travel time and arrival time during navigation. Class I moped: 45 km/h.', wxHd:'Weather along the way', wxNow:'right now', wxIce:'Risk of ice', wxGust:'Strong gusts {v} m/s', wxFog:'Fog, poor visibility', wxThunder:'Thunder', wxDark:'Dark on arrival', wxHeavy:'Heavy rain', wxSnow:'Snow', wxCalm:'No warnings along the way.', wxSoonRain:'Rain in about {m} min', wxSoonSnow:'Snow in about {m} min', wxSoonIce:'Risk of ice ahead, slow down', wxSoonGust:'Strong gusts ahead', wxSoonFog:'Fog ahead, switch on your lights', wxDusk:'It’s getting dark, switch on your lights', wxStart:'Depart', pEpa:'EPA/A-tractor', pMoped:'Class II moped', hEpa:'Theme: midnight black. Max 30 km/h, motorways and expressways avoided.', hMoped:'Theme: retro sunset. Max 30 km/h, uses cycle paths where allowed.', ksTitle:'Whoa there!', ksText:'Over 30 km/h? Is this a moped or a motorcycle?', ksOk:'Moped, 30 km/h', ksKeep:'Motorcycle', speedHelpKs:'Used for route choice, travel time and arrival time during navigation. Class II moped: 30 km/h.',
       speedLbl:'Vehicle max speed', speedHelp:'Used for route choice, travel time and arrival time during navigation. A-tractor: 30 km/h.', cancel:'Cancel', save:'Save', langLbl:'Language',
       atSpeed:'at {v} km/h', etaSub:'Arrival at max {v} km/h', left:'{t} · {d} left', min:'min', h:'h',
-      muteOn:'Turn voice on', muteOff:'Turn voice off', waitGps:'Waiting for GPS…', arrived:'You have arrived.', offRoute:'You left the route. Calculating a new route…',
+      muteOn:'Turn voice on', muteOff:'Turn voice off', waitGps:'Waiting for GPS…', wakeWarn:'Your phone may turn the screen off during the trip, which stops the guidance. Turn off automatic screen lock while you ride.', arrived:'You have arrived.', offRoute:'You left the route. Calculating a new route…',
       newRoute:'New route calculated.', rerouteFail:'Couldn’t calculate a new route. Trying again shortly.', mapFail:'The map couldn’t load (no contact with the map library). Navigation still works.',
       noGeoNav:'This browser can’t share your location.', geoDenied:'The app isn’t allowed to use your location. Allow location for Safari in Settings.', gpsWait:'Waiting for GPS signal…',
       noGeo:'Your phone can’t share its location here. Type an address instead.', locating:'Getting location…',
@@ -1040,10 +1043,19 @@ h1{font-family:inherit}
     if (!navigator.geolocation) { setMsg(T('noGeo')); return; }
     $('from').value = T('locating');
     navigator.geolocation.getCurrentPosition(
-      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude } }; lastPos = origin.coords; store.set('lastPos', lastPos); loadNowWeather(); $('from').value = T('myPos'); setMsg(''); hideSugg(); if (then) then(); },
+      p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude }, mine: true, at: Date.now() }; lastPos = origin.coords; store.set('lastPos', lastPos); loadNowWeather(); $('from').value = T('myPos'); setMsg(''); hideSugg(); if (then) then(); },
       () => { origin = null; $('from').value = ''; setMsg(T('geoFail')); },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
+  }
+  // Min position är där man är när rutten räknas, inte där man var när man tryckte på knappen.
+  // Positionen från Du syns räcker om den är färsk. Går GPS inte att nå används en position som är högst 5 min gammal.
+  function freshPos(from) {
+    if (LIVE.pos && Date.now() - LIVE.pos.at < 30e3) return Promise.resolve({ lat: LIVE.pos.lat, lng: LIVE.pos.lng });
+    return new Promise((ok, no) => navigator.geolocation.getCurrentPosition(
+      p => { lastPos = { lat: p.coords.latitude, lng: p.coords.longitude }; store.set('lastPos', lastPos); ok(lastPos); },
+      () => Date.now() - from.at < 5 * 60e3 ? ok(from.coords) : no(new Error(T('geoFail'))),
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 }));
   }
 
 
@@ -1271,6 +1283,11 @@ h1{font-family:inherit}
   // snabbaste rutten med bilprofil och maxhastighet som tak, och kontrolleras sedan mot OpenStreetMaps
   // märkning av motorväg och motortrafikled (gröna skyltar). Träffar rutten en sådan väg stängs den av
   // och rutten räknas om. Går det inte att kontrollera används mopedprofilen, som alltid är laglig.
+  // Moped klass I och mopedbil kontrolleras också mot vägar där bil får köra men moped är förbjuden
+  // (moped=no i OpenStreetMap), för det vet bilprofilen inget om.
+  const mopedBan = () => theme === 'moped1' || theme === 'mopedbil';
+  const MOPED_NO = '["moped"~"^(no|private)$"]["highway"~"^(trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|living_street|service|road)$"]["motor_vehicle"!~"^(no|private)$"]["motorcar"!~"^(no|private)$"]["access"!~"^(no|private)$"]';
+  const isGreen = t => !!t && (t.motorroad === 'yes' || t.highway === 'motorway' || t.highway === 'motorway_link');
   // Flera öppna Overpass-servrar – om en är överbelastad provas nästa
   const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
   const TILE = 0.2, TILE_TTL = 14 * 864e5;   // rutor om 0,2°, sparas i 14 dagar
@@ -1288,44 +1305,53 @@ h1{font-family:inherit}
     try { return await Promise.any(OVERPASS.map(one)); }
     catch { throw new Error(errs.join(', ')); }
   }
+  // Rutor sparade av äldre versioner, utan vägarna där moped är förbjuden
+  try { Object.keys(localStorage).filter(k => k.startsWith('osmf:')).forEach(k => localStorage.removeItem(k)); } catch {}
   async function tileWays(ti, tj) {
     const key = ti + ':' + tj;
     if (forbidCache.has(key)) return forbidCache.get(key);
-    try { const c = JSON.parse(localStorage.getItem('osmf:' + key) || 'null'); if (c && Date.now() - c.t < TILE_TTL) { forbidCache.set(key, c.w); return c.w; } } catch {}
+    try { const c = JSON.parse(localStorage.getItem('osmf2:' + key) || 'null'); if (c && Date.now() - c.t < TILE_TTL) { forbidCache.set(key, c.w); return c.w; } } catch {}
     const S = ti * TILE, W_ = tj * TILE, bb = [S, W_, S + TILE, W_ + TILE].map(v => v.toFixed(3)).join(',');
-    const d = await overpass(`[out:json][timeout:25];(way["motorroad"="yes"](${bb});way["highway"~"^(motorway|motorway_link)$"](${bb}););out geom;`);
-    const ways = (d.elements || []).filter(e => e.geometry && e.geometry.length > 1)
-      .map(e => e.geometry.map(g => ({ lat: Math.round(g.lat * 1e6) / 1e6, lng: Math.round(g.lon * 1e6) / 1e6 })));
-    forbidCache.set(key, ways);
-    try { localStorage.setItem('osmf:' + key, JSON.stringify({ t: Date.now(), w: ways })); } catch {}
-    return ways;
+    const d = await overpass(`[out:json][timeout:25];(way["motorroad"="yes"](${bb});way["highway"~"^(motorway|motorway_link)$"](${bb});way${MOPED_NO}(${bb}););out geom;`);
+    const w = { green: [], moped: [] };
+    (d.elements || []).filter(e => e.geometry && e.geometry.length > 1).forEach(e =>
+      w[isGreen(e.tags) ? 'green' : 'moped'].push(e.geometry.map(g => ({ lat: Math.round(g.lat * 1e6) / 1e6, lng: Math.round(g.lon * 1e6) / 1e6 }))));
+    forbidCache.set(key, w);
+    try { localStorage.setItem('osmf2:' + key, JSON.stringify({ t: Date.now(), w })); } catch {}
+    return w;
   }
-  // Förberäknad fil med alla svenska gröna vägar (uppdateras varje vecka av GitHub Actions i repot)
+  // Förberäknad fil med alla svenska gröna vägar och vägarna där moped är förbjuden
+  // (uppdateras varje vecka av GitHub Actions i repot)
   let greenP = null;
+  function tileIndex(ways) {
+    const tiles = new Map();
+    ways.forEach((w, wi) => w.forEach((p, k) => {
+      const pts = k ? [p, { lat: (p.lat + w[k - 1].lat) / 2, lng: (p.lng + w[k - 1].lng) / 2 }] : [p];
+      pts.forEach(q => { const key = Math.floor(q.lat / TILE) + ':' + Math.floor(q.lng / TILE); let s_ = tiles.get(key); if (!s_) tiles.set(key, s_ = new Set()); s_.add(wi); });
+    }));
+    return tiles;
+  }
   function greenData() {
     if (!greenP) greenP = (async () => {
       const res = await fetch('grona-vagar.json', { cache: 'no-cache', signal: timeout(30000) });
       if (!res.ok) throw new Error('grona-vagar.json saknas (' + res.status + ')');
       const d = await res.json(), sc = d.scale || 1e5;
-      const ways = d.ways.map(f => { const w = []; for (let i = 0; i < f.length; i += 2) w.push({ lat: f[i] / sc, lng: f[i + 1] / sc }); return w; });
-      const tiles = new Map();
-      ways.forEach((w, wi) => w.forEach((p, k) => {
-        const pts = k ? [p, { lat: (p.lat + w[k - 1].lat) / 2, lng: (p.lng + w[k - 1].lng) / 2 }] : [p];
-        pts.forEach(q => { const key = Math.floor(q.lat / TILE) + ':' + Math.floor(q.lng / TILE); let s_ = tiles.get(key); if (!s_) tiles.set(key, s_ = new Set()); s_.add(wi); });
-      }));
-      return { ways, tiles, generated: d.generated };
+      const unpack = list => (list || []).map(f => { const w = []; for (let i = 0; i < f.length; i += 2) w.push({ lat: f[i] / sc, lng: f[i + 1] / sc }); return w; });
+      const ways = unpack(d.ways), moped = unpack(d.moped);
+      return { ways, tiles: tileIndex(ways), moped, mtiles: tileIndex(moped), generated: d.generated };
     })().catch(e => { greenP = null; throw e; });
     return greenP;
   }
   let greenSource = '';
+  // Förbjudna vägar nära rutten: { green, moped }. moped är tom för fordon som inte berörs.
   async function forbiddenWays(path) {
     try {
       const g = await greenData();
-      const keys = new Set(), out = new Set();
+      const keys = new Set();
       path.forEach(p => { for (const dl of [-0.01, 0.01]) for (const dg of [-0.01, 0.01]) keys.add(Math.floor((p.lat + dl) / TILE) + ':' + Math.floor((p.lng + dg) / TILE)); });
-      keys.forEach(k => (g.tiles.get(k) || []).forEach(wi => out.add(wi)));
+      const near = (tiles, list) => { const out = new Set(); keys.forEach(k => (tiles.get(k) || []).forEach(wi => out.add(wi))); return [...out].map(wi => list[wi]); };
       greenSource = 'fil ' + (g.generated || '');
-      return [...out].map(wi => g.ways[wi]);
+      return { green: near(g.tiles, g.ways), moped: mopedBan() ? near(g.mtiles, g.moped) : [] };
     } catch (e) { greenSource = 'Overpass'; return forbiddenWaysOverpass(path); }
   }
   async function forbiddenWaysOverpass(path) {
@@ -1336,16 +1362,17 @@ h1{font-family:inherit}
     } });
     if (tiles.size > 60) throw new Error('rutten är för lång för kontroll');
     const list = [...tiles].map(k => k.split(':').map(Number));
-    const out = [];
+    const out = { green: [], moped: [] };
     // högst tre samtidiga anrop för att vara snäll mot servrarna
     for (let i = 0; i < list.length; i += 3) {
       const part = await Promise.all(list.slice(i, i + 3).map(([a, b]) => tileWays(a, b)));
-      part.forEach(w => out.push(...w));
+      part.forEach(w => { out.green.push(...w.green); if (mopedBan()) out.moped.push(...w.moped); });
     }
     return out;
   }
-  // Hitta sträckor där rutten följer en förbjuden väg (nära OCH parallellt, så att broar och korsningar inte räknas)
-  function findViolations(path, ways) {
+  // Hitta sträckor där rutten följer en förbjuden väg (nära OCH parallellt, så att broar och korsningar inte räknas).
+  // minRun: så lång sträcka måste rutten följa vägen. Vägar där moped är förbjuden kan vara korta, t.ex. en bro.
+  function findViolations(path, ways, minRun = 120) {
     if (!ways.length) return [];
     const lat0 = path[0].lat * Math.PI / 180, kx = Math.cos(lat0) * 111320, ky = 110540, cell = 0.004;
     const grid = new Map(), keyOf = (la, lo) => Math.floor(la / cell) + ':' + Math.floor(lo / cell);
@@ -1372,7 +1399,7 @@ h1{font-family:inherit}
       return null;
     };
     const hits = [], ranges = []; let run = 0, runHits = [], runStart = -1, meters = 0;
-    const close = k => { if (run >= 120) { hits.push(...runHits); ranges.push([runStart, k]); meters += run; } run = 0; runHits = []; runStart = -1; };
+    const close = k => { if (run >= minRun) { hits.push(...runHits); ranges.push([runStart, k]); meters += run; } run = 0; runHits = []; runStart = -1; };
     for (let k = 0; k < path.length - 1; k++) {
       const p = path[k], q = path[k + 1];
       const vx = (q.lng - p.lng) * kx, vy = (q.lat - p.lat) * ky, seg = Math.hypot(vx, vy);
@@ -1419,7 +1446,7 @@ h1{font-family:inherit}
   }
   async function legalFastTrips(a, b, alternates = 2, diag = {}) {
     let exclude = [];
-    diag.status = 'failed';
+    diag.status = 'failed'; diag.moped = mopedBan();
     for (let round = 0; round < 3; round++) {
       const { res, data } = await stadiaPost('route/v1', autoBody(a, b, exclude, round === 0 ? alternates : 0));
       if (!res.ok || !data.trip) { if (round === 0) diag.status = 'noroute'; return []; }
@@ -1428,10 +1455,13 @@ h1{font-family:inherit}
       for (const t of trips) {
         const path = (t.legs || []).flatMap(l => decode(l.shape || ''));
         const ways = await forbiddenWays(path);          // kastar om kontrollen inte går att göra
-        const v = findViolations(path, ways);
+        const vg = findViolations(path, ways.green), vm = findViolations(path, ways.moped, 30);
+        const v = [...vg, ...vm];
+        v.meters = (vg.meters || 0) + (vm.meters || 0); v.ranges = [...(vg.ranges || []), ...(vm.ranges || [])];
         if (round === 0 && t === trips[0]) {
           if (!t.summary.carTime) retime(t);
-          diag.first = { trip: t, path, meters: v.length ? v.meters : 0, ranges: v.length ? v.ranges : [], ways: ways.length };
+          diag.first = { trip: t, path, meters: v.length ? v.meters : 0, ranges: v.length ? v.ranges : [], ways: ways.green.length + ways.moped.length,
+                         moped: vm.length > 0 && !vg.length };   // bara förbud mot moped, ingen grön väg
           const mans = (t.legs || []).flatMap(l => l.maneuvers || []);
           const names = new Set();
           (v.ranges || []).forEach(([s0, s1]) => mans.forEach((m, mi) => {
@@ -1665,13 +1695,13 @@ h1{font-family:inherit}
     const add = (t, html) => { const p = document.createElement('div'); if (html) p.innerHTML = html; else p.textContent = t; box.appendChild(p); };
     const tt = t => fmtTime(tripTime(t)), dd = t => fmtDist((t.summary.length || 0) * 1000);
     if (d.status === 'bike') add(T('wBike'));
-    else if (d.status === 'ok') { add(T('wOk')); if (r.chosen.trip.__profile !== 'auto' && d.legal) add(T('wOkSlower', { t: tt(d.legal) })); }
+    else if (d.status === 'ok') { add(T(d.moped ? 'wOkMoped' : 'wOk')); if (r.chosen.trip.__profile !== 'auto' && d.legal) add(T('wOkSlower', { t: tt(d.legal) })); }
     else if (d.status === 'rejected' || d.status === 'rerouted') {
       const f = d.first;
-      add(T('wRej', { t: tt(f.trip), d: dd(f.trip), m: fmtDist(f.meters), n: f.names && f.names.length ? ' (' + f.names.join(', ') + ')' : '' }));
-      add(T('wRejHint'));
+      add(T(f.moped ? 'wRejMoped' : 'wRej', { t: tt(f.trip), d: dd(f.trip), m: fmtDist(f.meters), n: f.names && f.names.length ? ' (' + f.names.join(', ') + ')' : '' }));
+      add(T(f.moped ? 'wRejHintMoped' : 'wRejHint'));
       if (d.status === 'rerouted' && d.legal) add(T('wRerouted', { t: tt(d.legal) }));
-      add('', `<span class="lg"></span>${T('legendRej')} &nbsp; <span class="lg r"></span>${T('legendForbid')}`);
+      add('', `<span class="lg"></span>${T('legendRej')} &nbsp; <span class="lg r"></span>${T(f.moped ? 'legendForbidMoped' : 'legendForbid')}`);
     }
     else if (d.status === 'noroute') add(T('wNoRoute'));
     else { add(T('wFailed')); if (d.err) add('', `<span style="color:var(--faint);font-size:12px">${T('wTech')}: ${d.err.replace(/[<>&]/g, '')}</span>`); }
@@ -1972,8 +2002,22 @@ h1{font-family:inherit}
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   }
 
+  // Skärmen ska vara tänd hela resan. Går det inte (äldre iPhone-hemskärmsappar, strömsparläge) varnas man en gång per resa.
   let wake = null;
-  async function keepAwake() { try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch {} }
+  async function keepAwake() {
+    if (wake) return;
+    try {
+      if (!('wakeLock' in navigator)) throw new Error('no wake lock');
+      wake = await navigator.wakeLock.request('screen');
+      // telefonen kan släppa den själv, t.ex. i strömsparläge: be om den igen så länge appen syns
+      wake.addEventListener('release', () => { wake = null; if (N && document.visibilityState === 'visible') setTimeout(keepAwake, 1000); });
+    } catch { wakeWarn(); }
+  }
+  function wakeWarn() {
+    if (!N || N.wakeWarned) return;
+    N.wakeWarned = true; $('nWake').hidden = false;
+    setTimeout(() => { $('nWake').hidden = true; }, 15000);
+  }
   document.addEventListener('visibilitychange', () => { if (N && document.visibilityState === 'visible') keepAwake(); });
 
   let nmap = null, mapLib = null;
@@ -2083,8 +2127,10 @@ h1{font-family:inherit}
     $('nWxBan').hidden = !msg;
     if (msg) { $('nWxBanIc').textContent = ic; $('nWxBanTx').textContent = msg; if (!N.said['wx' + key]) { N.said['wx' + key] = 1; speak(msg); } }
   }
+  // Vädret längs den rutt man kör nu. Har rutten räknats om under tiden hör svaret till den gamla.
   async function loadNavWeather() {
-    try { if (N) { const wx = await routeWeather(lastRoute.trip, lastRoute.path); if (N) { N.wx = wx; render(); } } } catch {}
+    const n0 = N;
+    try { if (n0) { const wx = await routeWeather(n0.trip || lastRoute.trip, n0.path); if (N === n0) { N.wx = wx; render(); } } } catch {}
   }
 
   async function reroute(p) {
@@ -2093,15 +2139,33 @@ h1{font-family:inherit}
     $('nBanner').textContent = T('offRoute'); $('nBanner').hidden = false;
     try {
       const trip = await computeRoute(p, lastRoute.b, !!(lastRoute.chosen && lastRoute.safest && lastRoute.chosen === lastRoute.safest && lastRoute.safest !== lastRoute.fastest));
+      if (!N) return;   // avslutad medan den nya rutten räknades
       const path = (trip.legs || []).flatMap(l => decode(l.shape || ''));
-      const keep = { marker: N.marker, watch: N.watch, wx: N.wx, said: N.said };
-      N = Object.assign(buildNav(trip, path), keep);
+      // Det som hör till resan följer med. Sagda instruktioner gäller den gamla rutten (utom väder),
+      // och vädret räknas om längs den nya.
+      const said = Object.fromEntries(Object.entries(N.said).filter(([k]) => k.startsWith('wx')));
+      const keep = { marker: N.marker, watch: N.watch, wxTimer: N.wxTimer, said, lastGood: N.lastGood, anchor: N.anchor, dir: N.dir, jumps: N.jumps, wakeWarned: N.wakeWarned, lastFix: N.lastFix };
+      N = Object.assign(buildNav(trip, path), keep, { trip });
       addRouteLayers();
-      $('nBanner').hidden = true; speak(T('newRoute'));
+      $('nBanner').hidden = true; $('nWxBan').hidden = true; speak(T('newRoute'));
+      loadNavWeather();
     } catch {
-      $('nBanner').textContent = T('rerouteFail');
+      if (N) $('nBanner').textContent = T('rerouteFail');
     } finally { if (N) N.rerouting = false; }
   }
+
+  // Ett hopp längre än fordonet hinner, med GPS-felet för båda positionerna, är ett GPS-fel.
+  // Två i rad godtas: då var det troligen den förra positionen som var fel (t.ex. efter en tunnel).
+  function jumped(p, t, acc) {
+    const g = N.lastGood; if (!g) return false;
+    const dt = Math.max(1, (t - g.t) / 1000), maxV = N.god ? 50 : 20;
+    if (hav(g.p, p) <= 20 + acc + g.acc + maxV * dt) { N.jumps = 0; return false; }
+    N.jumps = (N.jumps || 0) + 1;
+    if (N.jumps < 2) return true;
+    N.jumps = 0; return false;
+  }
+  const bearing = (a, b) => { const y = Math.sin(rad(b.lng - a.lng)) * Math.cos(rad(b.lat)), x = Math.cos(rad(a.lat)) * Math.sin(rad(b.lat)) - Math.sin(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.cos(rad(b.lng - a.lng));
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; };
 
   function onPos(pos) {
     if (!N) return;
@@ -2114,10 +2178,20 @@ h1{font-family:inherit}
     const kmh = v != null && v >= 0 ? Math.round(v * 3.6) : null;
     $('nSpd').querySelector('b').textContent = kmh == null ? '–' : kmh;
     $('nSpd').classList.toggle('over', !N.god && kmh != null && kmh > speed + 2);   // i God mode gäller vägens hastighetsgräns
-    // fäst mot rutten
-    const s = snap(p);
-    if (s.d > Math.max(40, acc * 1.5)) { N.off++; if (N.off >= 3) reroute(p); }
-    else { N.off = 0; N.idx = s.k; N.along = N.cum[s.k] + s.t * (N.cum[s.k+1] - N.cum[s.k]); if (!N.rerouting) $('nBanner').hidden = true; }
+    // Grova positioner (från mobilmast eller wifi) och orimliga hopp flyttar bara markören. Bara positioner
+    // man kan lita på flyttar fram på rutten, annars kan en sväng hoppas över eller "framme" sägas vid starten.
+    if (acc <= 60 && !jumped(p, pos.timestamp, acc)) {
+      // färdriktningen, för att en ny rutt inte ska börja med att vända: telefonens egen, eller de senaste 25 m
+      const h = pos.coords.heading;
+      if (!N.anchor || hav(N.anchor, p) > 25) { if (N.anchor) N.dir = bearing(N.anchor, p); N.anchor = p; }
+      const dir = v != null && v > 2 && h != null && !isNaN(h) ? h : N.dir;
+      const s = snap(p);
+      if (s.d > Math.max(40, acc * 1.5)) { N.off++; if (N.off >= 3) reroute(dir != null ? { ...p, heading: Math.round(dir) % 360 } : p); }
+      else { N.off = 0; N.idx = s.k; N.along = N.cum[s.k] + s.t * (N.cum[s.k+1] - N.cum[s.k]); if (!N.rerouting) $('nBanner').hidden = true; }
+      N.lastGood = { p, t: pos.timestamp, acc };
+    } else if (!N.rerouting && (!N.lastGood || pos.timestamp - N.lastGood.t > 15000)) {
+      $('nBanner').textContent = T('gpsWait'); $('nBanner').hidden = false;
+    }
     render(pos);
     if (N.marker) N.marker.setLngLat([p.lng, p.lat]);
     if (nmap) {
@@ -2129,8 +2203,11 @@ h1{font-family:inherit}
   function startNav() {
     if (!lastRoute) return;
     if (!navigator.geolocation) { alert(T('noGeoNav')); return; }
+    stopNav();   // en resa i taget: annars blir det två GPS-bevakningar och två röster
     N = buildNav(lastRoute.trip, lastRoute.path);
-    $('nEtaSub').textContent = N.god ? T('godEta') : T('etaSub', { v: speed }); $('nText').textContent = T('waitGps');
+    $('nEtaSub').textContent = N.god ? T('godEta') : T('etaSub', { v: speed });
+    // instruktionen syns direkt, men avstånd och framsteg räknas först när GPS:en har en position
+    $('nBanner').textContent = T('gpsWait'); $('nBanner').hidden = false;
     $('nMute').innerHTML = muted ? SPK_OFF : SPK_ON; $('nMute').setAttribute('aria-pressed', String(muted)); $('nMute').setAttribute('aria-label', muted ? T('muteOn') : T('muteOff'));
     $('v-res').classList.remove('on'); $('v-nav').classList.add('on');
     // lås upp tal på iOS (måste ske i ett tryck)
@@ -2147,17 +2224,26 @@ h1{font-family:inherit}
       $('nBanner').hidden = false;
     }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
   }
-  function endNav() {
+  // Stänger av allt som hör till en resa: GPS, markör, väder, tal och skärmlås
+  function stopNav() {
     if (N && N.watch != null) navigator.geolocation.clearWatch(N.watch);
     if (N && N.marker) N.marker.remove();
     if (N && N.wxTimer) clearInterval(N.wxTimer);
     N = null;
     try { speechSynthesis.cancel(); } catch {}
     if (wake) { wake.release().catch(() => {}); wake = null; }
+    $('nBanner').hidden = true; $('nWake').hidden = true;
+  }
+  function endNav() {
+    stopNav();
     $('v-nav').classList.remove('on'); $('v-res').classList.add('on');
+    // det som väntade tills resan var slut: en utloggning, och en träff man tryckte på i en notis
+    if (signOutLater) signedOut();
+    showWantedMeet();
   }
   $('startNav').onclick = startNav;
-  $('nEnd').onclick = endNav;
+  // Ett råkat tryck ska inte avbryta resan. Framme behövs ingen fråga.
+  $('nEnd').onclick = () => { if (!N || N.arrived || confirm(T('endAsk'))) endNav(); };
   $('nMute').onclick = () => { muted = !muted; store.set('muted', muted); $('nMute').innerHTML = muted ? SPK_OFF : SPK_ON; $('nMute').setAttribute('aria-pressed', String(muted)); $('nMute').setAttribute('aria-label', muted ? T('muteOn') : T('muteOff')); if (muted) try { speechSynthesis.cancel(); } catch {} };
 
   // ---------- Förare i närheten (Supabase) ----------
@@ -2186,17 +2272,35 @@ h1{font-family:inherit}
              anon: !(d.user && d.user.is_anonymous === false), email: (d.user && d.user.email) || '' };
     store.set('supa', supa);
   }
+  // Hemskärmsappen och en flik i Chrome delar inloggningen på Android. Förnyar den ena sessionen
+  // slutar den andras refresh-token att gälla, så den nyaste sessionen hämtas från localStorage.
+  const fresher = () => { const s = store.get('supa', null); return s && s.refresh && (!supa || s.exp > supa.exp) ? s : null; };
+  window.addEventListener('storage', e => { if (e.key === 'atp.supa' && signedIn()) supa = fresher() || supa; });
+  let refreshing = null, signOutLater = false;
   async function supaToken() {
     if (supa && supa.exp - 60 > Date.now() / 1000) return supa.token;
+    supa = fresher() || supa;
+    if (supa && supa.exp - 60 > Date.now() / 1000) return supa.token;
     if (!supa || !supa.refresh) throw needSign();
-    try { await supaAuth('token?grant_type=refresh_token', { refresh_token: supa.refresh }); }
+    // Anrop som behöver ny token samtidigt väntar på samma förnyelse: en refresh-token går bara att använda en gång
+    refreshing = refreshing || refreshSession().finally(() => { refreshing = null; });
+    await refreshing;
+    return supa.token;
+  }
+  async function refreshSession() {
+    const used = supa.refresh;
+    try { await supaAuth('token?grant_type=refresh_token', { refresh_token: used }); }
     catch (e) {
+      if (e.status !== 400 && e.status !== 401 && e.status !== 403) throw e;
+      const s = fresher();
+      if (s && s.refresh !== used) { supa = s; if (supa.exp - 60 > Date.now() / 1000) return; return refreshSession(); }
       // ogiltig refresh-token (utloggad eller raderad på en annan telefon): logga ut här också.
       // Notiserna stängs av på telefonen, så att de inte fortsätter komma till ett konto som inte är inloggat.
-      if (e.status === 400 || e.status === 401 || e.status === 403) { pushOff(); signedOut(); throw needSign(); }
-      throw e;
+      // Under navigering väntar utloggningen tills resan är slut, så att inloggningen inte täcker kartan.
+      pushOff();
+      if (N) { signOutLater = true; supa = { ...supa, refresh: null }; } else signedOut();
+      throw needSign();
     }
-    return supa.token;
   }
 
   // ---------- Inloggning med Google ----------
@@ -2244,6 +2348,7 @@ h1{font-family:inherit}
   }
   // Utloggad, raderad eller ogiltig session: tillbaka till inloggningen i välkomstrutan
   function signedOut() {
+    signOutLater = false;
     dropSession(); store.set('visible', false); $('visIn').checked = false;
     liveStop(); GOD = false;
     GROUPS = []; renderMeetNew(); if ($('grp').open) $('grp').close();
@@ -2572,12 +2677,13 @@ h1{font-family:inherit}
   $('meetDrive').onclick = () => driveMeet(meetCur);
   function driveMeet(m) {
     ['meet', 'grp', 'settings'].forEach(id => { if ($(id).open) $(id).close(); });
-    ['v-near', 'v-res', 'v-pick'].forEach(id => $(id).classList.remove('on')); $('v-plan').classList.add('on');
+    stopNav();   // pågår en resa avslutas den, så att den gamla inte fortsätter i bakgrunden
+    ['v-near', 'v-res', 'v-pick', 'v-nav'].forEach(id => $(id).classList.remove('on')); $('v-plan').classList.add('on');
     if (FX.kind) fxStart(FX.kind);
     // God mode följer med målet: väljer man ett annat mål gäller fordonets vanliga inställningar igen
     dest = { loc: { lat: m.lat, lng: m.lng }, label: '🏁 ' + m.title, short: m.title, meet: true, god: !!m.god }; $('to').value = dest.label;
     // alltid från där jag är nu
-    if (LIVE.pos) { origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng } }; $('from').value = T('myPos'); $('go').click(); }
+    if (LIVE.pos) { origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng }, mine: true, at: LIVE.pos.at }; $('from').value = T('myPos'); $('go').click(); }
     else useMyLocation(() => $('go').click());
   }
   $('meetClose').onclick = () => { meetDraft = null; $('meet').close(); };
@@ -2590,8 +2696,9 @@ h1{font-family:inherit}
     meetWanted = m[1];
     history.replaceState(history.state, '', location.pathname + location.search);
   }
+  // Under navigering väntar träffen tills resan är slut (endNav), så att den inte öppnas över kartan
   function showWantedMeet() {
-    if (!meetWanted || $('welcome').open) return;
+    if (!meetWanted || $('welcome').open || N) return;
     const m = MEETS.find(x => x.id === meetWanted);
     meetWanted = null;
     if (m) openMeet(m);
@@ -2673,7 +2780,7 @@ h1{font-family:inherit}
     LIVE.on = true;
     LIVE.watch = navigator.geolocation.watchPosition(p => {
       const first = !LIVE.pos;
-      LIVE.pos = { lat: p.coords.latitude, lng: p.coords.longitude, heading: p.coords.heading, speed: p.coords.speed };
+      LIVE.pos = { lat: p.coords.latitude, lng: p.coords.longitude, heading: p.coords.heading, speed: p.coords.speed, at: Date.now() };
       if (LIVE.err === 'geo') LIVE.err = null;
       if (first) livePing();
     }, err => { if (err.code === 1) { LIVE.err = 'geo'; renderRiders(); } }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 30000 });
@@ -2779,7 +2886,7 @@ h1{font-family:inherit}
   function driveTo(r) {
     if (!LIVE.pos) return;
     if (riderPop) riderPop.remove();
-    origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng } }; $('from').value = T('myPos');
+    origin = { coords: { lat: LIVE.pos.lat, lng: LIVE.pos.lng }, mine: true, at: LIVE.pos.at }; $('from').value = T('myPos');
     dest = { loc: { lat: r.lat, lng: r.lng }, label: riderLabel(r), short: r.nick, rider: true }; $('to').value = riderLabel(r);
     $('v-near').classList.remove('on'); $('v-res').classList.remove('on'); $('v-plan').classList.add('on');
     if (FX.kind) fxStart(FX.kind);
@@ -2884,12 +2991,14 @@ h1{font-family:inherit}
     if (!navigator.onLine) { setMsg(T('offline')); return; }
     const toTxt = $('to').value.trim(), fromTxt = $('from').value.trim();
     if (!toTxt) { setMsg(T('needTo')); $('to').focus(); return; }
-    const from = origin || (fromTxt && !isMyPos(fromTxt) ? { address: fromTxt, label: fromTxt } : null);
-    if (!from) { setMsg(T('needFrom')); return; }
+    const locating = fromTxt === T('locating');   // knappen trycktes medan positionen hämtas
+    const from = origin || (fromTxt && !isMyPos(fromTxt) && !locating ? { address: fromTxt, label: fromTxt } : null);
+    if (!from) { setMsg(T(locating ? 'waitGps' : 'needFrom')); return; }
     const to = dest || { address: toTxt, label: toTxt };
     hideSugg();
     const btn = $('go'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>' + T('calcing');
     try {
+      if (from.mine && Date.now() - from.at > 30e3) Object.assign(from, { coords: await freshPos(from), at: Date.now() });
       const [a, b] = await Promise.all([placeLocation(from), placeLocation(to)]);
       // En träff i God mode låser målet och kör som vanlig bil, om man inte har slagit av Med bil
       const godMeet = !!(to.meet && to.god), god = godMeet && to.car !== false;

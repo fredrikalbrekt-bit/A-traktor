@@ -1,5 +1,5 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v42';
+const VERSION = 'slowlane-v43';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './epa-hero.webp', './epa-fog.webp', './moped2-hero.webp', './moped2-rain.webp', './moped2-cool.webp', './moped2-cold.webp', './dust.webp', './mopedbil-hero.webp', './moped1-hero.webp'];
 const LIBS = ['cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
@@ -22,17 +22,33 @@ self.addEventListener('fetch', e => {
   const page = url.pathname.split('/').pop();
   if (req.mode === 'navigate' && page.endsWith('.html') && page !== 'index.html') return;
 
-  // Appen själv: hämta alltid senaste versionen, använd cachen bara offline.
+  const shell = url.origin === location.origin && SHELL.some(p => url.pathname.endsWith(p.replace('./', '/')) && p !== './');
+  // Bilderna byts bara i en ny version, och då hämtas alla igen vid installationen
+  if (shell && /\.(webp|png)$/.test(url.pathname)) {
+    e.respondWith(caches.match(req).then(r => r || fetch(req)));
+    return;
+  }
+
+  // Appen själv: hämta alltid senaste versionen.
   // GitHub Pages låter webbläsaren spara filerna i 10 minuter. no-cache frågar servern varje gång
   // (304 om inget ändrats), annars kan en ny version dröja 10 minuter.
-  if (req.mode === 'navigate' || (url.origin === location.origin && SHELL.some(p => url.pathname.endsWith(p.replace('./', '/')) && p !== './'))) {
-    const fresh = req.mode === 'navigate' ? new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : new Request(req, { cache: 'no-cache' });
-    e.respondWith(
-      fetch(fresh).then(res => {
-        if (res.ok) { const copy = res.clone(); caches.open(VERSION).then(c => c.put(req.mode === 'navigate' ? './index.html' : req, copy)); }
-        return res;
-      }).catch(() => caches.match(req.mode === 'navigate' ? './index.html' : req).then(r => r || caches.match('./index.html')))
-    );
+  // Med svag signal kan svaret dröja länge: efter 3 s visas den sparade appen, och den nya sparas när den kommer.
+  if (req.mode === 'navigate' || shell) {
+    const nav = req.mode === 'navigate', key = nav ? './index.html' : req;
+    const fresh = nav ? new Request(req.url, { cache: 'no-cache', credentials: 'same-origin' }) : new Request(req, { cache: 'no-cache' });
+    let saved = Promise.resolve();
+    const net = fetch(fresh).then(res => {
+      if (res.ok) { const copy = res.clone(); saved = caches.open(VERSION).then(c => c.put(key, copy)); }
+      return res;
+    });
+    const cached = () => caches.match(key).then(r => r || (nav ? caches.match('./index.html') : undefined));
+    e.respondWith(new Promise(resolve => {
+      let done = false;
+      const answer = r => { if (r && !done) { done = true; clearTimeout(slow); resolve(r); } };
+      const slow = setTimeout(() => cached().then(answer), 3000);
+      net.then(answer, () => cached().then(r => { answer(r); if (!done) { done = true; resolve(Response.error()); } }));
+    }));
+    e.waitUntil(net.then(() => saved, () => {}).catch(() => {}));
     return;
   }
 

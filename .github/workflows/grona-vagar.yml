@@ -1,5 +1,6 @@
-# Hämtar alla svenska motorvägar och motortrafikleder (gröna skyltar) från OpenStreetMap
-# och sparar dem som grona-vagar.json i repot. Slowlane läser filen för att kontrollera rutter.
+# Hämtar alla svenska motorvägar och motortrafikleder (gröna skyltar) från OpenStreetMap, och vägarna
+# där bil får köra men moped är förbjuden, och sparar dem som grona-vagar.json i repot.
+# Slowlane läser filen för att kontrollera rutter.
 # Körs automatiskt varje måndag, och kan startas för hand under fliken Actions.
 name: Uppdatera gröna vägar
 
@@ -24,7 +25,8 @@ jobs:
           Q = """[out:json][timeout:300];
           area["ISO3166-1"="SE"][admin_level=2]->.se;
           (way(area.se)["motorroad"="yes"];
-           way(area.se)["highway"~"^(motorway|motorway_link)$"];);
+           way(area.se)["highway"~"^(motorway|motorway_link)$"];
+           way(area.se)["moped"~"^(no|private)$"]["highway"~"^(trunk|trunk_link|primary|primary_link|secondary|secondary_link|tertiary|tertiary_link|unclassified|residential|living_street|service|road)$"]["motor_vehicle"!~"^(no|private)$"]["motorcar"!~"^(no|private)$"]["access"!~"^(no|private)$"];);
           out geom;"""
           servers = ["https://overpass-api.de/api/interpreter",
                      "https://overpass.private.coffee/api/interpreter",
@@ -66,22 +68,27 @@ jobs:
                       if d > best: best, bi = d, k
                   if best > tol: keep.append(bi); stack += [(i, bi), (bi, j)]
               return [pts[k] for k in sorted(keep)]
-          ways = []
+          # gröna vägar i ways, vägar där bara moped är förbjuden i moped
+          def green(t): return t.get("motorroad") == "yes" or t.get("highway") in ("motorway", "motorway_link")
+          ways, moped = [], []
           for e in els:
               g = e.get("geometry") or []
               pts = simplify([(p["lat"], p["lon"]) for p in g])
               if len(pts) < 2: continue
               flat = []
               for la, lo in pts: flat += [round(la*1e5), round(lo*1e5)]
-              ways.append(flat)
+              (ways if green(e.get("tags") or {}) else moped).append(flat)
           # Skydd: färre vägar än förra gången betyder nästan alltid ett trasigt svar, inte att
-          # motorvägar har försvunnit. Då skulle appens kontroll mot gröna vägar bli svagare.
-          try: prev = json.load(open("grona-vagar.json")).get("count", 0)
-          except Exception: prev = 0
-          print("vägar:", len(ways), "förra gången:", prev)
-          if len(ways) < prev * 0.9:
-              sys.exit(f"Bara {len(ways)} vägar mot {prev} förra gången (mer än 10 % färre). Filen lämnas orörd.")
-          out = {"generated": time.strftime("%Y-%m-%d"), "scale": 1e5, "count": len(ways), "ways": ways}
+          # motorvägar har försvunnit. Då skulle appens kontroll mot förbjudna vägar bli svagare.
+          try: old = json.load(open("grona-vagar.json"))
+          except Exception: old = {}
+          prev, prevM = old.get("count", 0), old.get("mopedCount", 0)
+          print("gröna vägar:", len(ways), "förra gången:", prev, "· mopedförbud:", len(moped), "förra gången:", prevM)
+          # Vägarna med mopedförbud är få (ca 150), så där tillåts större ändringar när de rättas i OpenStreetMap.
+          if len(ways) < prev * 0.9 or len(moped) < prevM * 0.5:
+              sys.exit("Betydligt färre vägar än förra gången. Filen lämnas orörd.")
+          out = {"generated": time.strftime("%Y-%m-%d"), "scale": 1e5, "count": len(ways), "ways": ways,
+                 "mopedCount": len(moped), "moped": moped}
           json.dump(out, open("grona-vagar.json", "w"), separators=(",", ":"))
           PY
 
