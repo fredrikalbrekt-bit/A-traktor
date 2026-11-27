@@ -688,7 +688,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 44</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 45</p>
   </form>
 </dialog>
 
@@ -775,6 +775,8 @@ h1{font-family:inherit}
       suggFail:'Sökförslagen kunde inte hämtas (fel {s}{m}).', suggFoot:'Förslag från Stadia Maps · OpenStreetMap',
       noPlace:'Hittade ingen plats som heter "{q}". Välj ett förslag i listan.',
       stadiaDenied:'Stadia Maps nekade anropet. Kontrollera att appens webbadress är registrerad i ditt Stadia-konto.',
+      stadiaLimit:'Kartjänsten tar inte emot fler sökningar just nu, troligen för att appens gräns för månaden är nådd. Försök igen senare.',
+      stadiaLimitNav:'Ingen ny rutt: kartjänsten tar inte emot fler sökningar just nu. Följ vägskyltarna.',
       noPath:'Ingen laglig väg hittades mellan platserna för fordonet. Prova en annan start- eller målpunkt.', routeFail:'Rutten kunde inte beräknas. ',
       warn:'Rutten undviker motorväg och motortrafikled enligt OpenStreetMap. Följ alltid skyltningen på plats, kartdata kan vara ofullständig.',
       offline:'Ingen internetanslutning. Rutten kräver nät, försök igen när du har täckning.', needTo:'Skriv in vart du ska.',
@@ -846,6 +848,8 @@ h1{font-family:inherit}
       suggFail:'Couldn’t load suggestions (error {s}{m}).', suggFoot:'Suggestions from Stadia Maps · OpenStreetMap',
       noPlace:'No place found called "{q}". Pick a suggestion from the list.',
       stadiaDenied:'Stadia Maps rejected the request. Check that the app’s web address is registered in your Stadia account.',
+      stadiaLimit:'The map service isn’t accepting more requests right now, probably because the app’s monthly limit has been reached. Try again later.',
+      stadiaLimitNav:'No new route: the map service isn’t accepting more requests right now. Follow the road signs.',
       noPath:'No legal road found between the places for this vehicle. Try a different start or destination.', routeFail:'The route couldn’t be calculated. ',
       warn:'The route avoids motorways and expressways according to OpenStreetMap. Always follow the road signs, map data can be incomplete.',
       offline:'No internet connection. Routing needs a connection, try again when you have coverage.', needTo:'Enter where you’re going.',
@@ -1102,12 +1106,16 @@ h1{font-family:inherit}
   // ---------- Sökförslag (Stadia Maps) ----------
   let acTimer = null, acSeq = 0, shown = [];
   const hideSugg = () => { shown = []; };
+  // 429: Stadia tar inte emot fler anrop. På gratisplanen stoppas allt när månadens krediter är slut,
+  // och det kan också vara för många anrop på en gång. Felet har en egen text i stället för "Något gick fel".
+  const stadiaLimit = () => Object.assign(new Error(T('stadiaLimit')), { limit: true });
   async function autocomplete(text) {
     const q = new URLSearchParams({ text, 'boundary.country': 'SE', lang, size: '6' });
     if (lastPos) { q.set('focus.point.lat', lastPos.lat); q.set('focus.point.lon', lastPos.lng); }
     const res = await fetch('https://api.stadiamaps.com/geocoding/v1/autocomplete?' + q.toString(), { signal: timeout(10000) });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 || res.status === 403) throw new Error(T('stadiaDenied'));
+    if (res.status === 429) throw stadiaLimit();
     if (!res.ok) throw new Error(T('suggFail', { s: res.status, m: '' }));
     return (data.features || []).filter(f => f.geometry && f.geometry.coordinates).map(f => {
       const p = f.properties || {};
@@ -1157,7 +1165,7 @@ h1{font-family:inherit}
       return;
     }
     if (state === 'loading' && !lastItems.length) { SLIST.appendChild(note(T('searching'))); return; }
-    if (state === 'error') { SLIST.appendChild(note(T('generic'))); return; }
+    if (state === 'error' || state === 'limit') { SLIST.appendChild(note(T(state === 'limit' ? 'stadiaLimit' : 'generic'))); return; }
     if (!lastItems.length) { SLIST.appendChild(note(T('noHits'))); return; }
     SLIST.appendChild(heading(T('resultsHd')));
     lastItems.forEach(it => SLIST.appendChild(row(PIN, it.main, it.sec, () => choose({ loc: it.loc, label: it.label, short: it.main }))));
@@ -1214,7 +1222,7 @@ h1{font-family:inherit}
       try {
         const items = await autocomplete(text);
         if (seq === acSeq && !S.hidden) { renderList(items); SLIST.scrollTop = 0; }
-      } catch (err) { if (seq === acSeq && !S.hidden) renderList([], 'error'); }
+      } catch (err) { if (seq === acSeq && !S.hidden) renderList([], err && err.limit ? 'limit' : 'error'); }
     }, 250);
   }
   SIN.addEventListener('input', () => { $('sClear').hidden = !SIN.value; lastItems = []; runSearch(); });
@@ -1266,6 +1274,7 @@ h1{font-family:inherit}
     const res = await fetch('https://api.stadiamaps.com/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: timeout(25000) });
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 || res.status === 403) throw new Error(T('stadiaDenied'));
+    if (res.status === 429) throw stadiaLimit();
     return { res, data };
   }
   async function fetchTrips(a, b, safe, alternates) {
@@ -1755,7 +1764,7 @@ h1{font-family:inherit}
       let styleOk = false;
       const fallback = () => { if (fellBack || styleOk) return; fellBack = true; rmap.setStyle(FALLBACK_STYLE); $('rAttr').hidden = false; };
       rmap.once('style.load', () => { styleOk = true; });
-      rmap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      rmap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 429 || st === 0 || st == null)) fallback(); });
       setTimeout(() => { if (rmap && !styleOk) fallback(); }, 15000);
       rmap.on('style.load', rAddRoute);
     } else {
@@ -2083,7 +2092,7 @@ h1{font-family:inherit}
       });
       nmap.on('style.load', addRouteLayers);
       nmap.once('style.load', () => { styleOk = true; });
-      nmap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      nmap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 429 || st === 0 || st == null)) fallback(); });
       setTimeout(() => { if (nmap && !styleOk) fallback(); }, 15000);
     } else {
       nmap.resize();
@@ -2161,8 +2170,8 @@ h1{font-family:inherit}
       addRouteLayers();
       $('nBanner').hidden = true; $('nWxBan').hidden = true; speak(T('newRoute'));
       loadNavWeather();
-    } catch {
-      if (N) $('nBanner').textContent = T('rerouteFail');
+    } catch (e) {
+      if (N) $('nBanner').textContent = T(e && e.limit ? 'stadiaLimitNav' : 'rerouteFail');
     } finally { if (N) N.rerouting = false; }
   }
 
@@ -2928,7 +2937,7 @@ h1{font-family:inherit}
         center: c ? [c.lng, c.lat] : [16.5, 62.5], zoom: c ? 9 : 4, attributionControl: { compact: true } });
       const fallback = () => { if (fellBack || styleOk) return; fellBack = true; nearMap.setStyle(FALLBACK_STYLE); };
       nearMap.once('style.load', () => { styleOk = true; });
-      nearMap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      nearMap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 429 || st === 0 || st == null)) fallback(); });
       setTimeout(() => { if (!styleOk) fallback(); }, 15000);
     } else {
       nearMap.resize();
@@ -2973,7 +2982,7 @@ h1{font-family:inherit}
         center: c ? [c.lng, c.lat] : [16.5, 62.5], zoom: c ? 13 : 4, attributionControl: { compact: true } });
       const fallback = () => { if (fellBack || styleOk) return; fellBack = true; pickMap.setStyle(FALLBACK_STYLE); };
       pickMap.once('style.load', () => { styleOk = true; });
-      pickMap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 0 || st == null)) fallback(); });
+      pickMap.on('error', e => { const st = e.error && e.error.status; if (!styleOk && !e.sourceId && (st === 401 || st === 403 || st === 429 || st === 0 || st == null)) fallback(); });
       setTimeout(() => { if (!styleOk) fallback(); }, 15000);
       pickMap.on('click', e => placePin(e.lngLat));
     } else {
