@@ -94,7 +94,7 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .s-empty{font-size:15px;color:var(--muted);padding:20px 18px}
 .s-foot{font-size:11px;color:var(--faint);padding:10px 18px;text-align:right}
 .field input[readonly]{cursor:pointer;-webkit-user-select:none;user-select:none}
-.chip{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:0 14px;min-height:36px;font-size:14px;color:var(--muted)}
+.chip{border:1px solid var(--line2);background:transparent;border-radius:999px;padding:0 14px;min-height:44px;font-size:14px;color:var(--muted)}
 
 .toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;background:var(--card)}
 .toggle .t1{font-size:16px;font-weight:500;display:block}
@@ -363,7 +363,7 @@ h1{font-family:inherit}
 }
 :root[data-theme="mopedbil"] h1{font-family:var(--display);font-weight:600;letter-spacing:.3px}
 :root[data-theme="mopedbil"] .kicker{color:#c99bff}
-:root[data-theme="mopedbil"] .cta{font-family:var(--display);font-weight:700;letter-spacing:1.5px;background:linear-gradient(135deg,#c48aff,#8e3ff0);color:#fff}
+:root[data-theme="mopedbil"] .cta{font-family:var(--display);font-weight:700;letter-spacing:1.5px;background:linear-gradient(135deg,#8e4ce8,#6a24d6);color:#fff}
 :root[data-theme="mopedbil"] .cta.ghost{background:transparent;color:var(--text)}
 :root[data-theme="mopedbil"] .eta,:root[data-theme="mopedbil"] .big,:root[data-theme="mopedbil"] .man-dist,:root[data-theme="mopedbil"] .speed-val b{font-weight:600}
 :root[data-theme="mopedbil"] .gloss{display:block}
@@ -546,9 +546,9 @@ h1{font-family:inherit}
 <section class="view" id="v-nav" data-i18n-aria="navAria" aria-label="Navigering">
   <div class="nav-map" id="navMap"></div>
   <div class="nav-head">
-    <div class="nav-top" aria-live="polite">
+    <div class="nav-top">
       <div class="man-ico" id="nIco"></div>
-      <div><div class="man-dist" id="nDist">–</div><div class="man-text" id="nText">–</div></div>
+      <div><div class="man-dist" id="nDist">–</div><div class="man-text" id="nText" aria-live="polite">–</div></div>
     </div>
     <div class="nav-banner" id="nBanner" hidden></div>
     <div class="nav-banner" id="nWake" hidden data-i18n="wakeWarn"></div>
@@ -688,14 +688,14 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 45</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 46</p>
   </form>
 </dialog>
 
 <dialog id="grp" aria-labelledby="grpTitle">
   <h2 id="grpTitle" tabindex="-1" autofocus style="outline:none"></h2>
   <div id="grpForm">
-    <input class="key" id="grpIn" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <input class="key" id="grpIn" autocomplete="off" autocapitalize="off" spellcheck="false" aria-labelledby="grpTitle" aria-describedby="grpHelp">
     <p style="margin:6px 0 0" id="grpHelp"></p>
   </div>
   <div id="grpView">
@@ -723,7 +723,7 @@ h1{font-family:inherit}
       <label for="meetGrp" style="display:block;font-size:14px;color:var(--muted);margin:0 0 6px" data-i18n="meetGroup">Grupp</label>
       <select class="key" id="meetGrp" style="margin-bottom:12px"></select>
     </div>
-    <input class="key" id="meetName" maxlength="40" autocomplete="off" data-i18n-ph="meetNamePh" placeholder="Vad gäller det? T.ex. Fika vid macken">
+    <input class="key" id="meetName" maxlength="40" autocomplete="off" data-i18n-ph="meetNamePh" placeholder="Vad gäller det? T.ex. Fika vid macken" data-i18n-aria="meetNameAria" aria-label="Vad gäller träffen?">
     <label for="meetWhen" style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="meetWhen">När</label>
     <input class="key" id="meetWhen" type="datetime-local">
     <p style="display:block;font-size:14px;color:var(--muted);margin:12px 0 6px" data-i18n="meetWhere">Var</p>
@@ -769,9 +769,11 @@ h1{font-family:inherit}
       atSpeed:'vid {v} km/h', etaSub:'Ankomst vid max {v} km/h', left:'{t} · {d} kvar', min:'min', h:'h',
       muteOn:'Slå på röst', muteOff:'Stäng av röst', waitGps:'Väntar på GPS…', wakeWarn:'Telefonen kan släcka skärmen under resan, och då stannar vägledningen. Stäng av automatisk skärmlåsning medan du kör.', arrived:'Du är framme.', offRoute:'Du har lämnat rutten. Beräknar ny rutt…',
       newRoute:'Ny rutt beräknad.', rerouteFail:'Ny rutt kunde inte beräknas. Försöker igen strax.', mapFail:'Kartan kunde inte laddas (ingen kontakt med kartbiblioteket). Navigeringen fungerar ändå.',
-      noGeoNav:'Den här webbläsaren kan inte dela position.', geoDenied:'Appen får inte använda din position. Tillåt plats för Safari i Inställningar.', gpsWait:'Väntar på GPS-signal…',
+      noGeoNav:'Den här webbläsaren kan inte dela position.', geoDeniedIos:'Appen får inte använda din position. Slå på den under Inställningar › Integritet och säkerhet › Platstjänster › Safari-webbplatser.',
+      geoDeniedAndroid:'Appen får inte använda din position. Tillåt plats i Chrome under Inställningar › Webbplatsinställningar › Plats, och kontrollera att platstjänster är på i telefonen.',
+      geoDeniedWeb:'Appen får inte använda din position. Tillåt plats för sidan i webbläsarens inställningar.', gpsWait:'Väntar på GPS-signal…',
       noGeo:'Telefonen kan inte dela position här. Skriv in en adress i stället.', locating:'Hämtar position…',
-      geoFail:'Positionen kunde inte hämtas. Tillåt plats för Safari under Inställningar › Integritet › Platstjänster, eller skriv en adress.',
+      geoTimeout:'Positionen kunde inte hämtas. Kontrollera att platstjänster är på och försök igen, gärna utomhus.', orAddress:'Du kan också skriva en adress.',
       suggFail:'Sökförslagen kunde inte hämtas (fel {s}{m}).', suggFoot:'Förslag från Stadia Maps · OpenStreetMap',
       noPlace:'Hittade ingen plats som heter "{q}". Välj ett förslag i listan.',
       stadiaDenied:'Stadia Maps nekade anropet. Kontrollera att appens webbadress är registrerad i ditt Stadia-konto.',
@@ -802,7 +804,7 @@ h1{font-family:inherit}
       grpShareText:'Gå med i {g} på Slowlane: {u} (kod {c})', grpReset:'Byt länk', grpResetAsk:'Byta länk? Den gamla länken och koden slutar fungera. Den som redan är med stannar kvar.', grpResetDone:'Ny länk och kod.',
       grpLeave:'Lämna gruppen', grpDelete:'Ta bort gruppen', grpLeaveAsk:'Lämna {g}?', grpDeleteAsk:'Ta bort {g} för alla medlemmar? Det går inte att ångra.',
       grpSignFirst:'Logga in med Google för att gå med i gruppen.', close:'Stäng',
-      meetHd:'Träffar', meetNone:'Inga träffar planerade.', meetNewTitle:'Ny träff', meetNamePh:'Vad gäller det? T.ex. Fika vid macken',
+      meetHd:'Träffar', meetNone:'Inga träffar planerade.', meetNewTitle:'Ny träff', meetNamePh:'Vad gäller det? T.ex. Fika vid macken', meetNameAria:'Vad gäller träffen?',
       meetWhen:'När', meetWhere:'Var', meetPick:'Välj plats på kartan', meetPicked:'📍 Plats vald · Ändra', meetCreate:'Skapa träff',
       meetNeedTitle:'Skriv vad träffen gäller, 2–40 tecken.', meetBadTime:'Välj en tid från nu och högst 30 dagar framåt.', meetNeedPlace:'Välj var ni ska ses.',
       meetTooMany:'Gruppen har redan 10 kommande träffar.', meetSlow:'Du har skapat många träffar på kort tid. Vänta en stund och försök igen.',meetGone:'Träffen finns inte längre.', meetComing:'Kommer', meetNotComing:'Kommer inte',
@@ -842,9 +844,11 @@ h1{font-family:inherit}
       atSpeed:'at {v} km/h', etaSub:'Arrival at max {v} km/h', left:'{t} · {d} left', min:'min', h:'h',
       muteOn:'Turn voice on', muteOff:'Turn voice off', waitGps:'Waiting for GPS…', wakeWarn:'Your phone may turn the screen off during the trip, which stops the guidance. Turn off automatic screen lock while you ride.', arrived:'You have arrived.', offRoute:'You left the route. Calculating a new route…',
       newRoute:'New route calculated.', rerouteFail:'Couldn’t calculate a new route. Trying again shortly.', mapFail:'The map couldn’t load (no contact with the map library). Navigation still works.',
-      noGeoNav:'This browser can’t share your location.', geoDenied:'The app isn’t allowed to use your location. Allow location for Safari in Settings.', gpsWait:'Waiting for GPS signal…',
+      noGeoNav:'This browser can’t share your location.', geoDeniedIos:'The app isn’t allowed to use your location. Turn it on under Settings › Privacy & Security › Location Services › Safari Websites.',
+      geoDeniedAndroid:'The app isn’t allowed to use your location. Allow location in Chrome under Settings › Site settings › Location, and check that location is on in the phone.',
+      geoDeniedWeb:'The app isn’t allowed to use your location. Allow location for this page in the browser’s settings.', gpsWait:'Waiting for GPS signal…',
       noGeo:'Your phone can’t share its location here. Type an address instead.', locating:'Getting location…',
-      geoFail:'Couldn’t get your location. Allow location for Safari under Settings › Privacy › Location Services, or type an address.',
+      geoTimeout:'Couldn’t get your location. Check that location services are on and try again, preferably outdoors.', orAddress:'You can also type an address.',
       suggFail:'Couldn’t load suggestions (error {s}{m}).', suggFoot:'Suggestions from Stadia Maps · OpenStreetMap',
       noPlace:'No place found called "{q}". Pick a suggestion from the list.',
       stadiaDenied:'Stadia Maps rejected the request. Check that the app’s web address is registered in your Stadia account.',
@@ -875,7 +879,7 @@ h1{font-family:inherit}
       grpShareText:'Join {g} on Slowlane: {u} (code {c})', grpReset:'New link', grpResetAsk:'Change the link? The old link and code stop working. Everyone already in stays.', grpResetDone:'New link and code.',
       grpLeave:'Leave group', grpDelete:'Delete group', grpLeaveAsk:'Leave {g}?', grpDeleteAsk:'Delete {g} for all members? This can’t be undone.',
       grpSignFirst:'Sign in with Google to join the group.', close:'Close',
-      meetHd:'Meetups', meetNone:'No meetups planned.', meetNewTitle:'New meetup', meetNamePh:'What’s it about? E.g. Coffee at the petrol station',
+      meetHd:'Meetups', meetNone:'No meetups planned.', meetNewTitle:'New meetup', meetNamePh:'What’s it about? E.g. Coffee at the petrol station', meetNameAria:'What’s the meetup about?',
       meetWhen:'When', meetWhere:'Where', meetPick:'Choose place on map', meetPicked:'📍 Place chosen · Change', meetCreate:'Create meetup',
       meetNeedTitle:'Say what the meetup is about, 2–40 characters.', meetBadTime:'Pick a time from now and at most 30 days ahead.', meetNeedPlace:'Choose where to meet.',
       meetTooMany:'The group already has 10 upcoming meetups.', meetSlow:'You’ve created a lot of meetups in a short time. Wait a while and try again.',meetGone:'The meetup no longer exists.', meetComing:'Coming', meetNotComing:'Not coming',
@@ -1042,13 +1046,19 @@ h1{font-family:inherit}
 
   // ---------- Origin: my position ----------
   const setMsg = t => { $('msg').textContent = t || ''; };
+  // Rätt råd för telefonen och felet: nekad behörighet (kod 1) eller ingen position i tid (2 och 3).
+  // plan: på startsidan går det också att skriva en adress, under navigeringen inte.
+  const IOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const ANDROID = /Android/.test(navigator.userAgent);
+  const geoText = (err, plan) => (err && err.code === 1 ? T(IOS ? 'geoDeniedIos' : ANDROID ? 'geoDeniedAndroid' : 'geoDeniedWeb') : T('geoTimeout'))
+    + (plan ? ' ' + T('orAddress') : '');
   $('useLoc').onclick = () => useMyLocation();
   function useMyLocation(then) {
     if (!navigator.geolocation) { setMsg(T('noGeo')); return; }
     $('from').value = T('locating');
     navigator.geolocation.getCurrentPosition(
       p => { origin = { coords: { lat: p.coords.latitude, lng: p.coords.longitude }, mine: true, at: Date.now() }; lastPos = origin.coords; store.set('lastPos', lastPos); loadNowWeather(); $('from').value = T('myPos'); setMsg(''); hideSugg(); if (then) then(); },
-      () => { origin = null; $('from').value = ''; setMsg(T('geoFail')); },
+      err => { origin = null; $('from').value = ''; setMsg(geoText(err, true)); },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
     );
   }
@@ -1058,9 +1068,12 @@ h1{font-family:inherit}
     if (LIVE.pos && Date.now() - LIVE.pos.at < 30e3) return Promise.resolve({ lat: LIVE.pos.lat, lng: LIVE.pos.lng });
     return new Promise((ok, no) => navigator.geolocation.getCurrentPosition(
       p => { lastPos = { lat: p.coords.latitude, lng: p.coords.longitude }; store.set('lastPos', lastPos); ok(lastPos); },
-      () => Date.now() - from.at < 5 * 60e3 ? ok(from.coords) : no(new Error(T('geoFail'))),
+      err => from.coords && Date.now() - from.at < 5 * 60e3 ? ok(from.coords) : no(new Error(geoText(err, true))),
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 15000 }));
   }
+  // Från är Min position från början, så att man bara behöver välja mål. Positionen hämtas först när
+  // rutten räknas (freshPos), så appen frågar inte om plats redan när den öppnas.
+  if (navigator.geolocation) { origin = { coords: null, mine: true, at: 0 }; $('from').value = T('myPos'); }
 
 
   // ---------- Recent destinations ----------
@@ -1070,7 +1083,12 @@ h1{font-family:inherit}
     list.forEach(p => {
       const b = document.createElement('button');
       b.className = 'chip'; b.type = 'button'; b.textContent = p.short || p.label;
-      b.onclick = () => { dest = (p.placeId || p.loc) ? { ...p } : null; $('to').value = p.label; hideSugg(); };
+      // Är Från ifyllt räknas rutten direkt: en tryckning hem
+      b.onclick = () => {
+        dest = (p.placeId || p.loc) ? { ...p } : null; $('to').value = p.label; hideSugg();
+        const f = $('from').value.trim();
+        if (f && f !== T('locating') && !$('go').disabled) $('go').click();
+      };
       $('recent').appendChild(b);
     });
   };
@@ -1893,11 +1911,16 @@ h1{font-family:inherit}
   }
 
   // ---------- Väder i temat ----------
-  const FX = { kind: null, raf: 0, parts: [], c: null, ctx: null, w: 0, h: 0, nextFlash: 0 };
+  // Vädret på startsidan. Bara den senast startade animationen ritar (gen), och den stannar helt när
+  // startsidan inte syns. fxStart anropas igen när startsidan visas och när appen kommer tillbaka.
+  const FX = { kind: null, raf: 0, gen: 0, intensity: 1, parts: [], c: null, ctx: null, w: 0, h: 0, nextFlash: 0 };
   function fxSize() { const r = FX.c.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); FX.w = r.width; FX.h = r.height; FX.c.width = r.width * dpr; FX.c.height = r.height * dpr; FX.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
-  function fxStart(kind, intensity = 1) {
+  function fxStart(kind, intensity) {
     FX.c = FX.c || $('wxFx'); FX.ctx = FX.ctx || FX.c.getContext('2d');
-    cancelAnimationFrame(FX.raf); FX.kind = kind; fxSize();
+    // utan styrka: samma som förra gången (t.ex. kraftigt regn när man går tillbaka till startsidan)
+    if (intensity == null) intensity = kind === FX.kind ? FX.intensity : 1;
+    cancelAnimationFrame(FX.raf); FX.kind = kind; FX.intensity = intensity; fxSize();
+    const gen = ++FX.gen;
     const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     const N = kind === 'rain' || kind === 'thunder' ? Math.round(140 * intensity) : kind === 'snow' ? Math.round(110 * intensity) : kind === 'clear' ? 18 : 0;
     FX.parts = Array.from({ length: N }, () => ({ x: Math.random() * FX.w, y: Math.random() * FX.h, z: 0.4 + Math.random() * 0.8, p: Math.random() * 6.28 }));
@@ -1905,6 +1928,7 @@ h1{font-family:inherit}
     const fogBoost = kind === 'fog' ? 1 : 0;
     document.querySelectorAll('.hero .fog').forEach(f => { f.style.opacity = fogBoost ? '1' : ''; });
     const draw = now => {
+      if (gen !== FX.gen) return;   // en nyare animation har tagit över
       const ctx = FX.ctx; ctx.clearRect(0, 0, FX.w, FX.h);
       if (kind === 'rain' || kind === 'thunder') {
         ctx.strokeStyle = 'rgba(190,210,235,0.45)'; ctx.lineCap = 'round';
@@ -1925,11 +1949,11 @@ h1{font-family:inherit}
         ctx.globalAlpha = 1;
       }
       if (!reduce && kind !== 'cloud' && kind !== 'fog' && $('v-plan').classList.contains('on') && !document.hidden) FX.raf = requestAnimationFrame(draw);
-      else if (!reduce && kind !== 'cloud' && kind !== 'fog') FX.raf = requestAnimationFrame(() => setTimeout(() => draw(performance.now()), 500));
     };
     if (N || kind === 'clear') FX.raf = requestAnimationFrame(draw); else FX.ctx.clearRect(0, 0, FX.w, FX.h);
   }
   window.addEventListener('resize', () => { if (FX.kind) fxStart(FX.kind); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && FX.kind && $('v-plan').classList.contains('on')) fxStart(FX.kind); });
   window.__slowlaneRefreshWx = () => loadNowWeather();
   async function loadNowWeather() {
     const pos = lastPos; if (!pos) return;
@@ -2115,7 +2139,8 @@ h1{font-family:inherit}
       const toM = Math.max(0, N.cum[Math.min(next.begin_shape_index || 0, n - 1)] - N.along);
       $('nIco').innerHTML = svg(iconFor(next.type));
       $('nDist').textContent = fmtDist(toM);
-      $('nText').textContent = next.instruction || '';
+      // Skärmläsaren läser upp instruktionen när den är ny, inte avståndet som räknas ned vid varje GPS-position
+      if ($('nText').textContent !== (next.instruction || '')) $('nText').textContent = next.instruction || '';
       const key = next.begin_shape_index;
       if (toM < 260 && toM > 80 && !N.said[key + 'a']) { N.said[key + 'a'] = 1; speak(next.verbal_transition_alert_instruction || next.instruction); }
       if (toM <= 45 && !N.said[key + 'b']) { N.said[key + 'b'] = 1; speak(next.verbal_pre_transition_instruction || next.instruction); }
@@ -2241,7 +2266,7 @@ h1{font-family:inherit}
     N.wx = lastRoute.chosen && lastRoute.chosen.wx; loadNavWeather();
     N.wxTimer = setInterval(loadNavWeather, 15 * 60e3);
     N.watch = navigator.geolocation.watchPosition(onPos, err => {
-      $('nBanner').textContent = err.code === 1 ? T('geoDenied') : T('gpsWait');
+      $('nBanner').textContent = err.code === 1 ? geoText(err) : T('gpsWait');
       $('nBanner').hidden = false;
     }, { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
   }
@@ -2870,7 +2895,9 @@ h1{font-family:inherit}
     $('liveChip').classList.toggle('err', !!LIVE.err);
     const on = T(onlyGroups() ? 'liveOnGrp' : 'liveOn');
     $('liveTx').textContent = on + ' · ' + liveStatus();
-    $('nearInfo').textContent = LIVE.on ? on + ' · ' + liveStatus() : T('liveOffTx');
+    // bara när texten ändras, annars läser skärmläsaren upp samma sak vid varje uppdatering
+    const near = LIVE.on ? on + ' · ' + liveStatus() : T('liveOffTx');
+    if ($('nearInfo').textContent !== near) $('nearInfo').textContent = near;
     if (!window.maplibregl) return;
     [rmap, nmap, nearMap].forEach(m => { if (m) syncRiders(m); });
     if (nearMap && LIVE.pos) {

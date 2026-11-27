@@ -1,7 +1,7 @@
 {
   "name": "Slowlane",
   "short_name": "Slowlane",
-  "description": "Ruttplanering och navigering för fordon med max 30 km/h.",
+  "description": "Ruttplanering och navigering för EPA, A-traktor, moped och mopedbil.",
   "lang": "sv",
   "start_url": "./",
   "scope": "./",
