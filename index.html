@@ -688,7 +688,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 43</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 44</p>
   </form>
 </dialog>
 
@@ -803,7 +803,7 @@ h1{font-family:inherit}
       meetHd:'Träffar', meetNone:'Inga träffar planerade.', meetNewTitle:'Ny träff', meetNamePh:'Vad gäller det? T.ex. Fika vid macken',
       meetWhen:'När', meetWhere:'Var', meetPick:'Välj plats på kartan', meetPicked:'📍 Plats vald · Ändra', meetCreate:'Skapa träff',
       meetNeedTitle:'Skriv vad träffen gäller, 2–40 tecken.', meetBadTime:'Välj en tid från nu och högst 30 dagar framåt.', meetNeedPlace:'Välj var ni ska ses.',
-      meetTooMany:'Gruppen har redan 10 kommande träffar.', meetGone:'Träffen finns inte längre.', meetComing:'Kommer', meetNotComing:'Kommer inte',
+      meetTooMany:'Gruppen har redan 10 kommande träffar.', meetSlow:'Du har skapat många träffar på kort tid. Vänta en stund och försök igen.',meetGone:'Träffen finns inte längre.', meetComing:'Kommer', meetNotComing:'Kommer inte',
       meetCount:'{n} kommer', meetOne:'1 kommer', meetNoOne:'Ingen har sagt att de kommer än.', meetWho:'{n} kommer: {names}', meetBy:'av {n}',
       meetDrive:'Kör hit', meetGo:'Kör hit', meetDelete:'Ta bort träffen', meetDeleteAsk:'Ta bort {t}? Ingen i gruppen ser den längre.', meetMore:'+{n} till',
       meetStarted:'började {t}', today:'idag', tomorrow:'imorgon', meetNewBtn:'Skapa träff', meetGroup:'Grupp',
@@ -874,7 +874,7 @@ h1{font-family:inherit}
       meetHd:'Meetups', meetNone:'No meetups planned.', meetNewTitle:'New meetup', meetNamePh:'What’s it about? E.g. Coffee at the petrol station',
       meetWhen:'When', meetWhere:'Where', meetPick:'Choose place on map', meetPicked:'📍 Place chosen · Change', meetCreate:'Create meetup',
       meetNeedTitle:'Say what the meetup is about, 2–40 characters.', meetBadTime:'Pick a time from now and at most 30 days ahead.', meetNeedPlace:'Choose where to meet.',
-      meetTooMany:'The group already has 10 upcoming meetups.', meetGone:'The meetup no longer exists.', meetComing:'Coming', meetNotComing:'Not coming',
+      meetTooMany:'The group already has 10 upcoming meetups.', meetSlow:'You’ve created a lot of meetups in a short time. Wait a while and try again.',meetGone:'The meetup no longer exists.', meetComing:'Coming', meetNotComing:'Not coming',
       meetCount:'{n} coming', meetOne:'1 coming', meetNoOne:'No one has said they’re coming yet.', meetWho:'{n} coming: {names}', meetBy:'by {n}',
       meetDrive:'Navigate here', meetGo:'Go here', meetDelete:'Delete meetup', meetDeleteAsk:'Delete {t}? No one in the group will see it any more.', meetMore:'+{n} more',
       meetStarted:'started {t}', today:'today', tomorrow:'tomorrow', meetNewBtn:'Create meetup', meetGroup:'Group',
@@ -2021,14 +2021,26 @@ h1{font-family:inherit}
   document.addEventListener('visibilitychange', () => { if (N && document.visibilityState === 'visible') keepAwake(); });
 
   let nmap = null, mapLib = null;
-  function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  // integrity: webbläsaren kör bara filen om den är exakt den som räknades fram (SRI)
+  function loadScript(src, integrity) {
+    return new Promise((res, rej) => {
+      const s = document.createElement('script'); s.src = src;
+      if (integrity) { s.integrity = integrity; s.crossOrigin = 'anonymous'; }
+      s.onload = res; s.onerror = rej; document.head.appendChild(s);
+    });
+  }
+  // Kartbiblioteket från ett CDN. Har någon ändrat filen där vägrar webbläsaren köra den, och appen
+  // försöker med nästa CDN. Hasharna gäller bara 4.7.1: byts versionen måste de räknas om, annars laddas ingen karta.
+  // openssl dgst -sha384 -binary maplibre-gl.js | openssl base64 -A
+  const MAPLIBRE = { v: '4.7.1', js: 'sha384-SYKAG6cglRMN0RVvhNeBY0r3FYKNOJtznwA0v7B5Vp9tr31xAHsZC0DqkQ/pZDmj', css: 'sha384-MinO0mNliZ3vwppuPOUnGa+iq619pfMhLVUXfC4LHwSCvF9H+6P/KO4Q7qBOYV5V' };
   function loadMapLibre() {
     if (window.maplibregl) return Promise.resolve();
     if (mapLib) return mapLib;
-    const css = v => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = v; document.head.appendChild(l); };
+    const css = v => { const l = document.createElement('link'); l.rel = 'stylesheet'; l.integrity = MAPLIBRE.css; l.crossOrigin = 'anonymous'; l.href = v; document.head.appendChild(l); };
+    const from = base => { css(base + 'maplibre-gl.css'); return loadScript(base + 'maplibre-gl.js', MAPLIBRE.js); };
     mapLib = (async () => {
-      try { css('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'); await loadScript('https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js'); }
-      catch { css('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'); await loadScript('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'); }
+      try { await from(`https://cdn.jsdelivr.net/npm/maplibre-gl@${MAPLIBRE.v}/dist/`); }
+      catch { await from(`https://unpkg.com/maplibre-gl@${MAPLIBRE.v}/dist/`); }
     })().catch(e => { mapLib = null; throw e; });
     return mapLib;
   }
@@ -2371,6 +2383,11 @@ h1{font-family:inherit}
     LIVE.pinged = false; liveStop();   // positionen och notisadresserna försvann med kontot
     pushOff();
     store.set('nick', ''); $('nickIn').value = '';
+    // Det personliga i telefonen försvinner också: senaste sökningar, senaste position, en sparad inbjudan
+    // och kontrollerade områden längs rutterna (de visar ungefär var man har kört). Inställningarna blir kvar.
+    ['recent', 'lastPos', 'joinCode', 'meetGroup'].forEach(k => { try { localStorage.removeItem('atp.' + k); } catch {} });
+    try { Object.keys(localStorage).filter(k => k.startsWith('osmf2:')).forEach(k => localStorage.removeItem(k)); } catch {}
+    forbidCache.clear(); lastPos = null; renderRecent();
     signedOut();
     alert(T('delDone'));
   };
@@ -2513,7 +2530,7 @@ h1{font-family:inherit}
   let MEETS = [], meetDraft = null, meetCur = null;
   const meetMarks = new Map();
   const meetErr = e => isTimeout(e) ? T('slowNet') : e.status === 404 ? T('meetGone') : e.status === 409 ? T('meetTooMany')
-    : e.msg === 'bad time' ? T('meetBadTime') : e.msg === 'bad title' ? T('meetNeedTitle') : e.msg === 'bad place' ? T('meetNeedPlace') : T('generic');
+    : e.status === 429 ? T('meetSlow') : e.msg === 'bad time' ? T('meetBadTime') : e.msg === 'bad title' ? T('meetNeedTitle') : e.msg === 'bad place' ? T('meetNeedPlace') : T('generic');
   function meetMsg(text) { $('meetMsg').textContent = text; }
   const comingText = n => n === 1 ? T('meetOne') : T('meetCount', { n });
   // datetime-local vill ha lokal tid utan tidszon

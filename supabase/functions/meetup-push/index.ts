@@ -4,7 +4,10 @@
 // webbpush till varje telefon: innehållet enligt RFC 8291 och avsändaren enligt RFC 8292 (VAPID).
 // Bara Web Crypto, inga bibliotek.
 // Läggs in under Edge Functions med namnet meetup-push, med JWT-kontrollen avstängd (hemligheten ersätter den).
-// Hemlig nyckel: VAPID_PRIVATE_KEY under Edge Functions → Secrets.
+// Under Edge Functions → Secrets:
+//   VAPID_PRIVATE_KEY: avsändarens hemliga nyckel.
+//   SLOWLANE_HOOK_SECRET: samma hemlighet som slowlane_push_hook i Vault. Med den avvisas främlingar direkt,
+//   innan funktionen gör något annat. Utan den kontrolleras hemligheten först av push_job i databasen.
 
 const SUPA_URL = 'https://whpfdexdxwumaiiriqkt.supabase.co';
 const SUPA_KEY = 'sb_publishable_minOWomD8yovDIT35L9BQA_V2MN-aJD';
@@ -115,29 +118,51 @@ async function sendPush(r: Row, payload: string, ttl: number, key: CryptoKey): P
   return res.status;
 }
 
-// Felet syns i svaret (net._http_response i databasen) och i funktionens loggar
-function fail(error: string): Response {
+// Jämför hashar, så att svarstiden inte avslöjar hur mycket av hemligheten som stämmer
+export async function sameSecret(a: string, b: string): Promise<boolean> {
+  const [x, y] = await Promise.all([a, b].map(async s => new Uint8Array(await crypto.subtle.digest('SHA-256', utf8(s)))));
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}
+
+// Ett fel som funktionen inte klarar. Det syns alltid i funktionens loggar, men i svaret
+// (net._http_response i databasen) bara när hemligheten redan stämt, så att främlingar aldrig ser detaljer.
+class Fail extends Error {}
+function failure(e: unknown, trusted: boolean): Response {
+  const error = e instanceof Fail ? e.message : String(e instanceof Error && e.stack || e);
   console.error('meetup-push:', error);
-  return Response.json({ error }, { status: 500 });
+  return Response.json({ error: trusted ? error : 'internal error' }, { status: 500 });
 }
 
 async function handle(req: Request): Promise<Response> {
+  const ctx = { trusted: false };
+  try { return await work(req, ctx); } catch (e) { return failure(e, ctx.trusted); }
+}
+
+async function work(req: Request, ctx: { trusted: boolean }): Promise<Response> {
   const secret = req.headers.get('x-slowlane-hook');
   if (req.method !== 'POST' || !secret) return new Response('not allowed', { status: 403 });
+  // Mellanslag, radbrytningar och citattecken från inklistringen tas bort
+  const expected = (Deno.env.get('SLOWLANE_HOOK_SECRET') || '').replace(/[\s"']/g, '');
+  if (expected) {
+    if (!await sameSecret(secret, expected)) return new Response('not allowed', { status: 403 });
+    ctx.trusted = true;
+  } else console.warn('meetup-push: SLOWLANE_HOOK_SECRET saknas under Secrets, push_job kontrollerar hemligheten');
   let body: { meetup?: unknown } = {};
   try { body = await req.json(); } catch { /* fel format */ }
   const meetup = typeof body.meetup === 'string' ? body.meetup : '';
   if (!meetup) return new Response('bad request', { status: 400 });
 
-  // Nyckeln först: push_job markerar träffen, så med en trasig nyckel skulle notiserna gå förlorade.
-  // Mellanslag, radbrytningar och citattecken från inklistringen tas bort.
+  // Nyckeln före push_job: push_job markerar träffen, så med en trasig nyckel skulle notiserna gå förlorade
   const privateD = (Deno.env.get('VAPID_PRIVATE_KEY') || '').replace(/[\s"']/g, '');
-  if (!/^[\w-]{43}$/.test(privateD)) return fail('VAPID_PRIVATE_KEY saknas eller är inte 43 tecken (är ' + privateD.length + ')');
+  if (!/^[\w-]{43}$/.test(privateD)) throw new Fail('VAPID_PRIVATE_KEY saknas eller är inte 43 tecken (är ' + privateD.length + ')');
   let key: CryptoKey;
-  try { key = await vapidKey(privateD); } catch (e) { return fail('VAPID_PRIVATE_KEY går inte att läsa: ' + String(e)); }
+  try { key = await vapidKey(privateD); } catch (e) { throw new Fail('VAPID_PRIVATE_KEY går inte att läsa: ' + String(e)); }
 
   const job = await rpc('push_job', { p_meetup: meetup, p_secret: secret });
   if (!job.ok) return new Response('push_job ' + job.status, { status: job.status === 403 ? 403 : 502 });
+  ctx.trusted = true;
   const rows: Row[] = await job.json();
   const region = Deno.env.get('SB_REGION');   // ska vara eu-west-1, se meetup_push_hook
   if (!rows.length) return Response.json({ sent: 0, region });
@@ -161,9 +186,9 @@ async function handle(req: Request): Promise<Response> {
 
 // I Supabase. Utan Deno (testerna i Node) laddas bara funktionerna ovan.
 // x-slowlane-fn visar vilken version av koden som är inlagd. Öka den när koden ändras.
-const FN_VERSION = '3';
+const FN_VERSION = '4';
 if (typeof Deno !== 'undefined') Deno.serve(async req => {
-  const res = await handle(req).catch(e => fail(String(e && e.stack || e)));
+  const res = await handle(req);
   res.headers.set('x-slowlane-fn', FN_VERSION);
   return res;
 });

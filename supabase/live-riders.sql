@@ -82,6 +82,18 @@ create table if not exists public.god_users (
   user_id uuid primary key references auth.users (id) on delete cascade
 );
 
+-- Skapade träffar, även de som raderats. Gränserna i meetup_create och push_job räknar här, så att
+-- ingen kan skapa och radera träffar i en slinga och skicka notis efter notis. Sparas ett dygn.
+create table if not exists public.meetup_log (
+  meetup_id uuid primary key,
+  group_id uuid not null references public.groups (id) on delete cascade,
+  creator uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  notified_at timestamptz
+);
+create index if not exists meetup_log_creator_idx on public.meetup_log (creator, created_at);
+create index if not exists meetup_log_group_idx on public.meetup_log (group_id, notified_at);
+
 -- Telefoner som vill ha notiser om nya träffar. Adressen kommer från telefonens notistjänst
 -- (Apple, Google, Mozilla, Microsoft) och nycklarna krypterar innehållet så att bara telefonen kan läsa det.
 -- Sparas om varje gång appen startas, och tas bort om appen inte har öppnats på 90 dagar.
@@ -105,8 +117,9 @@ alter table public.meetups enable row level security;
 alter table public.meetup_answers enable row level security;
 alter table public.push_subs enable row level security;
 alter table public.god_users enable row level security;
+alter table public.meetup_log enable row level security;
 revoke all on public.riders, public.blocks, public.ride_last, public.groups, public.group_members,
-              public.meetups, public.meetup_answers, public.push_subs, public.god_users from anon, authenticated;
+              public.meetups, public.meetup_answers, public.push_subs, public.god_users, public.meetup_log from anon, authenticated;
 
 -- ---------- Hjälpfunktioner (bara för funktionerna nedan) ----------
 
@@ -472,9 +485,19 @@ begin
   if (select count(*) from public.meetups x where x.group_id = p_group and x.starts_at > now() - interval '3 hours') >= 10 then
     raise sqlstate 'PT409' using message = 'too many meetups';
   end if;
+  -- Högst 3 nya träffar i timmen och 10 per dygn per förare, även om de raderas igen. Låset gör att
+  -- många anrop samtidigt inte kommer förbi räkningen. Konton med God mode har ingen gräns.
+  if not exists (select 1 from public.god_users g where g.user_id = me) then
+    perform pg_advisory_xact_lock(hashtextextended('slowlane-meetup-' || me::text, 0));
+    if (select count(*) from public.meetup_log l where l.creator = me and l.created_at > now() - interval '1 hour') >= 3
+       or (select count(*) from public.meetup_log l where l.creator = me and l.created_at > now() - interval '1 day') >= 10 then
+      raise sqlstate 'PT429' using message = 'slow down';
+    end if;
+  end if;
   insert into public.meetups (group_id, creator, title, pos, starts_at, god)
   values (p_group, me, btrim(p_title), st_setsrid(st_makepoint(p_lng, p_lat), 4326)::geography, p_starts, coalesce(p_god, false))
   returning id into v_id;
+  insert into public.meetup_log (meetup_id, group_id, creator) values (v_id, p_group, me);
   insert into public.meetup_answers (meetup_id, user_id, coming) values (v_id, me, true);
   return v_id;
 end;
@@ -665,6 +688,8 @@ $$;
 
 -- Mottagarna för en ny träff: alla i gruppen med notiser påslagna, utom den som skapade träffen och
 -- den som har blockerat hen. Träffen markeras, så ett nytt anrop ger inga mottagare.
+-- Högst 5 notiser per grupp och timme, hur många som än skapar träffar. Träffar utöver det syns i
+-- listan som vanligt, men utan notis.
 create or replace function public.push_job(p_meetup uuid, p_secret text)
 returns table (endpoint text, p256dh text, auth text, lang text, title text, group_name text, creator_nick text, starts_at timestamptz)
 language plpgsql
@@ -684,6 +709,11 @@ begin
   if not found then
     return;
   end if;
+  perform pg_advisory_xact_lock(hashtextextended('slowlane-push-' || v.group_id::text, 0));
+  if (select count(*) from public.meetup_log l where l.group_id = v.group_id and l.notified_at > now() - interval '1 hour') >= 5 then
+    return;
+  end if;
+  update public.meetup_log set notified_at = now() where meetup_id = p_meetup;
   return query
     select s.endpoint, s.p256dh, s.auth, s.lang, v.title, g.name, cm.nick, v.starts_at
     from public.group_members gm
@@ -799,9 +829,22 @@ grant execute on function public.push_job(uuid, text) to anon;
 grant execute on function public.push_gone(text[], text) to anon;
 
 -- ---------- Städning ----------
--- Varje natt. Senast godkända position sparas bara ett dygn: efter det släpper
--- hoppkontrollen ändå igenom hela Sverige. Träffar raderas ett dygn efter starttiden, och
--- notisadresser till telefoner som inte har öppnat appen på 90 dagar.
+-- Positioner från appar som stängts utan att hinna säga till. Körs varje minut och tar bort de som
+-- är äldre än 4 minuter, så att ingen position finns kvar mer än 5 minuter, som integritetspolicyn lovar.
+-- ride_ping städar också, men bara när någon annan använder appen.
+create or replace function public.cleanup_live()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  delete from public.riders where updated_at < now() - interval '4 minutes';
+$$;
+revoke execute on function public.cleanup_live() from public, anon, authenticated;
+
+-- Varje timme. Senast godkända position sparas bara ett dygn: efter det släpper
+-- hoppkontrollen ändå igenom hela Sverige. Träffar raderas ett dygn efter starttiden, loggen över
+-- skapade träffar efter ett dygn, och notisadresser till telefoner som inte har öppnat appen på 90 dagar.
 -- Anonyma konton från äldre versioner kan inte synas längre och tas bort när de är
 -- 30 dagar gamla, med blockeringar och allt.
 create or replace function public.cleanup_riders()
@@ -814,6 +857,8 @@ as $$
     delete from public.ride_last where pinged_at < now() - interval '1 day'),
   old_meets as (
     delete from public.meetups where starts_at < now() - interval '1 day'),
+  old_log as (
+    delete from public.meetup_log where created_at < now() - interval '1 day'),
   old_push as (
     delete from public.push_subs where saved_at < now() - interval '90 days'),
   gone as (
@@ -824,7 +869,7 @@ as $$
 $$;
 revoke execute on function public.cleanup_riders() from public, anon, authenticated;
 
--- Kör städningen varje natt kl. 03:23. pg_cron och rättigheterna sätts bara upp första gången:
+-- pg_cron och rättigheterna sätts bara upp första gången:
 -- körs de igen krockar de med Supabases egna rättigheter på cron.
 do $$
 begin
@@ -835,4 +880,10 @@ begin
   end if;
 end
 $$;
-select cron.schedule('slowlane-cleanup', '23 3 * * *', 'select public.cleanup_riders()');
+-- Ett jobb med samma namn ersätts, så det går att köra om.
+select cron.schedule('slowlane-live', '* * * * *', 'select public.cleanup_live()');
+select cron.schedule('slowlane-cleanup', '23 * * * *', 'select public.cleanup_riders()');
+-- Jobbet varje minut ger 1 440 rader om dagen i cron.job_run_details. Gamla rader tas bort varje natt,
+-- annars växer databasen med runt 100 MB om året. Eget jobb, så att ett fel här inte stoppar städningen ovan.
+select cron.schedule('slowlane-cron-log', '41 3 * * *',
+  $c$delete from cron.job_run_details where end_time < now() - interval '7 days' and jobid in (select jobid from cron.job where jobname like 'slowlane-%')$c$);
