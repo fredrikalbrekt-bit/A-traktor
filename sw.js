@@ -1,6 +1,10 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v46';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './epa-hero.webp', './epa-fog.webp', './moped2-hero.webp', './moped2-rain.webp', './moped2-cool.webp', './moped2-cold.webp', './dust.webp', './mopedbil-hero.webp', './moped1-hero.webp'];
+const VERSION = 'slowlane-v47';
+// Det som första besöket visar: appen, de små ikonerna och fordonsbilderna i välkomststeget.
+// Övriga bilder (väder, dimma, de stora ikonerna för installationen) hämtas första gången de behövs och sparas då.
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './apple-touch-icon.png', './epa-hero.webp', './moped2-hero.webp', './moped1-hero.webp', './mopedbil-hero.webp'];
+// Gröna vägar i en egen cache som en ny version inte tömmer: filen ändras varje vecka, inte med appen
+const DATA = 'slowlane-data';
 const LIBS = ['cdn.jsdelivr.net', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 self.addEventListener('install', e => {
@@ -10,7 +14,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== DATA).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
@@ -22,10 +26,15 @@ self.addEventListener('fetch', e => {
   const page = url.pathname.split('/').pop();
   if (req.mode === 'navigate' && page.endsWith('.html') && page !== 'index.html') return;
 
-  const shell = url.origin === location.origin && SHELL.some(p => url.pathname.endsWith(p.replace('./', '/')) && p !== './');
-  // Bilderna byts bara i en ny version, och då hämtas alla igen vid installationen
-  if (shell && /\.(webp|png)$/.test(url.pathname)) {
-    e.respondWith(caches.match(req).then(r => r || fetch(req)));
+  const own = url.origin === location.origin;
+  const shell = own && SHELL.some(p => url.pathname.endsWith(p.replace('./', '/')) && p !== './');
+  // Bilderna byts bara i en ny version. En bild som inte redan finns sparas när den hämtas,
+  // och visas sedan från cachen, även utan nät.
+  if (own && /\.(webp|png)$/.test(url.pathname)) {
+    e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
+      if (res.ok) { const copy = res.clone(); e.waitUntil(caches.open(VERSION).then(c => c.put(req, copy))); }
+      return res;
+    })));
     return;
   }
 
@@ -53,10 +62,13 @@ self.addEventListener('fetch', e => {
   }
 
   // Gröna vägar: visa sparad fil direkt, hämta ny i bakgrunden
-  if (url.origin === location.origin && url.pathname.endsWith('grona-vagar.json')) {
-    e.respondWith(caches.open(VERSION).then(async c => {
+  if (own && url.pathname.endsWith('grona-vagar.json')) {
+    e.respondWith(caches.open(DATA).then(async c => {
       const hit = await c.match(req, { ignoreSearch: true });
-      const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
+      let saved = Promise.resolve();
+      const net = fetch(req).then(res => { if (res.ok) { const copy = res.clone(); saved = c.put(req, copy); } return res; }).catch(() => hit);
+      // den nya filen hinner sparas även när sidan redan har fått den sparade
+      e.waitUntil(net.then(() => saved).catch(() => {}));
       return hit || net;
     }));
     return;

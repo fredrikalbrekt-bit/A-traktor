@@ -688,7 +688,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 46</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 47</p>
   </form>
 </dialog>
 
@@ -1206,6 +1206,7 @@ h1{font-family:inherit}
   if (window.visualViewport) { visualViewport.addEventListener('resize', fitSearch); visualViewport.addEventListener('scroll', fitSearch); }
   function openSearch(field) {
     searchField = field;
+    if (field === 'to') preloadGreen();
     $('sLbl').textContent = T(field);
     const cur = $(field).value;
     SIN.value = (cur && !isMyPos(cur) && !isPin(cur) && cur !== T('locating')) ? cur : '';
@@ -1349,7 +1350,7 @@ h1{font-family:inherit}
   }
   // Förberäknad fil med alla svenska gröna vägar och vägarna där moped är förbjuden
   // (uppdateras varje vecka av GitHub Actions i repot)
-  let greenP = null;
+  let greenP = null, greenFailAt = 0;
   function tileIndex(ways) {
     const tiles = new Map();
     ways.forEach((w, wi) => w.forEach((p, k) => {
@@ -1359,6 +1360,9 @@ h1{font-family:inherit}
     return tiles;
   }
   function greenData() {
+    // Gick hämtningen fel nyss används reservkontrollen (Overpass) direkt, i stället för att vänta
+    // upp till 30 s till för varje rutt som ska kontrolleras
+    if (!greenP && Date.now() - greenFailAt < 60e3) return Promise.reject(new Error('grona-vagar.json gick inte att hämta nyss'));
     if (!greenP) greenP = (async () => {
       const res = await fetch('grona-vagar.json', { cache: 'no-cache', signal: timeout(30000) });
       if (!res.ok) throw new Error('grona-vagar.json saknas (' + res.status + ')');
@@ -1366,9 +1370,12 @@ h1{font-family:inherit}
       const unpack = list => (list || []).map(f => { const w = []; for (let i = 0; i < f.length; i += 2) w.push({ lat: f[i] / sc, lng: f[i + 1] / sc }); return w; });
       const ways = unpack(d.ways), moped = unpack(d.moped);
       return { ways, tiles: tileIndex(ways), moped, mtiles: tileIndex(moped), generated: d.generated };
-    })().catch(e => { greenP = null; throw e; });
+    })().catch(e => { greenP = null; greenFailAt = Date.now(); throw e; });
     return greenP;
   }
+  // Filen (330 kB) hämtas redan när man börjar välja mål, så att första rutten inte behöver vänta på
+  // den. Inte när appen öppnas: den som bara tittar på kartan ska inte behöva ladda ner den.
+  const preloadGreen = () => { if (!useBikePaths()) greenData().catch(() => {}); };
   let greenSource = '';
   // Förbjudna vägar nära rutten: { green, moped }. moped är tom för fordon som inte berörs.
   async function forbiddenWays(path) {
