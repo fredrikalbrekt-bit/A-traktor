@@ -54,27 +54,49 @@ h1{margin:6px 0 0;font-size:34px;font-weight:600;line-height:1.1}
 .icon-btn{width:44px;height:44px;border-radius:999px;border:1px solid var(--line2);background:var(--glass);
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .spacer{flex:1;min-height:150px}
-.speed{display:flex;align-items:center;justify-content:flex-end;gap:14px;cursor:pointer}
-.speed-row{display:flex;align-items:center;gap:12px}
-.speed-row .speed{margin-left:auto}
-.chip.meet-new{display:inline-flex;align-items:center;gap:8px;min-height:44px;color:var(--text);background:var(--glass);font-weight:500}
-.meet-new[hidden]{display:none}
-.meet-new svg{color:var(--accent);flex-shrink:0}
 .round{width:44px;height:44px;border-radius:999px;border:1px solid var(--line2);background:rgba(0,0,0,.6);font-size:20px}
-.speed-val{display:flex;flex-direction:column;align-items:center;min-width:64px}
-.speed-val b{font-family:var(--cond);font-size:52px;font-weight:600;line-height:1}
-.speed-val span{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px}
-.fields{padding:6px 16px}
-.field{display:flex;align-items:center;gap:12px;min-height:60px}
-.field+.field{border-top:1px solid var(--line);margin-left:0}
-.field .col{display:flex;flex-direction:column;flex:1;gap:2px;min-width:0}
-.field label{font-size:12px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
-.field input{border:0;outline:none;background:transparent;font-size:17px;padding:0;width:100%}
-.field input::placeholder{color:var(--faint)}
-.loc-btn{border:0;background:transparent;color:var(--accent);font-size:14px;font-weight:500;padding:8px 0 8px 8px;min-height:44px;white-space:nowrap}
-.recent{display:flex;gap:8px;flex-wrap:wrap}
+/* för skärmläsare, syns inte */
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* Startsidan: skylten med fordonets maxhastighet, ett stort sökfält och start som en rad under */
+.top-l{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.top-l .live-chip{margin-top:0}
+.sign{width:52px;height:52px;flex-shrink:0;box-sizing:border-box;border-radius:999px;background:#fff;border:6px solid #e3262b;padding:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sign b{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;line-height:1;color:#111}
+.where{display:flex;flex-direction:column;gap:6px;text-shadow:0 1px 12px rgba(0,0,0,.7)}
+.veh-line{font-size:15px;font-weight:500;color:var(--text2)}
+#v-plan h1{font-family:var(--display);font-size:46px;font-weight:600;line-height:1;margin:0;letter-spacing:.3px}
+.where .plan-wx{margin-top:2px}
+@media (max-width:350px){#v-plan h1{font-size:40px}:root[data-theme="moped1"] #v-plan h1{font-size:32px}}
+.dest{display:flex;flex-direction:column;gap:2px}
+.to-box{display:flex;align-items:center;gap:12px;height:64px;padding:0 18px;border-radius:18px;background:var(--text);color:var(--bg);cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.to-box:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.to-box svg{flex-shrink:0}
+.to-box input{flex:1;min-width:0;border:0;outline:none;background:transparent;padding:0;font-size:18px;font-weight:600;color:var(--bg);cursor:pointer;text-overflow:ellipsis}
+.to-box input::placeholder{color:color-mix(in srgb,var(--bg) 62%,var(--text));font-weight:500;opacity:1}
+.from-line{display:flex;align-items:center;gap:8px;min-height:44px;font-size:14px;color:var(--muted)}
+.from-line svg{color:var(--accent);flex-shrink:0}
+.from-line label{flex-shrink:0;cursor:pointer}
+.from-line input{flex:1;min-width:0;border:0;background:transparent;padding:0;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-overflow:ellipsis}
+.from-line input::placeholder{color:var(--faint)}
+.lnk-btn{border:0;background:transparent;padding:0 4px;min-height:44px;color:var(--accent);font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.sec{display:flex;flex-direction:column;gap:4px}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px}
+.sec-hd h2{margin:0;font-family:var(--cond);font-size:14px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+.recent{display:flex;flex-direction:column}
+.rec{display:flex;align-items:center;gap:14px;width:100%;min-height:56px;padding:0;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--text);text-align:left;cursor:pointer}
+.rec:last-child{border-bottom:0}
+.rec>svg{color:var(--muted);flex-shrink:0}
+.rec .chev{color:var(--faint)}
+.rec .tx{flex:1;min-width:0}
+.rec .m,.rec .s{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rec .m{font-size:16px;font-weight:600}
+.rec .s{font-size:13px;color:var(--muted)}
+/* Beräkna rutt syns när det finns ett mål: under beräkningen visar den stegen, och Avbryt finns under */
+#v-plan:has(#to:placeholder-shown) .dock{display:none}
 .search{position:fixed;left:0;right:0;top:0;height:100%;z-index:60;background:var(--bg);display:flex;flex-direction:column;max-width:480px;margin:0 auto;will-change:transform}
 .search[hidden]{display:none}
 .s-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 12px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
@@ -224,18 +246,19 @@ dialog .toggle .t2{font-size:13px;line-height:1.4;margin-top:2px}
 .meet-cards{display:flex;gap:10px;margin:-4px -20px 0;padding:0 20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 20px;scrollbar-width:none}
 .meet-cards::-webkit-scrollbar{display:none}
 .meet-cards[hidden]{display:none}
-.meet-card{flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;gap:10px;padding:12px 14px;border:1px solid var(--accent);border-radius:14px;background:var(--panel)}
+/* Ett kort: dag och tid, rubriken (öppnar träffen, där man svarar) och Kör hit */
+.meet-card{flex:0 0 100%;scroll-snap-align:start;display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line2);border-radius:16px;background:var(--panel)}
 .meet-cards.many .meet-card{flex-basis:calc(100% - 28px)}
-.meet-card .hd{display:flex;align-items:flex-start;gap:10px;width:100%;padding:0;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
-.meet-card .hd span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.mc-day{flex-shrink:0;min-width:54px;height:54px;box-sizing:border-box;padding:0 6px;border-radius:12px;background:var(--accent-soft);color:var(--accent);
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.mc-day small{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase}
+.mc-day b{font-family:var(--cond);font-size:21px;font-weight:700;line-height:1}
+.meet-card .hd{flex:1;min-width:0;min-height:44px;padding:0;border:0;background:none;color:var(--text);font:inherit;text-align:left;cursor:pointer}
+.meet-card .hd>span{display:flex;flex-direction:column;gap:2px}
 .meet-card .hd b{font-size:16px;font-weight:600;overflow-wrap:anywhere}
 .meet-card .hd small{font-size:13px;color:var(--muted)}
-.meet-card .hd em{flex-shrink:0;font-style:normal;font-size:13px;font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:2px 10px;white-space:nowrap}
-.meet-card .acts{display:flex;flex-wrap:wrap;gap:8px}
-/* id:t så att fordonstemanas bredare bokstavsavstånd inte gäller här: tre knappar ska få plats på en rad */
-#meetCards .cta{flex:1 1 auto;width:auto;height:42px;padding:0 4px;font-size:14px;letter-spacing:.5px;white-space:nowrap}
-@media (max-width:350px){#meetCards .cta{font-size:12px}}
-.meet-card .cta.ghost[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+/* id:t så att fordonstemanas bredare bokstavsavstånd inte gäller här */
+#meetCards .mc-go{flex:0 0 auto;width:auto;height:44px;padding:0 16px;border-radius:999px;font-size:15px;letter-spacing:.5px;white-space:nowrap}
 .meet-mk{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
 .meet-mk i{font-style:normal;font-size:22px;line-height:1}
 .meet-mk b{font-size:12px;font-weight:600;line-height:1.3;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 6px;white-space:nowrap}
@@ -293,7 +316,7 @@ dialog .row .cta{height:48px;font-size:16px}
 .spin{width:18px;height:18px;border-radius:999px;border:2px solid rgba(0,0,0,.25);border-top-color:#000;animation:sp .8s linear infinite;margin-right:10px}
 @keyframes sp{to{transform:rotate(360deg)}}
 
-h1,.big,.eta,.speed-val b,.man-dist{font-family:var(--display)}
+h1,.big,.eta,.man-dist{font-family:var(--display)}
 h1{font-family:inherit}
 [hidden]{display:none!important}
 /* ---------- Väder ---------- */
@@ -367,7 +390,7 @@ h1{font-family:inherit}
 :root[data-theme="mopedbil"] .kicker{color:#c99bff}
 :root[data-theme="mopedbil"] .cta{font-family:var(--display);font-weight:700;letter-spacing:1.5px;background:linear-gradient(135deg,#8e4ce8,#6a24d6);color:#fff}
 :root[data-theme="mopedbil"] .cta.ghost{background:transparent;color:var(--text)}
-:root[data-theme="mopedbil"] .eta,:root[data-theme="mopedbil"] .big,:root[data-theme="mopedbil"] .man-dist,:root[data-theme="mopedbil"] .speed-val b{font-weight:600}
+:root[data-theme="mopedbil"] .eta,:root[data-theme="mopedbil"] .big,:root[data-theme="mopedbil"] .man-dist{font-weight:600}
 :root[data-theme="mopedbil"] .gloss{display:block}
 .gloss{display:none;height:4px;border-radius:2px;background:linear-gradient(90deg,#8e3ff0,#d9b3ff 50%,#8e3ff0)}
 :root[data-theme="mopedbil"] #ajabaja .lights{background:radial-gradient(closest-side at 30% 60%,rgba(180,107,255,.55),transparent),radial-gradient(closest-side at 70% 60%,rgba(255,255,255,.2),transparent)}
@@ -380,10 +403,11 @@ h1{font-family:inherit}
   --text2:#dde6d8;--faint:#6f7a72;--route:#a8ff2e;--route-casing:#2c4a00;--glass:rgba(6,8,7,.65);--display:'Russo One','Barlow Condensed',sans-serif;
 }
 :root[data-theme="moped1"] h1{font-family:var(--display);font-weight:400;font-size:32px;letter-spacing:.5px}
+:root[data-theme="moped1"] #v-plan h1{font-size:36px;font-weight:400}
 :root[data-theme="moped1"] .kicker{color:#a8ff2e;text-shadow:0 0 12px rgba(168,255,46,.45)}
 :root[data-theme="moped1"] .cta{font-family:var(--display);font-weight:400;letter-spacing:1.5px;box-shadow:0 0 22px rgba(168,255,46,.28)}
 :root[data-theme="moped1"] .cta.ghost{box-shadow:none}
-:root[data-theme="moped1"] .eta,:root[data-theme="moped1"] .big,:root[data-theme="moped1"] .man-dist,:root[data-theme="moped1"] .speed-val b{font-weight:400}
+:root[data-theme="moped1"] .eta,:root[data-theme="moped1"] .big,:root[data-theme="moped1"] .man-dist{font-weight:400}
 :root[data-theme="moped1"] .card,:root[data-theme="moped1"] .stat,:root[data-theme="moped1"] .safety,:root[data-theme="moped1"] .wx{
   background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.022) 0 3px,transparent 3px 6px),repeating-linear-gradient(-45deg,rgba(0,0,0,.25) 0 3px,transparent 3px 6px)}
 :root[data-theme="moped1"] .neon{display:block}
@@ -398,6 +422,7 @@ h1{font-family:inherit}
   --text2:#e9dfcd;--faint:#7f89a8;--route:#ff8a3d;--route-casing:#5a2408;--glass:rgba(12,20,48,.6);--display:'Righteous','Barlow Condensed',sans-serif;
 }
 :root[data-theme="moped2"] h1{font-family:var(--display);font-weight:400;letter-spacing:.5px}
+:root[data-theme="moped2"] #v-plan h1{font-weight:400}
 :root[data-theme="moped2"] .kicker{color:#ffb55e}
 :root[data-theme="moped2"] .hero .fog{opacity:.75}
 :root[data-theme="moped2"] .hero .fog.f2{opacity:.4}
@@ -421,53 +446,51 @@ h1{font-family:inherit}
   </div>
   <div class="plan-inner">
     <div class="top">
-      <div>
-        <div class="kicker"><span>Slowlane</span> · <span id="profName">EPA/A-traktor</span></div>
-        <h1 data-i18n="where">Vart ska du?</h1>
-        <div class="plan-wx" id="planWx" hidden></div>
-        <div class="stripes" aria-hidden="true" style="width:120px;margin-top:10px"></div>
-        <div class="neon" aria-hidden="true" style="width:120px;margin-top:10px"></div>
-        <div class="gloss" aria-hidden="true" style="width:120px;margin-top:10px"></div>
+      <div class="top-l">
+        <div class="kicker">Slowlane</div>
         <button class="chip live-chip" id="liveChip" type="button" hidden><i aria-hidden="true"></i><span id="liveTx"></span></button>
       </div>
+      <button type="button" class="sign" id="speedBox" data-i18n-aria="speedAria" aria-label="Ändra maxhastighet i inställningar"><b id="spVal">30</b></button>
       <button class="icon-btn" id="openSettings" data-i18n-aria="settings" aria-label="Inställningar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
       </button>
     </div>
 
-    <div class="meet-cards" id="meetCards" hidden></div>
-
     <div class="spacer"></div>
 
-    <div class="speed-row">
-      <button class="chip meet-new" id="meetNewBtn" type="button" hidden>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18M12 14v6M9 17h6"></path></svg>
-        <span data-i18n="meetNewBtn">Skapa träff</span>
-      </button>
-      <div class="speed" id="speedBox" role="button" tabindex="0" data-i18n-aria="speedAria" aria-label="Ändra maxhastighet i inställningar">
-        <div class="speed-val" aria-live="polite"><b id="spVal">30</b><span data-i18n="kmhMax">km/h max</span></div>
+    <div class="where">
+      <div class="veh-line"><span id="profName">EPA/A-traktor</span> · <span id="profMax">max 30 km/h</span></div>
+      <h1 data-i18n="where">Vart ska du?</h1>
+      <div class="plan-wx" id="planWx" hidden></div>
+      <div class="stripes" aria-hidden="true" style="width:120px"></div>
+      <div class="neon" aria-hidden="true" style="width:120px"></div>
+      <div class="gloss" aria-hidden="true" style="width:120px"></div>
+    </div>
+
+    <!-- Ett tryck på fältet öppnar sökningen. Väljer man ett mål räknas rutten direkt. -->
+    <div class="dest">
+      <label class="to-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+        <span class="sr" data-i18n="to">Till</span>
+        <input id="to" data-i18n-ph="toPh" placeholder="Sök adress eller plats" readonly autocomplete="off">
+      </label>
+      <div class="from-line">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><circle cx="12" cy="12" r="8"></circle><path d="M12 1v3M12 20v3M1 12h3M20 12h3"></path></svg>
+        <label for="from" data-i18n="fromLbl">Startar från</label>
+        <input id="from" data-i18n-ph="addrPh" placeholder="Adress eller plats" readonly autocomplete="off">
+        <button class="lnk-btn" id="fromEdit" type="button" data-i18n="change" data-i18n-aria="changeFrom" aria-label="Ändra var du startar">Ändra</button>
       </div>
     </div>
 
-    <div class="card fields">
-      <div class="field">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="color:var(--accent)" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle></svg>
-        <div class="col">
-          <label for="from" data-i18n="from">Från</label>
-          <input id="from" data-i18n-ph="addrPh" placeholder="Adress eller plats" readonly autocomplete="off">
-        </div>
-        <button class="loc-btn" id="useLoc" type="button" data-i18n="myPos">Min position</button>
-      </div>
-      <div class="field">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f2f3f5" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"></path></svg>
-        <div class="col">
-          <label for="to" data-i18n="to">Till</label>
-          <input id="to" data-i18n-ph="addrPh" placeholder="Adress eller plats" readonly autocomplete="off">
-        </div>
-      </div>
+    <div class="sec" id="meetSec" hidden>
+      <div class="sec-hd"><h2 data-i18n="meetHd">Träffar</h2><button class="lnk-btn" id="meetNewBtn" type="button" hidden data-i18n="meetNewBtn">Skapa träff</button></div>
+      <div class="meet-cards" id="meetCards" hidden></div>
     </div>
 
-    <div class="recent" id="recent"></div>
+    <div class="sec" id="recentSec" hidden>
+      <div class="sec-hd"><h2 data-i18n="recentHd">Senaste</h2></div>
+      <div class="recent" id="recent"></div>
+    </div>
 
     <div class="msg" id="msg" role="alert"></div>
     <div class="dock">
@@ -691,7 +714,7 @@ h1{font-family:inherit}
       <button class="cta ghost" value="cancel" type="submit" data-i18n="cancel">Avbryt</button>
       <button class="cta" id="saveKey" value="save" type="submit" data-i18n="save">Spara</button>
     </div>
-    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 48</p>
+    <p style="margin:14px 0 0;font-size:12px;color:var(--faint);text-align:center"><a href="integritet.html" target="_blank" rel="noopener" style="color:inherit" data-i18n="privacy">Så hanteras dina uppgifter</a><br>Slowlane · version 49</p>
   </form>
 </dialog>
 
@@ -835,7 +858,8 @@ h1{font-family:inherit}
       welPriv:'Andra ser bara ditt smeknamn, aldrig din e-post.', welBack:'‹ Byt fordon', welRetry:'Försök igen',
       welGisFail:'Inloggningen gick inte att visa. Kontrollera att du är uppkopplad.',
       welMe:'Vad ska andra se?', welLater:'Allt går att ändra i inställningarna.', welGo:'Kom igång', welNickNeed:'Välj ett smeknamn på 3–16 tecken.',
-      welMax:'max {v} km/h', welBike:'cykelbana', endAsk:'Avsluta navigeringen?'
+      welMax:'max {v} km/h', welBike:'cykelbana', endAsk:'Avsluta navigeringen?',
+      toPh:'Sök adress eller plats', fromLbl:'Startar från', change:'Ändra', changeFrom:'Ändra var du startar', meetNow:'nu'
     },
     en: {
       planAria:'Plan trip', where:'Where to?', settings:'Settings', speedAria:'Change max speed in settings', kmhMax:'km/h max',
@@ -910,7 +934,8 @@ h1{font-family:inherit}
       welPriv:'Others only see your nickname, never your email.', welBack:'‹ Change vehicle', welRetry:'Try again',
       welGisFail:'Couldn’t show the sign-in. Check that you’re online.',
       welMe:'What should others see?', welLater:'You can change all of this in settings.', welGo:'Get started', welNickNeed:'Choose a nickname of 3–16 characters.',
-      welMax:'max {v} km/h', welBike:'cycle paths', endAsk:'End navigation?'
+      welMax:'max {v} km/h', welBike:'cycle paths', endAsk:'End navigation?',
+      toPh:'Search address or place', fromLbl:'Starting from', change:'Change', changeFrom:'Change where you start', meetNow:'now'
     }
   };
   let lang = store.get('lang', (navigator.language || 'sv').toLowerCase().startsWith('sv') ? 'sv' : 'en');
@@ -943,10 +968,9 @@ h1{font-family:inherit}
   let lastRoute = null;
 
   // ---------- Speed ----------
-  function renderSpeed() { $('spVal').textContent = speed; $('rSub').textContent = T('atSpeed', { v: speed }); }
+  function renderSpeed() { $('spVal').textContent = speed; $('profMax').textContent = T('welMax', { v: speed }); $('rSub').textContent = T('atSpeed', { v: speed }); }
   renderSpeed();
   $('speedBox').onclick = () => $('openSettings').click();
-  $('speedBox').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('openSettings').click(); } };
 
 
   // ---------- Settings / key ----------
@@ -1055,7 +1079,7 @@ h1{font-family:inherit}
   const ANDROID = /Android/.test(navigator.userAgent);
   const geoText = (err, plan) => (err && err.code === 1 ? T(IOS ? 'geoDeniedIos' : ANDROID ? 'geoDeniedAndroid' : 'geoDeniedWeb') : T('geoTimeout'))
     + (plan ? ' ' + T('orAddress') : '');
-  $('useLoc').onclick = () => useMyLocation();
+  $('fromEdit').onclick = () => openSearch('from');
   function useMyLocation(then) {
     if (!navigator.geolocation) { setMsg(T('noGeo')); return; }
     $('from').value = T('locating');
@@ -1079,21 +1103,31 @@ h1{font-family:inherit}
   if (navigator.geolocation) { origin = { coords: null, mine: true, at: 0 }; $('from').value = T('myPos'); }
 
 
+  // Är Från ifyllt räknas rutten direkt när man har valt ett mål: ett tryck i stället för två
+  function autoGo() {
+    const f = $('from').value.trim();
+    if ($('to').value.trim() && f && f !== T('locating') && !$('go').disabled) $('go').click();
+  }
+
   // ---------- Recent destinations ----------
+  const REC_ICO = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>';
+  const REC_CHEV = '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>';
   const renderRecent = () => {
     const list = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x);
-    $('recent').innerHTML = '';
-    list.forEach(p => {
+    $('recentSec').hidden = !list.length;
+    $('recent').replaceChildren(...list.map(p => {
       const b = document.createElement('button');
-      b.className = 'chip'; b.type = 'button'; b.textContent = p.short || p.label;
-      // Är Från ifyllt räknas rutten direkt: en tryckning hem
-      b.onclick = () => {
-        dest = (p.placeId || p.loc) ? { ...p } : null; $('to').value = p.label; hideSugg();
-        const f = $('from').value.trim();
-        if (f && f !== T('locating') && !$('go').disabled) $('go').click();
-      };
-      $('recent').appendChild(b);
-    });
+      b.className = 'rec'; b.type = 'button';
+      b.innerHTML = REC_ICO + '<span class="tx"><span class="m"></span><span class="s"></span></span>' + REC_CHEV;
+      const main = p.short || p.label;
+      // raden under: det som står efter namnet i adressen, t.ex. orten
+      const rest = p.label && p.label !== main ? (p.label.startsWith(main) ? p.label.slice(main.length).replace(/^[\s,]+/, '') : p.label) : '';
+      b.querySelector('.m').textContent = main;
+      b.querySelector('.s').textContent = rest;
+      if (!rest) b.querySelector('.s').remove();
+      b.onclick = () => { dest = (p.placeId || p.loc) ? { ...p } : null; $('to').value = p.label; hideSugg(); autoGo(); };
+      return b;
+    }));
   };
   const addRecent = t => {
     const list = store.get('recent', []).map(x => typeof x === 'string' ? { label: x, short: x } : x)
@@ -1198,6 +1232,7 @@ h1{font-family:inherit}
     if (f === 'from') origin = place; else dest = place;
     closeSearch(false);
     if (f === 'from' && !$('to').value) setTimeout(() => openSearch('to'), 50);
+    else autoGo();
   }
   // Håll sökvyn exakt ovanför tangentbordet (iOS flyttar annars sidan)
   function fitSearch() {
@@ -2613,26 +2648,35 @@ h1{font-family:inherit}
     box.classList.toggle('many', shown.length > 1);
     box.replaceChildren(...shown.map(meetCard));
     box.scrollLeft = x;   // uppdateras varje minut, då ska man inte hoppa tillbaka till första kortet
+    syncMeetSec();
     if ($('grp').open && grpMode === 'view') renderGroupMeets();
     if (nearMap) syncMeets();
   }
-  // Kort på startsidan: svara och kör dit direkt. Tryck på rubriken för att se vilka som kommer.
+  // Rubriken Träffar syns när det finns en träff eller man kan skapa en
+  function syncMeetSec() { $('meetSec').hidden = $('meetCards').hidden && $('meetNewBtn').hidden; }
+  // Dag och tid i rutan på kortet: idag, imorgon, veckodag den närmaste veckan, annars datum
+  function meetDay(iso) {
+    const d = new Date(iso), hm = d.toLocaleTimeString(LOC(), { hour: '2-digit', minute: '2-digit' });
+    if (d < Date.now()) return { day: T('meetNow'), hm };
+    const day = n => { const x = new Date(); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() + n); return x; };
+    const txt = d < day(1) ? T('today') : d < day(2) ? T('tomorrow')
+      : d.toLocaleDateString(LOC(), d < day(7) ? { weekday: 'short' } : { day: 'numeric', month: 'short' });
+    return { day: txt.replace(/\.$/, ''), hm };
+  }
+  // Kort på startsidan: kör dit direkt. Tryck på rubriken för att se vilka som kommer och svara.
   function meetCard(m) {
-    const c = el('div', { className: 'meet-card' }), hd = el('button', { type: 'button', className: 'hd' }), tx = el('span');
-    tx.append(el('b', { textContent: '🏁 ' + m.title }), el('small', { textContent: m.group_name + ' · ' + meetTime(m.starts_at) }));
+    const c = el('div', { className: 'meet-card' }), when = meetDay(m.starts_at);
+    const tile = el('span', { className: 'mc-day' }); tile.setAttribute('aria-hidden', 'true');
+    tile.append(el('small', { textContent: when.day }), el('b', { textContent: when.hm }));
+    const hd = el('button', { type: 'button', className: 'hd' }), tx = el('span');
+    tx.append(el('b', { textContent: m.title }), el('small', { textContent: m.group_name + ' · ' + comingText(m.coming) }),
+      el('span', { className: 'sr', textContent: meetTime(m.starts_at) }));
     if (m.god) tx.append(el('i', { className: 'god-tag', textContent: T('godTag') }));
-    hd.append(tx, el('em', { textContent: comingText(m.coming) }));
+    hd.append(tx);
     hd.onclick = () => openMeet(m);
-    const btn = (key, ghost) => el('button', { type: 'button', className: ghost ? 'cta ghost' : 'cta', textContent: T(key) });
-    const yes = btn('meetComing', true), no = btn('meetNotComing', true), go = btn('meetGo');
-    yes.setAttribute('aria-pressed', String(m.my_answer === true)); no.setAttribute('aria-pressed', String(m.my_answer === false));
-    const answer = async coming => {
-      yes.disabled = no.disabled = true; setMsg('');
-      try { await answerMeet(m, coming); } catch (e) { yes.disabled = no.disabled = false; setMsg(meetErr(e)); if (e.status === 404) loadMeets(); }
-    };
-    yes.onclick = () => answer(true); no.onclick = () => answer(false); go.onclick = () => driveMeet(m);
-    const acts = el('div', { className: 'acts' }); acts.append(yes, no, go);
-    c.append(hd, acts);
+    const go = el('button', { type: 'button', className: 'cta mc-go', textContent: T('meetGo') });
+    go.onclick = () => driveMeet(m);
+    c.append(tile, hd, go);
     return c;
   }
   function renderGroupMeets() {
@@ -2704,7 +2748,7 @@ h1{font-family:inherit}
     loadMeets();
   };
   // Skapa träff på startsidan: syns för den som är inloggad och med i minst en grupp
-  function renderMeetNew() { $('meetNewBtn').hidden = !(signedIn() && GROUPS && GROUPS.length); }
+  function renderMeetNew() { $('meetNewBtn').hidden = !(signedIn() && GROUPS && GROUPS.length); syncMeetSec(); }
   $('meetNewBtn').onclick = () => {
     if (!GROUPS || !GROUPS.length) return;
     meetNew(GROUPS.find(g => g.id === store.get('meetGroup', '')) || GROUPS[0]);
@@ -3059,6 +3103,7 @@ h1{font-family:inherit}
     $(pickField).value = T('pinLabel');
     closePick();
     if (pickField === 'from' && !$('to').value) setTimeout(() => openSearch('to'), 50);
+    else autoGo();
   };
   liveSync();
 

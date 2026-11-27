@@ -55,11 +55,12 @@
     b.click();
     await until(() => $('search').hidden && $('to').value, 'valt mål');
   }
+  // Ett valt mål räknas direkt när Från är ifyllt
   async function toResult() {
     fakeSearch(); await chooseTo();
-    $('go').click();
     await until(() => on('v-res'), 'resultatvyn');
   }
+  const dockShown = () => w.getComputedStyle(d.querySelector('#v-plan .dock')).display !== 'none';
 
   const tests = [];
   const test = (name, fn) => tests.push({ name, fn });
@@ -68,7 +69,21 @@
     await boot();
     expect($('from').value === 'Min position', 'Från är "' + $('from').value + '"');
     expect(!w.__geoCalls, 'positionen hämtades när appen startade');
-    expect($('spVal').textContent === '30', 'maxhastigheten är ' + $('spVal').textContent);
+    expect($('spVal').textContent === '30' && $('speedBox').tagName === 'BUTTON', 'skylten visar ' + $('spVal').textContent);
+    expect($('profName').textContent === 'EPA/A-traktor' && $('profMax').textContent === 'max 30 km/h', 'fordonsraden är "' + $('profName').parentNode.textContent + '"');
+  });
+
+  test('Startsidan: Beräkna rutt syns först när det finns ett mål, och Ändra öppnar Från', async () => {
+    await boot();
+    expect(!dockShown(), 'Beräkna rutt syns utan mål');
+    $('fromEdit').click();
+    await until(() => !$('search').hidden && $('sLbl').textContent === 'Från', 'sökningen för Från');
+    expect([...$('sugg').querySelectorAll('button')].some(b => b.textContent.includes('Min position')), 'Min position saknas i listan');
+    $('sBack').click();
+    fakeSearch(); await typeTo('Storg');
+    $('sBack').click();   // det man skrev blir kvar som mål
+    await until(() => $('to').value === 'Storg' && dockShown(), 'Beräkna rutt när det finns ett mål');
+    expect(!on('v-res'), 'rutten räknades utan att man valde ett förslag');
   });
 
   test('Engelska: rubrik och knapp är översatta', async () => {
@@ -88,12 +103,12 @@
     await until(() => $('sugg').textContent.includes('Kartjänsten tar inte emot fler sökningar'), 'texten om gränsen');
   });
 
-  test('Rutt: knappen visar stegen, resultatet kommer och fokus flyttas', async () => {
-    await boot(); fakeSearch(); await chooseTo();
+  test('Rutt: ett valt mål räknas direkt, knappen visar stegen och fokus flyttas', async () => {
+    await boot(); fakeSearch();
     const texts = [];
     const mo = new w.MutationObserver(() => texts.push($('go').textContent));
     mo.observe($('go'), { childList: true, subtree: true, characterData: true });
-    $('go').click();
+    await chooseTo();
     await until(() => on('v-res'), 'resultatvyn');
     mo.disconnect();
     ['Hämtar position', 'Söker vägar', 'Kontrollerar motorvägar', 'Väger säkerhet'].forEach(s =>
@@ -107,25 +122,27 @@
 
   test('Rutt: ett tidigare mål räknas med ett tryck', async () => {
     await boot({ recent: [{ label: PLACE.name + ', ' + PLACE.area, short: PLACE.name, loc: { lat: PLACE.lat, lng: PLACE.lng } }] });
-    const chip = await until(() => $('recent').querySelector('button'), 'det senaste målet');
-    chip.click();
+    const row = await until(() => $('recent').querySelector('button'), 'det senaste målet');
+    expect(!$('recentSec').hidden, 'rubriken Senaste syns inte');
+    expect(row.querySelector('.m').textContent === PLACE.name && row.querySelector('.s').textContent === PLACE.area, 'raden visar "' + row.textContent + '"');
+    row.click();
     await until(() => on('v-res'), 'resultatvyn');
   });
 
   test('Rutt: gränsen hos Stadia (429) ger en egen text', async () => {
-    await boot(); fakeSearch(); await chooseTo();
+    await boot(); fakeSearch();
     w.__route = () => w.__json({}, 429);
-    $('go').click();
+    await chooseTo();
     await until(() => $('msg').textContent.includes('Kartjänsten tar inte emot fler sökningar'), 'texten om gränsen');
     expect(!on('v-res'), 'resultatvyn visades');
   });
 
   test('Avbryt: anropen stoppas, knappen blir som vanligt och inget visas efteråt', async () => {
-    await boot(); fakeSearch(); await chooseTo();
+    await boot(); fakeSearch();
     const signals = [];
     w.__route = (body, opt) => { signals.push(opt.signal); return new Promise((ok, no) => opt.signal.addEventListener('abort', () => no(new w.DOMException('avbruten', 'AbortError')))); };
-    $('go').click();
-    await until(() => signals.length && !$('goCancel').hidden, 'en pågående beräkning');
+    await chooseTo();
+    await until(() => signals.length && !$('goCancel').hidden && dockShown(), 'en pågående beräkning');
     $('goCancel').click();
     expect(!$('go').disabled && $('go').textContent === 'Beräkna rutt' && $('goCancel').hidden, 'knappen blev inte som vanligt');
     expect(signals.every(s => s.aborted), 'alla anrop stoppades inte');
@@ -161,7 +178,9 @@
     await boot({}, { meetup_list: [{ id: 'm1', title: 'Fika vid macken', group_id: 'g1', group_name: 'Testgruppen', starts_at: starts, coming: 3, my_answer: null, god: false, lat: PLACE.lat, lng: PLACE.lng }],
       group_list: [{ id: 'g1', name: 'Testgruppen', members: 4, owner: false }] });
     const card = await until(() => $('meetCards').querySelector('.meet-card'), 'träffkortet');
-    expect(card.textContent.includes('Fika vid macken') && card.textContent.includes('Testgruppen'), 'kortet visar "' + card.textContent + '"');
+    expect(!$('meetSec').hidden, 'rubriken Träffar syns inte');
+    expect(card.textContent.includes('Fika vid macken') && card.textContent.includes('Testgruppen · 3 kommer'), 'kortet visar "' + card.textContent + '"');
+    expect(card.querySelector('.mc-day').textContent.toLowerCase().startsWith('idag'), 'dagen är "' + card.querySelector('.mc-day').textContent + '"');
     const go = [...card.querySelectorAll('button')].find(b => b.textContent === 'Kör hit');
     expect(go, 'ingen Kör hit-knapp');
     go.click();
