@@ -1,5 +1,5 @@
 // Slowlane service worker
-const VERSION = 'slowlane-v47';
+const VERSION = 'slowlane-v48';
 // Det som första besöket visar: appen, de små ikonerna och fordonsbilderna i välkomststeget.
 // Övriga bilder (väder, dimma, de stora ikonerna för installationen) hämtas första gången de behövs och sparas då.
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './apple-touch-icon.png', './epa-hero.webp', './moped2-hero.webp', './moped1-hero.webp', './mopedbil-hero.webp'];
