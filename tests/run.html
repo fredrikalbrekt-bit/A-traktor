@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slowlane-tester</title>
+<style>
+  body { margin: 16px; background: #111; color: #eee; font: 14px/1.5 system-ui, sans-serif; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  #sum { font-weight: 700; }
+  ol { padding-left: 22px; }
+  .ok { color: #3ecf8e; }
+  .fel { color: #ff8680; }
+  iframe { width: 390px; height: 844px; border: 1px solid #333; background: #000; }
+</style>
+</head>
+<body>
+<h1>Slowlane – webbläsartester</h1>
+<p id="sum" role="status">Startar …</p>
+<ol id="out"></ol>
+<iframe id="app" title="Appen under test"></iframe>
+<script src="browser-tests.js"></script>
+</body>
+</html>

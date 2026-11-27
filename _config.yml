@@ -1,4 +1,5 @@
 # GitHub Pages bygger sidan med Jekyll. Databasskriptet och notisfunktionen körs i Supabase
-# och ska inte gå att läsa på sidan, så mappen publiceras inte.
+# och ska inte gå att läsa på sidan, så mappen publiceras inte. Testerna körs bara lokalt.
 exclude:
   - supabase
+  - tests
